@@ -1,0 +1,65 @@
+:root{
+  --bg:#fff;
+  --text:#0a0a0a;
+  --muted:#666;
+  --primary:#000;
+  --ring:rgba(0,0,0,.06);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth;color-scheme:light}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+a{color:var(--primary);text-decoration:none} a:hover{opacity:.85}
+*::first-letter{all:unset} /* anti-first-letter */
+
+/* Layout helpers */
+.wrap{width:min(920px,92vw);margin-inline:auto;padding:clamp(16px,3vw,40px)}
+
+/* Hero */
+.hero{min-height:100svh;display:grid;place-items:center}
+.title{
+  font-size:clamp(28px,7vw,52px);
+  line-height:1.05;
+  letter-spacing:-0.01em;
+  text-align:center;
+  margin:0 0 12px 0;
+  opacity:0; transform:translateY(12px);
+  animation:fadeUp .7s ease-out forwards .1s;
+}
+.subtitle{
+  font-size:clamp(16px,2.8vw,22px);
+  text-align:center;
+  color:var(--muted);
+  margin:0 0 20px 0;
+  opacity:0; transform:translateY(10px);
+  animation:fadeUp .7s ease-out forwards .35s;
+}
+.actions{display:flex;justify-content:center;gap:12px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:14px 18px;border:1px solid #000;border-radius:999px;
+  background:#000;color:#fff;font-weight:600;letter-spacing:.2px;
+  opacity:0; transform:translateY(8px);
+  animation:fadeUp .7s ease-out forwards .6s;
+}
+.btn.secondary{background:transparent;color:#000}
+
+/* Sections below fold */
+.section{padding:56px 0;border-top:1px solid rgba(0,0,0,.06)}
+.section h2{font-size:clamp(22px,4.5vw,32px);margin:0 0 12px 0}
+.section p{margin:0 0 10px 0;color:var(--muted);font-size:clamp(15px,2.5vw,18px)}
+
+.grid3{display:grid;gap:16px;grid-template-columns:repeat(1,minmax(0,1fr))}
+@media (min-width:720px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{padding:18px;border:1px solid rgba(0,0,0,.08);border-radius:16px;background:#fff}
+
+/* Animations */
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}

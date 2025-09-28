@@ -1,0 +1,7 @@
+/* Tailwind base if needed */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Focus states */
+:focus{outline:2px solid rgba(0,0,0,.5);outline-offset:2px}
