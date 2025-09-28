@@ -21,3 +21,4 @@ npm run build
 - Статические секции ниже первого экрана
 ```
 
+> Baseline: `baseline-2025-09-28`  canonical snapshot after reset.
