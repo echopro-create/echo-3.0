@@ -1,0 +1,131 @@
+'use client'
+
+import { useState } from 'react'
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+
+  async function sendCode(e: React.FormEvent) {
+    e.preventDefault()
+    setErr(null); setMsg(null)
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setErr('Введите корректный e-mail'); return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Не удалось отправить код')
+      setMsg('Код отправлен. Проверьте почту.')
+      setStep('code')
+    } catch (e: any) {
+      setErr(e.message || 'Ошибка отправки кода')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setErr(null); setMsg(null)
+    if (code.length !== 6) { setErr('Введите 6-значный код'); return }
+    setLoading(true)
+    try {
+      // Следующим шагом подключим настоящий эндпоинт /api/auth/callback
+      const res = await fetch('/api/auth/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Код не принят')
+      // В случае успеха ведём на создание послания
+      window.location.href = '/messages/new'
+    } catch (e: any) {
+      setErr(e.message || 'Ошибка проверки кода')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <main className="min-h-[100svh] grid place-items-center px-6">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-medium text-center mb-4">Вход</h1>
+        <p className="text-sm text-neutral-600 text-center mb-8">
+          Введите e-mail, мы пришлём 6-значный код.
+        </p>
+
+        {step === 'email' && (
+          <form onSubmit={sendCode} className="space-y-4">
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl px-4 py-3 bg-black text-white disabled:opacity-60"
+              aria-busy={loading}
+            >
+              {loading ? 'Отправляем…' : 'Получить код'}
+            </button>
+          </form>
+        )}
+
+        {step === 'code' && (
+          <form onSubmit={verifyCode} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-neutral-700">Код из письма</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                placeholder="••••••"
+                className="w-full tracking-widest text-center text-xl border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || code.length !== 6}
+              className="w-full rounded-xl px-4 py-3 bg-black text-white disabled:opacity-60"
+              aria-busy={loading}
+            >
+              {loading ? 'Проверяем…' : 'Войти'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep('email')}
+              className="w-full text-sm text-neutral-600 underline"
+            >
+              Изменить e-mail
+            </button>
+          </form>
+        )}
+
+        {(msg || err) && (
+          <p className={`mt-6 text-center ${err ? 'text-red-600' : 'text-green-700'}`}>
+            {err || msg}
+          </p>
+        )}
+      </div>
+    </main>
+  )
+}
