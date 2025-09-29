@@ -45,16 +45,7 @@ export async function POST(req: Request) {
       await supabase.auth.admin.createUser({ email: rawEmail, email_confirm: true })
     } catch {}
 
-    const origin =
-      req.headers.get('origin') ||
-      (() => {
-        try {
-          const u = new URL(req.headers.get('referer') || '')
-          return `${u.protocol}//${u.host}`
-        } catch {
-          return 'https://echoproject.space'
-        }
-      })()
+    const origin = 'https://www.echoproject.space'
     const safeNext = nextUrl.startsWith('/') ? nextUrl : '/messages/new'
     const confirmUrl = `${origin}/auth/confirm?next=${encodeURIComponent(safeNext)}`
 

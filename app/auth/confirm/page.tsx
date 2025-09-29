@@ -9,16 +9,18 @@ const supabase = createClient(
 )
 
 function parseHash(hash: string) {
-  const q = new URLSearchParams(hash.replace(/^#/, ''))
-  const access_token = q.get('access_token') || ''
-  const refresh_token = q.get('refresh_token') || ''
-  return { access_token, refresh_token }
+  const q = new URLSearchParams((hash || '').replace(/^#/, ''))
+  return {
+    access_token: q.get('access_token') || '',
+    refresh_token: q.get('refresh_token') || '',
+  }
 }
 
 export default function AuthConfirmPage() {
   const [status, setStatus] = useState<'working' | 'ok' | 'fail'>('working')
 
   useEffect(() => {
+    let cancelled = false
     ;(async () => {
       try {
         const url = new URL(window.location.href)
@@ -28,7 +30,7 @@ export default function AuthConfirmPage() {
         if (access_token && refresh_token) {
           const { error } = await supabase.auth.setSession({ access_token, refresh_token })
           if (error) throw error
-          window.location.replace(next)
+          if (!cancelled) window.location.replace(next)
           return
         }
 
@@ -36,18 +38,31 @@ export default function AuthConfirmPage() {
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) throw error
-          window.location.replace(next)
+          if (!cancelled) window.location.replace(next)
           return
         }
 
         const { data } = await supabase.auth.getUser()
-        if (data.user) { window.location.replace(next); return }
+        if (data.user) {
+          if (!cancelled) window.location.replace(next)
+          return
+        }
 
         throw new Error('no auth params')
       } catch {
-        setStatus('fail')
+        if (!cancelled) setStatus('fail')
       }
     })()
+
+    const t = setTimeout(async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data.user) window.location.replace('/messages/new')
+    }, 5000)
+
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
   }, [])
 
   return (
