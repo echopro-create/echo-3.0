@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
@@ -30,32 +32,31 @@ function fmtSize(n?: number | null) {
   while (x >= 1024 && i < units.length - 1) { x /= 1024; i++ }
   return `${x.toFixed(x >= 10 || i === 0 ? 0 : 1)} ${units[i]}`
 }
+function fileNameFromKey(key: string) {
+  const parts = key.split('/')
+  return parts[parts.length - 1] || 'download'
+}
 
 export default function MessagesPage() {
   const [loading, setLoading] = useState(true)
-  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [items, setItems] = useState<Message[]>([])
   const [err, setErr] = useState<string | null>(null)
+  const [downloading, setDownloading] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
     ;(async () => {
       try {
-        const { data: u } = await supabase.auth.getUser()
-        setUserEmail((u.user as any)?.email ?? null)
-
-        // тянем мои сообщения вместе с вложениями
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('messages')
           .select('id, kind, body, created_at, attachments ( id, storage_key, mime_type, size_bytes )')
           .order('created_at', { ascending: false })
           .limit(50)
 
-        if (error) throw error
         if (!mounted) return
-        setItems((data as any) || [])
+        if (data) setItems(data as any)
       } catch (e: any) {
-        setErr(e?.message || 'Не удалось загрузить список')
+        if (mounted) setErr(e?.message || 'Не удалось загрузить список')
       } finally {
         if (mounted) setLoading(false)
       }
@@ -65,10 +66,12 @@ export default function MessagesPage() {
 
   async function download(att: Attachment) {
     try {
+      setDownloading(att.id)
       const { data: s } = await supabase.auth.getSession()
       const token = s.session?.access_token
       if (!token) throw new Error('Нет сессии')
 
+      // 1) просим сервер подписать ссылку
       const res = await fetch('/api/uploads/sign-download', {
         method: 'POST',
         headers: {
@@ -78,10 +81,26 @@ export default function MessagesPage() {
         body: JSON.stringify({ path: att.storage_key, expires: 60 })
       })
       const j = await res.json()
-      if (!res.ok) throw new Error(j?.error || 'Не удалось получить ссылку')
-      window.open(j.url, '_blank', 'noopener,noreferrer')
+      if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
+
+      // 2) качаем файл как blob (без плясок с новыми вкладками)
+      const rsp = await fetch(j.url)
+      if (!rsp.ok) throw new Error('Ошибка загрузки файла')
+      const blob = await rsp.blob()
+
+      // 3) триггерим «сохранить как»
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileNameFromKey(att.storage_key)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
     } catch (e: any) {
       alert(e?.message || 'Ошибка скачивания')
+    } finally {
+      setDownloading(null)
     }
   }
 
@@ -137,9 +156,10 @@ export default function MessagesPage() {
                     </div>
                     <button
                       onClick={() => download(a)}
-                      className="text-sm rounded-lg px-3 py-1 bg-black text-white"
+                      disabled={downloading === a.id}
+                      className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
                     >
-                      Скачать
+                      {downloading === a.id ? 'Готовим…' : 'Скачать'}
                     </button>
                   </div>
                 ))}
