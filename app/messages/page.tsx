@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -159,13 +160,16 @@ export default function MessagesPage() {
                 </div>
                 {m.body && <div className="mt-1">{m.body}</div>}
               </div>
-              <button
-                onClick={() => removeMessage(m.id)}
-                disabled={deleting === m.id}
-                className="text-sm underline text-neutral-700 disabled:opacity-60"
-              >
-                {deleting === m.id ? 'Удаляем…' : 'Удалить'}
-              </button>
+              <div className="flex items-center gap-3">
+                <Link href={`/messages/${m.id}`} className="text-sm underline">Открыть</Link>
+                <button
+                  onClick={() => removeMessage(m.id)}
+                  disabled={deleting === m.id}
+                  className="text-sm underline text-neutral-700 disabled:opacity-60"
+                >
+                  {deleting === m.id ? 'Удаляем…' : 'Удалить'}
+                </button>
+              </div>
             </div>
 
             {!!m.attachments?.length && (
