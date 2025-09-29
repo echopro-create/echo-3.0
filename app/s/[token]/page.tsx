@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 type Att = { id: string; storage_key: string; mime_type: string | null; size_bytes: number | null }
 type Resolved = {
@@ -24,8 +27,10 @@ function nameFromKey(k: string) {
   return parts[parts.length - 1] || 'download'
 }
 
-export default function SharePage({ params }: { params: { token: string } }) {
-  const token = useMemo(()=>decodeURIComponent(params.token), [params.token])
+export default function SharePage() {
+  const { token: rawToken } = useParams<{ token: string }>()
+  const token = useMemo(() => decodeURIComponent(rawToken ?? ''), [rawToken])
+
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [needsPw, setNeedsPw] = useState(false)
@@ -34,6 +39,7 @@ export default function SharePage({ params }: { params: { token: string } }) {
   const [downloading, setDownloading] = useState<string | null>(null)
 
   async function resolveShare(pw?: string) {
+    if (!token) return
     setErr(null)
     setLoading(true)
     try {
@@ -44,9 +50,7 @@ export default function SharePage({ params }: { params: { token: string } }) {
       })
       const j = await res.json()
       if (!res.ok) {
-        if (j?.requires_password) {
-          setNeedsPw(true)
-        }
+        if (j?.requires_password) setNeedsPw(true)
         throw new Error(j?.error || 'Не удалось открыть ссылку')
       }
       setData(j as Resolved)
@@ -86,6 +90,14 @@ export default function SharePage({ params }: { params: { token: string } }) {
     } finally {
       setDownloading(null)
     }
+  }
+
+  if (!token) {
+    return (
+      <main className="min-h-[100svh] grid place-items-center px-6">
+        <p className="text-sm text-red-600">Некорректная ссылка</p>
+      </main>
+    )
   }
 
   if (loading) {
