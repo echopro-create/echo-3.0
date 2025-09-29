@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 
 export default function LoginPage() {
@@ -13,9 +12,7 @@ export default function LoginPage() {
   async function sendCode(e: React.FormEvent) {
     e.preventDefault()
     setErr(null); setMsg(null)
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setErr('Введите корректный e-mail'); return
-    }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setErr('Введите корректный e-mail'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/otp', {
@@ -40,7 +37,6 @@ export default function LoginPage() {
     if (code.length !== 6) { setErr('Введите 6-значный код'); return }
     setLoading(true)
     try {
-      // Следующим шагом подключим настоящий эндпоинт /api/auth/callback
       const res = await fetch('/api/auth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +44,14 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Код не принят')
-      // В случае успеха ведём на создание послания
+
+      // ВАЖНО: переходим по magic-link, чтобы Supabase поставил cookie-сессию
+      if (data?.redirect) {
+        window.location.href = data.redirect
+        return
+      }
+
+      // запасной вариант, если вдруг redirect не пришёл
       window.location.href = '/messages/new'
     } catch (e: any) {
       setErr(e.message || 'Ошибка проверки кода')
