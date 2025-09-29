@@ -196,7 +196,10 @@ export default function MessagesPage() {
     <main className="min-h-[100svh] px-6 py-10 max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-medium">Мои послания</h1>
-        <a href="/messages/new" className="rounded-xl bg-black text-white px-4 py-2 text-sm">Создать</a>
+        <div className="flex items-center gap-2">
+          <a href="/settings" className="rounded-xl px-4 py-2 text-sm border">Настройки</a>
+          <a href="/messages/new" className="rounded-xl bg-black text-white px-4 py-2 text-sm">Создать</a>
+        </div>
       </div>
 
       <div className="mb-6 grid gap-2 border rounded-xl p-4">
@@ -204,18 +207,31 @@ export default function MessagesPage() {
         <div className="grid sm:grid-cols-3 gap-3">
           <label className="text-sm">
             TTL (сек)
-            <input type="number" value={shareTTL} onChange={e=>setShareTTL(Math.max(60, Number(e.target.value||0)))}
-                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+            <input
+              type="number"
+              value={shareTTL}
+              onChange={e => setShareTTL(Math.max(60, Number(e.target.value || 0)))}
+              className="mt-1 w-full border rounded-xl px-3 py-2"
+            />
           </label>
           <label className="text-sm">
             Пароль (опц.)
-            <input type="password" value={sharePW} onChange={e=>setSharePW(e.target.value)}
-                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+            <input
+              type="password"
+              value={sharePW}
+              onChange={e => setSharePW(e.target.value)}
+              className="mt-1 w-full border rounded-xl px-3 py-2"
+            />
           </label>
           <label className="text-sm">
             Лимит просмотров (опц.)
-            <input type="number" min={1} value={shareMax} onChange={e=>setShareMax(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+            <input
+              type="number"
+              min={1}
+              value={shareMax}
+              onChange={e => setShareMax(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
+              className="mt-1 w-full border rounded-xl px-3 py-2"
+            />
           </label>
         </div>
         <p className="text-xs text-neutral-500">
