@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Uploader from '@/app/components/Uploader'
+
+// пусть страница рендерится динамически, без попыток статического экспорта
+export const dynamic = 'force-dynamic'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
@@ -13,13 +16,12 @@ const supabase = createClient(
 
 type Kind = 'text' | 'voice' | 'video' | 'file'
 
-export default function NewMessagePage() {
+function PageInner() {
   const sp = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<null | { id: string; email?: string }>(null)
 
-  // как только придём без type — показываем меню, при type=file — показываем загрузчик
   const kind = useMemo<Kind | null>(() => {
     const k = (sp.get('type') || '').toLowerCase()
     if (!k) return null
@@ -80,10 +82,7 @@ export default function NewMessagePage() {
           <Link href="/messages/new?type=video" className="border rounded-xl p-4 hover:bg-neutral-50">
             Видео
           </Link>
-          <Link
-            href="/messages/new?type=file"
-            className="border rounded-xl p-4 hover:bg-neutral-50"
-          >
+          <Link href="/messages/new?type=file" className="border rounded-xl p-4 hover:bg-neutral-50">
             Файлы
           </Link>
         </div>
@@ -127,5 +126,22 @@ export default function NewMessagePage() {
         </section>
       )}
     </main>
+  )
+}
+
+function Fallback() {
+  return (
+    <main className="min-h-[100svh] grid place-items-center px-6">
+      <p className="text-sm text-neutral-600">Готовим страницу…</p>
+    </main>
+  )
+}
+
+export default function Page() {
+  // Требование Next 15: useSearchParams() — только внутри Suspense
+  return (
+    <Suspense fallback={<Fallback />}>
+      <PageInner />
+    </Suspense>
   )
 }
