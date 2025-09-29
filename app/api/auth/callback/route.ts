@@ -1,4 +1,4 @@
-# Перезаписываем app/api/auth/callback/route.ts (UTF-8 без BOM) ЧИСТЫМ TS
+# Перезаписываем файл (UTF-8 без BOM) — ВНУТРИ только TypeScript!
 $Path = "D:\echo-git\app\api\auth\callback\route.ts"
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 $Content = @'
@@ -96,4 +96,4 @@ export async function POST(req: Request) {
 '@
 [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($Path)) | Out-Null
 [IO.File]::WriteAllText($Path, $Content, $Utf8)
-Write-Host "Что сделали: очистили файл от постороннего PowerShell и вернули валидный TypeScript."
+Write-Host "Что сделали: очистили файл и записали валидный TypeScript."
