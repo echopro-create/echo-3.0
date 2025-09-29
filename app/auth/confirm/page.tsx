@@ -1,55 +1,67 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+)
+
+function parseHash(hash: string) {
+  const q = new URLSearchParams(hash.replace(/^#/, ''))
+  const access_token = q.get('access_token') || ''
+  const refresh_token = q.get('refresh_token') || ''
+  return { access_token, refresh_token }
+}
+
 export default function AuthConfirmPage() {
-  const router = useRouter()
+  const [status, setStatus] = useState<'working' | 'ok' | 'fail'>('working')
 
   useEffect(() => {
-    // 1) Достаём токены из hash (#access_token=...&refresh_token=...) или query
-    const hash = typeof window !== 'undefined' ? window.location.hash : ''
-    const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : window.location.search)
-
-    const access_token = params.get('access_token')
-    const refresh_token = params.get('refresh_token')
-
-    async function run() {
+    ;(async () => {
       try {
-        if (!access_token || !refresh_token) {
-          // Если Supabase прислал не тот формат, просто ведём на /login
-          router.replace('/login')
+        const url = new URL(window.location.href)
+        const next = url.searchParams.get('next') || '/messages/new'
+
+        const { access_token, refresh_token } = parseHash(window.location.hash)
+        if (access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+          if (error) throw error
+          window.location.replace(next)
           return
         }
 
-        // 2) Устанавливаем сессию в браузере
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-        )
-
-        const { error } = await supabase.auth.setSession({ access_token, refresh_token })
-        if (error) {
-          console.error('setSession error:', error)
-          router.replace('/login')
+        const code = url.searchParams.get('code')
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) throw error
+          window.location.replace(next)
           return
         }
 
-        // 3) Готово: в кабинет
-        router.replace('/messages/new')
-      } catch (e) {
-        console.error(e)
-        router.replace('/login')
+        const { data } = await supabase.auth.getUser()
+        if (data.user) { window.location.replace(next); return }
+
+        throw new Error('no auth params')
+      } catch {
+        setStatus('fail')
       }
-    }
-
-    run()
-  }, [router])
+    })()
+  }, [])
 
   return (
     <main className="min-h-[100svh] grid place-items-center px-6">
-      <p className="text-sm text-neutral-600">Входим…</p>
+      <div className="text-center">
+        <h1 className="text-xl font-medium mb-2">
+          {status === 'working' ? 'Завершаем вход' : status === 'ok' ? 'Готово' : 'Не удалось войти'}
+        </h1>
+        <p className="text-sm text-neutral-600">
+          {status === 'working'
+            ? 'Проверяем ссылку подтверждения'
+            : 'Попробуйте запросить новый код и повторить попытку'}
+        </p>
+      </div>
     </main>
   )
 }

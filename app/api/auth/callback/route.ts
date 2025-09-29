@@ -24,7 +24,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Код должен состоять из 6 цифр' }, { status: 400 })
     }
 
-    // 1) Ищем свежий неиспользованный код
     const { data: otpRow, error: selErr } = await supabase
       .from('otp_codes')
       .select('id, email, code, expires_at, used')
@@ -36,23 +35,16 @@ export async function POST(req: Request) {
       .limit(1)
       .maybeSingle()
 
-    if (selErr) {
-      return NextResponse.json({ error: 'Временная ошибка, попробуйте позже' }, { status: 503 })
-    }
-    if (!otpRow) {
-      return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 401 })
-    }
+    if (selErr) return NextResponse.json({ error: 'Временная ошибка, попробуйте позже' }, { status: 503 })
+    if (!otpRow) return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 401 })
 
-    // 2) Одноразовость: помечаем использованным и чистим прочие коды этого email
     await supabase.from('otp_codes').update({ used: true }).eq('id', otpRow.id)
     await supabase.from('otp_codes').delete().neq('id', otpRow.id).eq('email', rawEmail)
 
-    // 3) Создаём пользователя, если ещё нет (молча игнорируем конфликт)
     try {
       await supabase.auth.admin.createUser({ email: rawEmail, email_confirm: true })
     } catch {}
 
-    // 4) Формируем безопасный redirectTo
     const origin =
       req.headers.get('origin') ||
       (() => {
@@ -63,15 +55,13 @@ export async function POST(req: Request) {
           return 'https://echoproject.space'
         }
       })()
-
     const safeNext = nextUrl.startsWith('/') ? nextUrl : '/messages/new'
-    const redirectTo = `${origin}${safeNext}`
+    const confirmUrl = `${origin}/auth/confirm?next=${encodeURIComponent(safeNext)}`
 
-    // 5) Генерируем magic-link (options: redirectTo оставим, но ниже всё равно принудительно подложим redirect_to)
     const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: rawEmail,
-      options: { redirectTo }
+      options: { redirectTo: confirmUrl }
     })
 
     const actionLink =
@@ -83,12 +73,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Не удалось создать сессию' }, { status: 502 })
     }
 
-    // 6) Принудительно добавляем redirect_to, чтобы не выбрасывало на корень
     const url =
       actionLink +
       (actionLink.includes('?') ? '&' : '?') +
       'redirect_to=' +
-      encodeURIComponent(redirectTo)
+      encodeURIComponent(confirmUrl)
 
     return NextResponse.json({ ok: true, redirect: url })
   } catch {
