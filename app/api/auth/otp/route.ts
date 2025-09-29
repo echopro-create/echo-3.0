@@ -16,34 +16,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email обязателен" }, { status: 400 })
     }
 
-    // Генерируем 6-значный код
     const code = Math.floor(100000 + Math.random() * 900000).toString()
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-    // Сохраняем его в БД с временем жизни 10 мин
     const { error: dbError } = await supabase
       .from("otp_codes")
-      .insert({
-        email: email.toLowerCase(),
-        code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      })
+      .insert({ email: email.toLowerCase(), code, expires_at: expiresAt })
 
     if (dbError) {
-      console.error(dbError)
-      return NextResponse.json({ error: "Ошибка сохранения кода" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Ошибка сохранения кода", detail: dbError.message || dbError.details || dbError.hint },
+        { status: 500 }
+      )
     }
 
-    // Отправляем письмо
-    await resend.emails.send({
-      from: "Echo <no-reply@echoproject.space>",
+    // ВРЕМЕННО: тестовый домен Resend, чтобы логи точно появились
+    const sendRes = await resend.emails.send({
+      from: "Echo <onboarding@resend.dev>",
       to: email,
       subject: "Ваш код входа",
       text: `Ваш одноразовый код для входа: ${code}\nОн действителен 10 минут.`,
-    })
+    } as any)
+
+    if ((sendRes as any)?.error) {
+      return NextResponse.json(
+        { error: "Ошибка отправки кода", detail: (sendRes as any).error?.message || (sendRes as any).error },
+        { status: 502 }
+      )
+    }
 
     return NextResponse.json({ ok: true })
-  } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: "Ошибка отправки кода" }, { status: 500 })
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Ошибка сервера", detail: err?.message },
+      { status: 500 }
+    )
   }
 }
