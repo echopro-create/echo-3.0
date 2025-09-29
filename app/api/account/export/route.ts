@@ -1,30 +1,20 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { audit } from '@/lib/audit'
 
 export async function GET(req: Request) {
   try {
     const auth = req.headers.get('authorization') || ''
-    if (!auth.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!auth.startsWith('Bearer ')) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const jwt = auth.slice(7)
     const { data: usr } = await supabaseAdmin.auth.getUser(jwt)
     const user = usr?.user
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const [messagesRes, attachmentsRes, sharesRes] = await Promise.all([
-      supabaseAdmin.from('messages')
-        .select('*')
-        .eq('owner', user.id)
-        .order('created_at', { ascending: false }),
-      supabaseAdmin.from('attachments')
-        .select('*')
-        .eq('owner', user.id)
-        .order('created_at', { ascending: false }),
-      supabaseAdmin.from('shares')
-        .select('*')
-        .eq('owner', user.id)
-        .order('created_at', { ascending: false }),
+      supabaseAdmin.from('messages').select('*').eq('owner', user.id).order('created_at', { ascending: false }),
+      supabaseAdmin.from('attachments').select('*').eq('owner', user.id).order('created_at', { ascending: false }),
+      supabaseAdmin.from('shares').select('*').eq('owner', user.id).order('created_at', { ascending: false }),
     ])
 
     const payload = {
@@ -34,6 +24,8 @@ export async function GET(req: Request) {
       shares: sharesRes.data ?? [],
       generated_at: new Date().toISOString(),
     }
+
+    await audit(req, user.id, 'account.export')
 
     return NextResponse.json(payload, {
       status: 200,

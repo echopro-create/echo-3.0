@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { audit } from '@/lib/audit'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Код должен состоять из 6 цифр' }, { status: 400 })
     }
 
+    // 1) Ищем свежий неиспользованный код
     const { data: otpRow, error: selErr } = await supabase
       .from('otp_codes')
       .select('id, email, code, expires_at, used')
@@ -38,17 +40,19 @@ export async function POST(req: Request) {
     if (selErr) return NextResponse.json({ error: 'Временная ошибка, попробуйте позже' }, { status: 503 })
     if (!otpRow) return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 401 })
 
+    // 2) Одноразовость
     await supabase.from('otp_codes').update({ used: true }).eq('id', otpRow.id)
     await supabase.from('otp_codes').delete().neq('id', otpRow.id).eq('email', rawEmail)
 
-    try {
-      await supabase.auth.admin.createUser({ email: rawEmail, email_confirm: true })
-    } catch {}
+    // 3) Создаём пользователя, если ещё нет
+    try { await supabase.auth.admin.createUser({ email: rawEmail, email_confirm: true }) } catch {}
 
-    const origin = 'https://www.echoproject.space'
+    // 4) Собираем redirect через нашу приёмную страницу /auth/confirm
+    const origin = 'https://www.echoproject.space' // канонический хост
     const safeNext = nextUrl.startsWith('/') ? nextUrl : '/messages/new'
     const confirmUrl = `${origin}/auth/confirm?next=${encodeURIComponent(safeNext)}`
 
+    // 5) Magic link от Supabase с редиректом на confirm
     const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: rawEmail,
@@ -64,11 +68,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Не удалось создать сессию' }, { status: 502 })
     }
 
+    // Supabase любит хэши, поэтому доклеиваем redirect_to для верности
     const url =
       actionLink +
       (actionLink.includes('?') ? '&' : '?') +
       'redirect_to=' +
       encodeURIComponent(confirmUrl)
+
+    // 6) Аудит: фиксим факт верификации кода
+    await audit(
+      req,
+      // userId может быть недоступен на этом шаге, пишем нулевой UUID
+      '00000000-0000-0000-0000-000000000000',
+      'auth.otp_verify',
+      { type: 'email', id: rawEmail },
+      { next: safeNext }
+    )
 
     return NextResponse.json({ ok: true, redirect: url })
   } catch {

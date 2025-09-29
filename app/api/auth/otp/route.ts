@@ -1,6 +1,8 @@
+// app/api/auth/otp/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { audit } from '@/lib/audit'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -118,8 +120,20 @@ export async function POST(req: Request) {
       )
     }
 
+    // 5) Аудит (пользователь ещё не аутентифицирован — используем нулевой UUID)
+    await audit(
+      req,
+      '00000000-0000-0000-0000-000000000000',
+      'auth.otp_send',
+      { type: 'email', id: rawEmail },
+      { ip }
+    )
+
     return NextResponse.json({ ok: true, ttl_minutes: CODE_TTL_MIN })
   } catch (e: any) {
-    return NextResponse.json({ error: 'Ошибка сервера', detail: e?.message }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Ошибка сервера', detail: e?.message },
+      { status: 500 }
+    )
   }
 }
