@@ -44,6 +44,7 @@ export default function MessagesPage() {
   const [err, setErr] = useState<string | null>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [sharing, setSharing] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -130,6 +131,32 @@ export default function MessagesPage() {
     }
   }
 
+  async function shareMessage(id: string) {
+    try {
+      setSharing(id)
+      const { data: s } = await supabase.auth.getSession()
+      const token = s.session?.access_token
+      if (!token) throw new Error('Нет сессии')
+
+      const res = await fetch('/api/shares/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ messageId: id, expiresSeconds: 86400 })
+      })
+      const j = await res.json()
+      if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось создать ссылку')
+      await navigator.clipboard.writeText(j.url)
+      alert('Ссылка скопирована в буфер обмена')
+    } catch (e: any) {
+      alert(e?.message || 'Не удалось создать ссылку')
+    } finally {
+      setSharing(null)
+    }
+  }
+
   if (loading) {
     return (
       <main className="min-h-[100svh] grid place-items-center px-6">
@@ -162,6 +189,13 @@ export default function MessagesPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Link href={`/messages/${m.id}`} className="text-sm underline">Открыть</Link>
+                <button
+                  onClick={() => shareMessage(m.id)}
+                  disabled={sharing === m.id}
+                  className="text-sm underline text-neutral-700 disabled:opacity-60"
+                >
+                  {sharing === m.id ? 'Готовим…' : 'Поделиться'}
+                </button>
                 <button
                   onClick={() => removeMessage(m.id)}
                   disabled={deleting === m.id}
