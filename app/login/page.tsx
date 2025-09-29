@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -8,26 +8,52 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 )
 
+type Step = 'email' | 'code'
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
-  const [step, setStep] = useState<'email' | 'code'>('email')
+  const [step, setStep] = useState<Step>('email')
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
 
-  // Уже авторизован? Уходим сразу в кабинет
+  // Куда редиректить после успешного входа
+  const nextUrl = useMemo(() => {
+    try {
+      const sp = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+      const n = sp.get('next')
+      // Белый список: только внутренние пути
+      return n && n.startsWith('/') ? n : '/messages/new'
+    } catch {
+      return '/messages/new'
+    }
+  }, [])
+
+  // Уже авторизован? Уходим сразу
   useEffect(() => {
     ;(async () => {
       const { data } = await supabase.auth.getUser()
-      if (data.user) window.location.replace('/messages/new')
+      if (data.user) window.location.replace(nextUrl)
     })()
-  }, [])
+  }, [nextUrl])
+
+  // Тиканье кулдауна на повторную отправку кода
+  useEffect(() => {
+    if (!cooldown) return
+    const t = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000)
+    return () => clearInterval(t)
+  }, [cooldown])
+
+  function invalidEmail(e: string) {
+    return !e || !/\S+@\S+\.\S+/.test(e)
+  }
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault()
     setErr(null); setMsg(null)
-    if (!email || !/\S+@\S+\.\S+/.test(email)) { setErr('Введите корректный e-mail'); return }
+    if (invalidEmail(email)) { setErr('Введите корректный e-mail'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/otp', {
@@ -39,6 +65,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data?.error || 'Не удалось отправить код')
       setMsg('Код отправлен. Проверьте почту.')
       setStep('code')
+      setCooldown(30) // анти-спам: 30 секунд до повторной отправки
     } catch (e: any) {
       setErr(e.message || 'Ошибка отправки кода')
     } finally {
@@ -55,21 +82,43 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, code, next: nextUrl }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Код не принят')
 
-      // Переходим по magic-link, чтобы Supabase поставил cookie-сессию
+      // Если API вернул magic-link — идём по нему, чтобы Supabase поставил cookie
       if (data?.redirect) {
         window.location.href = data.redirect
         return
       }
 
-      // Запасной вариант
-      window.location.href = '/messages/new'
+      // Иначе просто в кабинет
+      window.location.href = nextUrl
     } catch (e: any) {
       setErr(e.message || 'Ошибка проверки кода')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function resend() {
+    if (cooldown || loading) return
+    setMsg(null); setErr(null)
+    if (invalidEmail(email)) { setErr('Некорректный e-mail'); return }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, resend: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Не удалось отправить код повторно')
+      setMsg('Код повторно отправлен.')
+      setCooldown(30)
+    } catch (e: any) {
+      setErr(e.message || 'Ошибка при повторной отправке')
     } finally {
       setLoading(false)
     }
@@ -84,7 +133,7 @@ export default function LoginPage() {
         </p>
 
         {step === 'email' && (
-          <form onSubmit={sendCode} className="space-y-4">
+          <form onSubmit={sendCode} className="space-y-4" noValidate>
             <input
               type="email"
               inputMode="email"
@@ -92,7 +141,8 @@ export default function LoginPage() {
               placeholder="you@example.com"
               className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())}
+              aria-invalid={invalidEmail(email)}
             />
             <button
               type="submit"
@@ -106,7 +156,7 @@ export default function LoginPage() {
         )}
 
         {step === 'code' && (
-          <form onSubmit={verifyCode} className="space-y-4">
+          <form onSubmit={verifyCode} className="space-y-4" noValidate>
             <div className="space-y-2">
               <label className="text-sm text-neutral-700">Код из письма</label>
               <input
@@ -117,9 +167,22 @@ export default function LoginPage() {
                 placeholder="••••••"
                 className="w-full tracking-widest text-center text-xl border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, '').slice(0, 6)
+                  setCode(v)
+                  // авто-сабмит при 6 символах
+                  if (v.length === 6) {
+                    // маленькая задержка, чтобы input дорисовался
+                    setTimeout(() => {
+                      const form = e.currentTarget.form as HTMLFormElement | null
+                      form?.requestSubmit()
+                    }, 10)
+                  }
+                }}
+                aria-invalid={code.length !== 6}
               />
             </div>
+
             <button
               type="submit"
               disabled={loading || code.length !== 6}
@@ -128,13 +191,26 @@ export default function LoginPage() {
             >
               {loading ? 'Проверяем…' : 'Войти'}
             </button>
-            <button
-              type="button"
-              onClick={() => setStep('email')}
-              className="w-full text-sm text-neutral-600 underline"
-            >
-              Изменить e-mail
-            </button>
+
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setStep('email')}
+                className="text-sm text-neutral-600 underline"
+              >
+                Изменить e-mail
+              </button>
+
+              <button
+                type="button"
+                onClick={resend}
+                disabled={!!cooldown || loading}
+                className="text-sm text-neutral-700 underline disabled:opacity-60"
+                title={cooldown ? `Повторно через ${cooldown} сек.` : 'Отправить код ещё раз'}
+              >
+                {cooldown ? `Повторно через ${cooldown}s` : 'Отправить снова'}
+              </button>
+            </div>
           </form>
         )}
 

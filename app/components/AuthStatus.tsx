@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -12,55 +13,46 @@ const supabase = createClient(
 export default function AuthStatus() {
   const [email, setEmail] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     let mounted = true
-
     async function init() {
       const { data } = await supabase.auth.getUser()
-      if (mounted) {
-        setEmail(data.user?.email ?? null)
-        setReady(true)
-      }
+      if (mounted) { setEmail(data.user?.email ?? null); setReady(true) }
     }
-
-    // Подхватываем текущую сессию и слушаем изменения
     init()
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       if (!mounted) return
-      setEmail(session?.user?.email ?? null)
+      setEmail(s?.user?.email ?? null)
     })
-
-    return () => {
-      mounted = false
-      sub.subscription.unsubscribe()
-    }
+    return () => { mounted = false; sub.subscription.unsubscribe() }
   }, [])
 
-  if (!ready) {
-    // лёгкий плейсхолдер, чтобы не мигало
-    return <span className="inline-block w-16 h-6 rounded-xl bg-black/5" aria-hidden />
+  async function signOut() {
+    await supabase.auth.signOut()
+    router.replace('/')   // домой
   }
+
+  if (!ready) return <span className="inline-block w-24 h-7 rounded-xl bg-black/5" aria-hidden />
 
   if (!email) {
     return (
-      <Link
-        href="/login"
-        className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm hover:bg-black hover:text-white transition"
-        aria-label="Перейти к входу"
-      >
+      <Link href="/login" className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm hover:bg-black hover:text-white transition">
         Войти
       </Link>
     )
   }
 
   return (
-    <span
-      className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm bg-white"
-      aria-live="polite"
-    >
-      <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
-      {email}
-    </span>
+    <div className="inline-flex items-center gap-2">
+      <span className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm bg-white">
+        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+        {email}
+      </span>
+      <button onClick={signOut} className="text-sm underline text-neutral-600 hover:text-black">
+        Выйти
+      </button>
+    </div>
   )
 }
