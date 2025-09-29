@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import Uploader from '@/app/components/Uploader'
 
@@ -9,9 +11,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 )
 
+type Kind = 'text' | 'voice' | 'video' | 'file'
+
 export default function NewMessagePage() {
+  const sp = useSearchParams()
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<null | { id: string; email?: string }>(null)
+
+  // как только придём без type — показываем меню, при type=file — показываем загрузчик
+  const kind = useMemo<Kind | null>(() => {
+    const k = (sp.get('type') || '').toLowerCase()
+    if (!k) return null
+    return ['text', 'voice', 'video', 'file'].includes(k) ? (k as Kind) : null
+  }, [sp])
 
   useEffect(() => {
     let mounted = true
@@ -51,28 +64,68 @@ export default function NewMessagePage() {
     )
   }
 
+  // режим выбора типа послания
+  if (!kind) {
+    return (
+      <main className="min-h-[100svh] px-6 py-10 max-w-3xl mx-auto">
+        <h1 className="text-2xl font-medium mb-6">Новое послание</h1>
+
+        <div className="grid gap-4">
+          <Link href="/messages/new?type=text" className="border rounded-xl p-4 hover:bg-neutral-50">
+            Текст
+          </Link>
+          <Link href="/messages/new?type=voice" className="border rounded-xl p-4 hover:bg-neutral-50">
+            Голос
+          </Link>
+          <Link href="/messages/new?type=video" className="border rounded-xl p-4 hover:bg-neutral-50">
+            Видео
+          </Link>
+          <Link
+            href="/messages/new?type=file"
+            className="border rounded-xl p-4 hover:bg-neutral-50"
+          >
+            Файлы
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
+  // режим конкретного типа
   return (
     <main className="min-h-[100svh] px-6 py-10 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-medium mb-6">Новое послание</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-medium">
+          {kind === 'file' ? 'Вложения' :
+           kind === 'text' ? 'Текстовое послание' :
+           kind === 'voice' ? 'Голосовое послание' :
+           'Видео-послание'}
+        </h1>
 
-      <div className="grid gap-6">
+        <button
+          onClick={() => router.push('/messages/new')}
+          className="text-sm text-neutral-600 underline"
+        >
+          ← выбрать другой тип
+        </button>
+      </div>
+
+      {kind === 'file' && (
         <section className="border rounded-xl p-4">
-          <h2 className="font-medium mb-3">Вложения</h2>
           <Uploader />
           <p className="text-xs text-neutral-500 mt-2">
-            Файлы приватны. Скачивание будет через подписанные ссылки.
+            Файлы приватны. Загрузка и скачивание идут через подписанные ссылки.
           </p>
         </section>
+      )}
 
+      {kind !== 'file' && (
         <section className="border rounded-xl p-4">
-          <h2 className="font-medium mb-2">Другие типы (заглушки)</h2>
-          <div className="grid gap-2">
-            <button className="border rounded-xl p-3 text-left">Текст</button>
-            <button className="border rounded-xl p-3 text-left">Голос</button>
-            <button className="border rounded-xl p-3 text-left">Видео</button>
-          </div>
+          <p className="text-neutral-600 text-sm">
+            Этот тип пока в разработке. Начни с «Файлы».
+          </p>
         </section>
-      </div>
+      )}
     </main>
   )
 }
