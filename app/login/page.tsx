@@ -1,5 +1,12 @@
 'use client'
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+)
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -8,6 +15,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
+
+  // Уже авторизован? Уходим сразу в кабинет
+  useEffect(() => {
+    ;(async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data.user) window.location.replace('/messages/new')
+    })()
+  }, [])
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault()
@@ -45,13 +60,13 @@ export default function LoginPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Код не принят')
 
-      // ВАЖНО: переходим по magic-link, чтобы Supabase поставил cookie-сессию
+      // Переходим по magic-link, чтобы Supabase поставил cookie-сессию
       if (data?.redirect) {
         window.location.href = data.redirect
         return
       }
 
-      // запасной вариант, если вдруг redirect не пришёл
+      // Запасной вариант
       window.location.href = '/messages/new'
     } catch (e: any) {
       setErr(e.message || 'Ошибка проверки кода')
