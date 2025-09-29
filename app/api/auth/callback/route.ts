@@ -13,8 +13,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email и код обязательны" }, { status: 400 })
     }
 
-    // 1) Ищем активный код
-    const { data: otp, error: otpErr } = await supabase
+    // 1) Проверяем OTP
+    const { data: otp } = await supabase
       .from("otp_codes")
       .select("*")
       .eq("email", email.toLowerCase())
@@ -25,23 +25,30 @@ export async function POST(req: Request) {
       .limit(1)
       .maybeSingle()
 
-    if (otpErr || !otp) {
+    if (!otp) {
       return NextResponse.json({ error: "Неверный или просроченный код" }, { status: 401 })
     }
 
-    // 2) Помечаем код использованным
+    // 2) Пометить код использованным
     await supabase.from("otp_codes").update({ used: true }).eq("id", otp.id)
 
-    // 3) Мягко создаём пользователя, если его ещё нет (ошибку «уже существует» игнорируем)
-    await supabase.auth.admin.createUser({
-      email,
-      email_confirm: true,
-    }).catch(() => {})
+    // 3) На всякий случай создать пользователя, если его ещё нет (ошибку «уже есть» игнорим)
+    await supabase.auth.admin.createUser({ email, email_confirm: true }).catch(() => {})
 
-    // Примечание: полноценную сессию добавим следующим шагом
-    return NextResponse.json({ ok: true })
-  } catch (e) {
-    console.error(e)
+    // 4) Генерируем magic link, по которому Supabase установит сессию
+    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    })
+    if (linkErr || !linkData?.properties?.action_link) {
+      return NextResponse.json({ error: "Не удалось создать сессию" }, { status: 500 })
+    }
+
+    // Передадим клиенту URL, на который нужно перейти
+    const redirectTo = "https://echoproject.space/messages/new"
+    const url = `${linkData.properties.action_link}&redirect_to=${encodeURIComponent(redirectTo)}`
+    return NextResponse.json({ ok: true, redirect: url })
+  } catch {
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 })
   }
 }
