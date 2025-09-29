@@ -1,7 +1,3 @@
-# Перезаписываем файл (UTF-8 без BOM) — ВНУТРИ только TypeScript!
-$Path = "D:\echo-git\app\api\auth\callback\route.ts"
-$Utf8 = New-Object System.Text.UTF8Encoding($false)
-$Content = @'
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -93,7 +89,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
   }
 }
-'@
-[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($Path)) | Out-Null
-[IO.File]::WriteAllText($Path, $Content, $Utf8)
-Write-Host "Что сделали: очистили файл и записали валидный TypeScript."
