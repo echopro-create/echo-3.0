@@ -46,6 +46,10 @@ function nameFromKey(k: string) {
   const parts = k.split('/')
   return parts[parts.length - 1] || 'download'
 }
+const isImage = (m?: string|null)=> !!m && m.startsWith('image/')
+const isAudio = (m?: string|null)=> !!m && m.startsWith('audio/')
+const isVideo = (m?: string|null)=> !!m && m.startsWith('video/')
+const isPdf   = (m?: string|null)=> m === 'application/pdf'
 
 export default function MessagePage() {
   const { id } = useParams<{ id: string }>()
@@ -63,6 +67,9 @@ export default function MessagePage() {
   const [creating, setCreating] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
 
+  const [previewUrl, setPreviewUrl] = useState<Record<string, string>>({})
+  const [previewing, setPreviewing] = useState<string | null>(null)
+
   // параметры новой ссылки
   const [ttl, setTtl] = useState(86400)
   const [pw, setPw] = useState('')
@@ -75,7 +82,6 @@ export default function MessagePage() {
         const { data: auth } = await supabase.auth.getUser()
         if (!auth.user) { router.replace(`/login?next=/messages/${encodeURIComponent(msgId)}`); return }
 
-        // грузим сообщение + вложения
         const [{ data: msg, error: mErr }, { data: atts, error: aErr }] = await Promise.all([
           supabase.from('messages').select('id, kind, body, created_at').eq('id', msgId).maybeSingle(),
           supabase.from('attachments').select('id, storage_key, mime_type, size_bytes').eq('message_id', msgId).order('created_at', { ascending: true }),
@@ -86,7 +92,6 @@ export default function MessagePage() {
         setMessage(msg as any)
         setAttachments((atts as any[]) || [])
 
-        // грузим активные шеринги этого сообщения
         const { data: s } = await supabase.auth.getSession()
         const token = s.session?.access_token
         if (token) {
@@ -108,6 +113,36 @@ export default function MessagePage() {
     })()
     return () => { mounted = false }
   }, [msgId, router])
+
+  async function signFor(path: string, expires = 180) {
+    try {
+      const { data: s } = await supabase.auth.getSession()
+      const token = s.session?.access_token
+      if (!token) throw new Error('Нет сессии')
+      const res = await fetch('/api/uploads/sign-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ path, expires })
+      })
+      const j = await res.json()
+      if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
+      return j.url as string
+    } catch (e: any) {
+      throw e
+    }
+  }
+
+  async function showPreview(att: Attachment) {
+    try {
+      setPreviewing(att.id)
+      const url = await signFor(att.storage_key, 180)
+      setPreviewUrl(prev => ({ ...prev, [att.id]: url }))
+    } catch (e: any) {
+      alert(e?.message || 'Ошибка превью')
+    } finally {
+      setPreviewing(null)
+    }
+  }
 
   async function createShare() {
     try {
@@ -131,7 +166,6 @@ export default function MessagePage() {
       await navigator.clipboard.writeText(url)
       alert(`Ссылка создана и скопирована:\n${url}`)
       setPw(''); setMaxViews('')
-      // обновим список
       setShares(prev => [
         { id: j.id || 'n/a', token: j.token, created_at: new Date().toISOString(), expires_at: j.expires_at, max_views: j.max_views ?? null, views_count: 0, protected: !!j.protected },
         ...prev
@@ -166,30 +200,15 @@ export default function MessagePage() {
   async function download(att: Attachment) {
     try {
       setDownloading(att.id)
-      const { data: s } = await supabase.auth.getSession()
-      const token = s.session?.access_token
-      if (!token) throw new Error('Нет сессии')
-
-      const res = await fetch('/api/uploads/sign-download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ path: att.storage_key, expires: 60 })
-      })
-      const j = await res.json()
-      if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
-
-      const rsp = await fetch(j.url)
+      const url = await signFor(att.storage_key, 60)
+      const rsp = await fetch(url)
       if (!rsp.ok) throw new Error('Ошибка загрузки')
       const blob = await rsp.blob()
-
-      const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = URL.createObjectURL(blob)
       a.download = nameFromKey(att.storage_key)
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(a.href)
     } catch (e: any) {
       alert(e?.message || 'Ошибка скачивания')
     } finally {
@@ -236,22 +255,49 @@ export default function MessagePage() {
       {!!attachments.length && (
         <section className="border rounded-xl p-4 mb-6">
           <h2 className="text-lg font-medium mb-2">Вложения</h2>
-          <div className="grid gap-2">
-            {attachments.map(a => (
-              <div key={a.id} className="flex items-center justify-between rounded-lg border px-3 py-2">
-                <div className="truncate text-sm">
-                  {a.storage_key.split('/').slice(1).join('/')}
-                  {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+          <div className="grid gap-3">
+            {attachments.map(a => {
+              const url = previewUrl[a.id]
+              const mime = a.mime_type || ''
+              return (
+                <div key={a.id} className="rounded-lg border p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="truncate text-sm">
+                      {a.storage_key.split('/').slice(1).join('/')}
+                      {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+                      {mime ? <span className="text-neutral-500"> · {mime}</span> : null}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(isImage(mime) || isAudio(mime) || isVideo(mime) || isPdf(mime)) && (
+                        <button
+                          onClick={()=>showPreview(a)}
+                          disabled={previewing === a.id}
+                          className="text-sm underline disabled:opacity-60"
+                        >
+                          {url ? 'Обновить превью' : (previewing === a.id ? 'Готовим…' : 'Показать')}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => download(a)}
+                        disabled={downloading === a.id}
+                        className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
+                      >
+                        {downloading === a.id ? 'Готовим…' : 'Скачать'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {url && (
+                    <div className="mt-3">
+                      {isImage(mime) && <img src={url} alt="" className="max-h-[50vh] rounded-lg border" />}
+                      {isAudio(mime) && <audio src={url} controls className="w-full" />}
+                      {isVideo(mime) && <video src={url} controls className="w-full max-h-[60vh] rounded-lg border" />}
+                      {isPdf(mime) && <a href={url} target="_blank" rel="noreferrer" className="underline text-sm">Открыть PDF в новой вкладке</a>}
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => download(a)}
-                  disabled={downloading === a.id}
-                  className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
-                >
-                  {downloading === a.id ? 'Готовим…' : 'Скачать'}
-                </button>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}
@@ -301,15 +347,10 @@ export default function MessagePage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={async()=>{ await navigator.clipboard.writeText(url); }}
-                      className="text-sm underline"
-                    >Копировать</button>
-                    <button
-                      onClick={()=>revokeShare(s.token)}
-                      disabled={revoking === s.token}
-                      className="text-sm underline text-red-600 disabled:opacity-60"
-                    >{revoking === s.token ? 'Отзываем…' : 'Отозвать'}</button>
+                    <button onClick={async()=>{ await navigator.clipboard.writeText(url) }} className="text-sm underline">Копировать</button>
+                    <button onClick={()=>revokeShare(s.token)} disabled={revoking === s.token} className="text-sm underline text-red-600 disabled:opacity-60">
+                      {revoking === s.token ? 'Отзываем…' : 'Отозвать'}
+                    </button>
                   </div>
                 </div>
               </li>

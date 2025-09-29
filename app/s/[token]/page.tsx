@@ -26,6 +26,10 @@ function nameFromKey(k: string) {
   const parts = k.split('/')
   return parts[parts.length - 1] || 'download'
 }
+const isImage = (m?: string|null)=> !!m && m.startsWith('image/')
+const isAudio = (m?: string|null)=> !!m && m.startsWith('audio/')
+const isVideo = (m?: string|null)=> !!m && m.startsWith('video/')
+const isPdf   = (m?: string|null)=> m === 'application/pdf'
 
 export default function SharePage() {
   const { token: rawToken } = useParams<{ token: string }>()
@@ -37,6 +41,8 @@ export default function SharePage() {
   const [password, setPassword] = useState('')
   const [data, setData] = useState<Resolved | null>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<Record<string, string>>({}) // att.id -> signed url
+  const [previewing, setPreviewing] = useState<string | null>(null)
 
   async function resolveShare(pw?: string) {
     if (!token) return
@@ -63,6 +69,24 @@ export default function SharePage() {
   }
 
   useEffect(() => { resolveShare() }, [token])
+
+  async function getSignedFor(a: Att, expires = 120) {
+    setPreviewing(a.id)
+    try {
+      const r = await fetch('/api/shares/sign-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, path: a.storage_key, expires }),
+      })
+      const j = await r.json()
+      if (!r.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
+      setPreviewUrl(prev => ({ ...prev, [a.id]: j.url as string }))
+    } catch (e: any) {
+      alert(e?.message || 'Ошибка получения превью')
+    } finally {
+      setPreviewing(null)
+    }
+  }
 
   async function download(a: Att) {
     try {
@@ -129,11 +153,9 @@ export default function SharePage() {
               placeholder="••••••••"
             />
           </label>
-          <button
-            type="submit"
-            className="rounded-lg px-3 py-2 bg-black text-white"
-            disabled={!password}
-          >Открыть</button>
+          <button type="submit" className="rounded-lg px-3 py-2 bg-black text-white" disabled={!password}>
+            Открыть
+          </button>
         </form>
       )}
 
@@ -146,26 +168,62 @@ export default function SharePage() {
           </div>
 
           {data.message.body && (
-            <div className="border rounded-xl p-4">{data.message.body}</div>
+            <div className="border rounded-xl p-4 whitespace-pre-wrap">{data.message.body}</div>
           )}
 
           {!!data.attachments.length && (
             <div className="grid gap-2">
-              {data.attachments.map(a => (
-                <div key={a.id} className="flex items-center justify-between border rounded-lg px-3 py-2">
-                  <div className="truncate text-sm">
-                    {a.storage_key.split('/').slice(1).join('/')}
-                    {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+              {data.attachments.map(a => {
+                const url = previewUrl[a.id]
+                const mime = a.mime_type || ''
+                return (
+                  <div key={a.id} className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="truncate text-sm">
+                        {a.storage_key.split('/').slice(1).join('/')}
+                        {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+                        {mime ? <span className="text-neutral-500"> · {mime}</span> : null}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {(isImage(mime) || isAudio(mime) || isVideo(mime) || isPdf(mime)) && (
+                          <button
+                            onClick={()=> getSignedFor(a, 180)}
+                            disabled={!!previewing && previewing === a.id}
+                            className="text-sm underline disabled:opacity-60"
+                          >
+                            {url ? 'Обновить превью' : (previewing === a.id ? 'Готовим…' : 'Показать')}
+                          </button>
+                        )}
+                        <button
+                          onClick={()=>download(a)}
+                          disabled={downloading === a.id}
+                          className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
+                        >
+                          {downloading === a.id ? 'Готовим…' : 'Скачать'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Превью блок */}
+                    {url && (
+                      <div className="mt-3">
+                        {isImage(mime) && (
+                          <img src={url} alt="" className="max-h-[50vh] rounded-lg border" />
+                        )}
+                        {isAudio(mime) && (
+                          <audio src={url} controls className="w-full" />
+                        )}
+                        {isVideo(mime) && (
+                          <video src={url} controls className="w-full max-h-[60vh] rounded-lg border" />
+                        )}
+                        {isPdf(mime) && (
+                          <a href={url} target="_blank" rel="noreferrer" className="underline text-sm">Открыть PDF в новой вкладке</a>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={()=>download(a)}
-                    disabled={downloading === a.id}
-                    className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
-                  >
-                    {downloading === a.id ? 'Готовим…' : 'Скачать'}
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
