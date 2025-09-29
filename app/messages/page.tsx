@@ -45,6 +45,9 @@ export default function MessagesPage() {
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [sharing, setSharing] = useState<string | null>(null)
+  const [shareTTL, setShareTTL] = useState(86400)
+  const [sharePW, setSharePW] = useState('')
+  const [shareMax, setShareMax] = useState<number | ''>('')
 
   useEffect(() => {
     let mounted = true
@@ -144,16 +147,40 @@ export default function MessagesPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ messageId: id, expiresSeconds: 86400 })
+        body: JSON.stringify({
+          messageId: id,
+          expiresSeconds: shareTTL,
+          password: sharePW || undefined,
+          maxViews: shareMax === '' ? undefined : Number(shareMax)
+        })
       })
       const j = await res.json()
       if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось создать ссылку')
       await navigator.clipboard.writeText(j.url)
-      alert('Ссылка скопирована в буфер обмена')
+      alert(`Готово. Ссылка скопирована.\n${j.protected ? 'Пароль установлен.' : 'Без пароля.'}${j.max_views ? ` Лимит просмотров: ${j.max_views}.` : ''}`)
+      setSharePW('')
+      setShareMax('')
     } catch (e: any) {
       alert(e?.message || 'Не удалось создать ссылку')
     } finally {
       setSharing(null)
+    }
+  }
+
+  async function revokeByToken(token: string) {
+    try {
+      const { data: s } = await supabase.auth.getSession()
+      const t = s.session?.access_token
+      if (!t) throw new Error('Нет сессии')
+      const res = await fetch('/api/shares/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
+        body: JSON.stringify({ token })
+      })
+      if (!res.ok) throw new Error('Не удалось отозвать')
+      alert('Ссылка отозвана')
+    } catch (e: any) {
+      alert(e?.message || 'Ошибка')
     }
   }
 
@@ -172,6 +199,30 @@ export default function MessagesPage() {
         <a href="/messages/new" className="rounded-xl bg-black text-white px-4 py-2 text-sm">Создать</a>
       </div>
 
+      <div className="mb-6 grid gap-2 border rounded-xl p-4">
+        <div className="text-sm text-neutral-700">Параметры новой шаринг-ссылки:</div>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <label className="text-sm">
+            TTL (сек)
+            <input type="number" value={shareTTL} onChange={e=>setShareTTL(Math.max(60, Number(e.target.value||0)))}
+                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+          </label>
+          <label className="text-sm">
+            Пароль (опц.)
+            <input type="password" value={sharePW} onChange={e=>setSharePW(e.target.value)}
+                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+          </label>
+          <label className="text-sm">
+            Лимит просмотров (опц.)
+            <input type="number" min={1} value={shareMax} onChange={e=>setShareMax(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
+                   className="mt-1 w-full border rounded-xl px-3 py-2"/>
+          </label>
+        </div>
+        <p className="text-xs text-neutral-500">
+          Ссылка откроется на /s/…; файлы отдаются подписанными URL, бакет остаётся приватным.
+        </p>
+      </div>
+
       {err && <p className="text-red-600 text-sm mb-4">{err}</p>}
       {!err && items.length === 0 && (
         <p className="text-neutral-600">Пусто. Загрузите файлы на странице «Создать».</p>
@@ -180,7 +231,7 @@ export default function MessagesPage() {
       <ul className="space-y-4">
         {items.map(m => (
           <li key={m.id} className="border rounded-xl p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm text-neutral-600">
                   {new Date(m.created_at).toLocaleString()} • {m.kind}
@@ -214,13 +265,17 @@ export default function MessagesPage() {
                       {a.storage_key.split('/').slice(1).join('/')}
                       {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
                     </div>
-                    <button
-                      onClick={() => download(a)}
-                      disabled={downloading === a.id}
-                      className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
-                    >
-                      {downloading === a.id ? 'Готовим…' : 'Скачать'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => download(a)}
+                        disabled={downloading === a.id}
+                        className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
+                      >
+                        {downloading === a.id ? 'Готовим…' : 'Скачать'}
+                      </button>
+                      {/* пример отзыва — вставь сюда токен вручную, если надо протестить */}
+                      {/* <button onClick={()=>revokeByToken('TOKEN_HERE')} className="text-xs underline">Отозвать тест</button> */}
+                    </div>
                   </div>
                 ))}
               </div>

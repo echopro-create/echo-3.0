@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { randomBytes } from 'crypto'
+import { randomBytes, scryptSync } from 'crypto'
 
 function token(n = 24) {
   return randomBytes(n).toString('base64url')
+}
+function hashPassword(pw: string) {
+  const salt = randomBytes(16).toString('base64url')
+  const hash = scryptSync(pw, salt, 32).toString('base64url')
+  return `${salt}:${hash}`
 }
 
 export async function POST(req: Request) {
@@ -19,13 +24,15 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({} as any))
     const messageId = String(body?.messageId || '').trim()
-    const expiresSeconds = Number(body?.expiresSeconds ?? 86400) // по умолчанию сутки
+    const expiresSeconds = Number(body?.expiresSeconds ?? 86400) // дефолт сутки
+    const password = String(body?.password || '')
+    const maxViews = body?.maxViews != null ? Math.max(1, Number(body.maxViews)) : null
 
     if (!messageId) {
       return NextResponse.json({ error: 'messageId required' }, { status: 400 })
     }
 
-    // Владелец ли пользователь указанного сообщения
+    // Проверяем владение
     const { data: msg, error: merr } = await supabaseAdmin
       .from('messages')
       .select('id, owner')
@@ -37,18 +44,22 @@ export async function POST(req: Request) {
     }
 
     const tkn = token(24)
-    const expires_at = new Date(Date.now() + Math.max(60, Math.min(expiresSeconds, 30 * 86400)) * 1000).toISOString()
+    const expires_at = new Date(
+      Date.now() + Math.max(60, Math.min(expiresSeconds, 30 * 86400)) * 1000
+    ).toISOString()
+
+    const password_hash = password ? hashPassword(password) : null
 
     const { error: ierr } = await supabaseAdmin
       .from('shares')
-      .insert({ token: tkn, owner: user.id, message_id: messageId, expires_at })
+      .insert({ token: tkn, owner: user.id, message_id: messageId, expires_at, password_hash, max_views: maxViews })
 
     if (ierr) {
       return NextResponse.json({ error: 'Failed to create share' }, { status: 500 })
     }
 
     const url = `https://www.echoproject.space/s/${tkn}`
-    return NextResponse.json({ ok: true, url, token: tkn, expires_at })
+    return NextResponse.json({ ok: true, url, token: tkn, expires_at, protected: !!password_hash, max_views: maxViews })
   } catch (e: any) {
     return NextResponse.json({ error: 'Server error', detail: e?.message }, { status: 500 })
   }

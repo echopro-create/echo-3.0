@@ -12,7 +12,6 @@ type FileItem = {
   size_bytes: number | null
   url: string
 }
-
 type MessageLite = {
   id: string
   kind: 'text' | 'voice' | 'video' | 'file'
@@ -27,7 +26,6 @@ function fmtSize(n?: number | null) {
   while (x >= 1024 && i < units.length - 1) { x /= 1024; i++ }
   return `${x.toFixed(x >= 10 || i === 0 ? 0 : 1)} ${units[i]}`
 }
-
 function isPreviewable(m?: string | null) {
   if (!m) return false
   return m.startsWith('image/') || m.startsWith('video/') || m.startsWith('audio/')
@@ -35,36 +33,87 @@ function isPreviewable(m?: string | null) {
 
 export default function ShareViewerPage() {
   const { token } = useParams<{ token: string }>()
+  const tkn = useMemo(() => String(token || ''), [token])
+
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [msg, setMsg] = useState<MessageLite | null>(null)
   const [files, setFiles] = useState<FileItem[]>([])
+  const [needPassword, setNeedPassword] = useState(false)
+  const [pw, setPw] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const tkn = useMemo(() => String(token || ''), [token])
-
-  useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      try {
-        const res = await fetch(`/api/shares/get?token=${encodeURIComponent(tkn)}`, { cache: 'no-store' })
-        const j = await res.json()
-        if (!res.ok) throw new Error(j?.error || 'Не удалось открыть ссылку')
-        if (!mounted) return
-        setMsg(j.message)
-        setFiles(j.files || [])
-      } catch (e: any) {
-        if (mounted) setErr(e?.message || 'Ошибка')
-      } finally {
-        if (mounted) setLoading(false)
+  async function load() {
+    setLoading(true); setErr(null); setNeedPassword(false)
+    try {
+      const res = await fetch(`/api/shares/get?token=${encodeURIComponent(tkn)}`, { cache: 'no-store' })
+      const j = await res.json()
+      if (res.status === 401 && j?.error === 'password_required') {
+        setNeedPassword(true)
+        return
       }
-    })()
-    return () => { mounted = false }
-  }, [tkn])
+      if (!res.ok) throw new Error(j?.error || 'Ссылка недоступна')
+      setMsg(j.message)
+      setFiles(j.files || [])
+    } catch (e: any) {
+      setErr(e?.message || 'Ошибка')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function submitPassword(e: React.FormEvent) {
+    e.preventDefault()
+    if (!pw.trim()) return
+    setSubmitting(true); setErr(null)
+    try {
+      const res = await fetch('/api/shares/get', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tkn, password: pw })
+      })
+      const j = await res.json()
+      if (!res.ok) throw new Error(j?.error === 'password_invalid' ? 'Неверный пароль' : (j?.error || 'Ошибка'))
+      setMsg(j.message)
+      setFiles(j.files || [])
+      setNeedPassword(false)
+    } catch (e: any) {
+      setErr(e?.message || 'Ошибка')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  useEffect(() => { load() }, [tkn])
 
   if (loading) {
     return (
       <main className="min-h-[100svh] grid place-items-center px-6">
         <p className="text-sm text-neutral-600">Открываем ссылку…</p>
+      </main>
+    )
+  }
+  if (needPassword) {
+    return (
+      <main className="min-h-[100svh] grid place-items-center px-6">
+        <form onSubmit={submitPassword} className="w-full max-w-xs space-y-3">
+          <h1 className="text-xl font-medium text-center">Требуется пароль</h1>
+          <input
+            type="password"
+            placeholder="Пароль к ссылке"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/10"
+          />
+          <button
+            type="submit"
+            disabled={submitting || !pw}
+            className="w-full rounded-xl px-4 py-3 bg-black text-white disabled:opacity-60"
+          >
+            {submitting ? 'Проверяем…' : 'Открыть'}
+          </button>
+          {err && <p className="text-center text-red-600 text-sm">{err}</p>}
+        </form>
       </main>
     )
   }
@@ -89,11 +138,8 @@ export default function ShareViewerPage() {
                 {f.name}
                 {f.size_bytes ? <span className="text-neutral-500"> · {fmtSize(f.size_bytes)}</span> : null}
               </div>
-              <a href={f.url} download className="text-sm rounded-lg px-3 py-1 bg-black text-white">
-                Скачать
-              </a>
+              <a href={f.url} download className="text-sm rounded-lg px-3 py-1 bg-black text-white">Скачать</a>
             </div>
-
             {isPreviewable(f.mime_type) && (
               <>
                 {f.mime_type!.startsWith('image/') && (
