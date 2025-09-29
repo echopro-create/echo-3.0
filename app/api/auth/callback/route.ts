@@ -32,10 +32,10 @@ export async function POST(req: Request) {
     // 2) Пометить код использованным
     await supabase.from("otp_codes").update({ used: true }).eq("id", otp.id)
 
-    // 3) На всякий случай создать пользователя, если его ещё нет (ошибку «уже есть» игнорим)
+    // 3) Мягко создать пользователя, если ещё нет
     await supabase.auth.admin.createUser({ email, email_confirm: true }).catch(() => {})
 
-    // 4) Генерируем magic link, по которому Supabase установит сессию
+    // 4) Сгенерировать magic-link и направить на нашу приёмную страницу
     const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email,
@@ -44,8 +44,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Не удалось создать сессию" }, { status: 500 })
     }
 
-    // Передадим клиенту URL, на который нужно перейти
-    const redirectTo = "https://echoproject.space/messages/new"
+    // КЛЮЧЕВАЯ СТРОКА: редиректим на /auth/confirm
+    const redirectTo = "https://echoproject.space/auth/confirm"
     const url = `${linkData.properties.action_link}&redirect_to=${encodeURIComponent(redirectTo)}`
     return NextResponse.json({ ok: true, redirect: url })
   } catch {
