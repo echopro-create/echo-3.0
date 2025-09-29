@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import Uploader from '@/app/components/Uploader'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
@@ -20,9 +21,7 @@ export default function NewMessagePage() {
       setUser((data.user as any) || null)
       setLoading(false)
     })()
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [])
 
   if (loading) {
@@ -34,7 +33,6 @@ export default function NewMessagePage() {
   }
 
   if (!user) {
-    // Никаких серверных редиректов. Спокойная CTA, чтобы не зациклиться.
     return (
       <main className="min-h-[100svh] grid place-items-center px-6">
         <div className="text-center">
@@ -53,25 +51,27 @@ export default function NewMessagePage() {
     )
   }
 
-  // Здесь можешь оставить свою текущую форму создания послания.
-  // Вставил безопасный минимал, чтобы страница не падала.
   return (
     <main className="min-h-[100svh] px-6 py-10 max-w-3xl mx-auto">
       <h1 className="text-2xl font-medium mb-6">Новое послание</h1>
 
-      <div className="grid gap-4">
-        <a href="/messages/new?type=text" className="border rounded-xl p-4 hover:bg-neutral-50">
-          Текст
-        </a>
-        <a href="/messages/new?type=voice" className="border rounded-xl p-4 hover:bg-neutral-50">
-          Голос
-        </a>
-        <a href="/messages/new?type=video" className="border rounded-xl p-4 hover:bg-neutral-50">
-          Видео
-        </a>
-        <a href="/messages/new?type=file" className="border rounded-xl p-4 hover:bg-neutral-50">
-          Файлы
-        </a>
+      <div className="grid gap-6">
+        <section className="border rounded-xl p-4">
+          <h2 className="font-medium mb-3">Вложения</h2>
+          <Uploader />
+          <p className="text-xs text-neutral-500 mt-2">
+            Файлы приватны. Скачивание будет через подписанные ссылки.
+          </p>
+        </section>
+
+        <section className="border rounded-xl p-4">
+          <h2 className="font-medium mb-2">Другие типы (заглушки)</h2>
+          <div className="grid gap-2">
+            <button className="border rounded-xl p-3 text-left">Текст</button>
+            <button className="border rounded-xl p-3 text-left">Голос</button>
+            <button className="border rounded-xl p-3 text-left">Видео</button>
+          </div>
+        </section>
       </div>
     </main>
   )

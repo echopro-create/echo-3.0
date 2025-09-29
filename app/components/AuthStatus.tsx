@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -10,47 +8,67 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 )
 
+type UserLite = { id: string; email?: string | null }
+
 export default function AuthStatus() {
-  const [email, setEmail] = useState<string | null>(null)
-  const [ready, setReady] = useState(false)
-  const router = useRouter()
+  const [user, setUser] = useState<UserLite | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let mounted = true
-    async function init() {
+
+    ;(async () => {
       const { data } = await supabase.auth.getUser()
-      if (mounted) { setEmail(data.user?.email ?? null); setReady(true) }
-    }
-    init()
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       if (!mounted) return
-      setEmail(s?.user?.email ?? null)
+      setUser((data.user as any) ?? null)
+      setLoading(false)
+    })()
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setUser((session?.user as any) ?? null)
     })
-    return () => { mounted = false; sub.subscription.unsubscribe() }
+
+    return () => {
+      mounted = false
+      sub.subscription.unsubscribe()
+    }
   }, [])
 
   async function signOut() {
     await supabase.auth.signOut()
-    router.replace('/')   // домой
+    // Возвращаем на /login с next, чтобы после входа снова попасть куда надо
+    window.location.href = `/login?next=${encodeURIComponent('/messages/new')}`
   }
 
-  if (!ready) return <span className="inline-block w-24 h-7 rounded-xl bg-black/5" aria-hidden />
-
-  if (!email) {
+  if (loading) {
     return (
-      <Link href="/login" className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm hover:bg-black hover:text-white transition">
+      <div className="text-sm text-neutral-500">
+        Проверяем сессию…
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <a
+        href={`/login?next=${encodeURIComponent('/messages/new')}`}
+        className="text-sm underline text-neutral-700"
+      >
         Войти
-      </Link>
+      </a>
     )
   }
 
   return (
-    <div className="inline-flex items-center gap-2">
-      <span className="inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm bg-white">
-        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
-        {email}
+    <div className="flex items-center gap-3">
+      <span className="text-sm text-neutral-700">
+        {user.email || 'Аккаунт'}
       </span>
-      <button onClick={signOut} className="text-sm underline text-neutral-600 hover:text-black">
+      <button
+        onClick={signOut}
+        className="rounded-lg bg-black text-white text-xs px-3 py-2"
+      >
         Выйти
       </button>
     </div>
