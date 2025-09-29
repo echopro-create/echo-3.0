@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     // ВРЕМЕННО: тестовый домен Resend, чтобы логи точно появились
     const sendRes = await resend.emails.send({
-      from: "Echo <onboarding@resend.dev>",
+      from: "Echo <no-reply@echoproject.space>",
       to: email,
       subject: "Ваш код входа",
       text: `Ваш одноразовый код для входа: ${code}\nОн действителен 10 минут.`,
