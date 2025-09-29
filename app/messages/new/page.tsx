@@ -1,34 +1,78 @@
-import { redirect } from "next/navigation"
-import { createSupabaseServerClient } from "@/lib/supabase.server"
+'use client'
 
-export const metadata = { title: "Новое послание — ECHO" }
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
-export default async function NewMessagePage() {
-  // серверная проверка сессии
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.auth.getUser()
-  if (!data.user) redirect("/login")
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+)
 
+export default function NewMessagePage() {
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<null | { id: string; email?: string }>(null)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      const { data } = await supabase.auth.getUser()
+      if (!mounted) return
+      setUser((data.user as any) || null)
+      setLoading(false)
+    })()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <main className="min-h-[100svh] grid place-items-center px-6">
+        <p className="text-sm text-neutral-600">Загружаем…</p>
+      </main>
+    )
+  }
+
+  if (!user) {
+    // Никаких серверных редиректов. Спокойная CTA, чтобы не зациклиться.
+    return (
+      <main className="min-h-[100svh] grid place-items-center px-6">
+        <div className="text-center">
+          <h1 className="text-xl font-medium mb-2">Нужен вход</h1>
+          <p className="text-sm text-neutral-600 mb-4">
+            Чтобы создать послание, войдите в аккаунт.
+          </p>
+          <a
+            href={`/login?next=${encodeURIComponent('/messages/new')}`}
+            className="inline-block rounded-xl bg-black text-white px-4 py-3"
+          >
+            Войти
+          </a>
+        </div>
+      </main>
+    )
+  }
+
+  // Здесь можешь оставить свою текущую форму создания послания.
+  // Вставил безопасный минимал, чтобы страница не падала.
   return (
-    <div className="wrap" style={{ maxWidth: 720 }}>
-      <h1 className="title" style={{ textAlign: "left" }}>Создать послание</h1>
-      <div className="card" style={{ display: "grid", gap: 12 }}>
-        <strong>Тип послания</strong>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <a className="btn secondary" href="#text">Текст</a>
-          <a className="btn secondary" href="#audio">Голос</a>
-          <a className="btn secondary" href="#video">Видео</a>
-          <a className="btn secondary" href="#files">Файлы</a>
-        </div>
-        <div id="text" className="card">Редактор текста (заглушка)</div>
-        <div id="audio" className="card">Запись голоса (заглушка)</div>
-        <div id="video" className="card">Запись видео (заглушка)</div>
-        <div id="files" className="card">Загрузка файлов: drag &amp; drop (заглушка)</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn secondary">Сохранить как черновик</button>
-          <button className="btn">Назначить доставку</button>
-        </div>
+    <main className="min-h-[100svh] px-6 py-10 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-medium mb-6">Новое послание</h1>
+
+      <div className="grid gap-4">
+        <a href="/messages/new?type=text" className="border rounded-xl p-4 hover:bg-neutral-50">
+          Текст
+        </a>
+        <a href="/messages/new?type=voice" className="border rounded-xl p-4 hover:bg-neutral-50">
+          Голос
+        </a>
+        <a href="/messages/new?type=video" className="border rounded-xl p-4 hover:bg-neutral-50">
+          Видео
+        </a>
+        <a href="/messages/new?type=file" className="border rounded-xl p-4 hover:bg-neutral-50">
+          Файлы
+        </a>
       </div>
-    </div>
+    </main>
   )
 }
