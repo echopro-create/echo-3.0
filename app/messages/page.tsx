@@ -42,19 +42,20 @@ export default function MessagesPage() {
   const [items, setItems] = useState<Message[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
     ;(async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('messages')
           .select('id, kind, body, created_at, attachments ( id, storage_key, mime_type, size_bytes )')
           .order('created_at', { ascending: false })
           .limit(50)
-
+        if (error) throw error
         if (!mounted) return
-        if (data) setItems(data as any)
+        setItems((data as any) || [])
       } catch (e: any) {
         if (mounted) setErr(e?.message || 'Не удалось загрузить список')
       } finally {
@@ -71,7 +72,6 @@ export default function MessagesPage() {
       const token = s.session?.access_token
       if (!token) throw new Error('Нет сессии')
 
-      // 1) просим сервер подписать ссылку
       const res = await fetch('/api/uploads/sign-download', {
         method: 'POST',
         headers: {
@@ -83,12 +83,10 @@ export default function MessagesPage() {
       const j = await res.json()
       if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
 
-      // 2) качаем файл как blob (без плясок с новыми вкладками)
       const rsp = await fetch(j.url)
       if (!rsp.ok) throw new Error('Ошибка загрузки файла')
       const blob = await rsp.blob()
 
-      // 3) триггерим «сохранить как»
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -105,10 +103,30 @@ export default function MessagesPage() {
   }
 
   async function removeMessage(id: string) {
-    if (!confirm('Удалить это послание?')) return
-    const { error } = await supabase.from('messages').delete().eq('id', id)
-    if (error) { alert('Не удалось удалить'); return }
-    setItems(prev => prev.filter(m => m.id !== id))
+    try {
+      if (!confirm('Удалить это послание и связанные файлы?')) return
+      setDeleting(id)
+
+      const { data: s } = await supabase.auth.getSession()
+      const token = s.session?.access_token
+      if (!token) throw new Error('Нет сессии')
+
+      const res = await fetch('/api/messages/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id })
+      })
+      const j = await res.json()
+      if (!res.ok) throw new Error(j?.error || 'Не удалось удалить')
+      setItems(prev => prev.filter(m => m.id !== id))
+    } catch (e: any) {
+      alert(e?.message || 'Ошибка удаления')
+    } finally {
+      setDeleting(null)
+    }
   }
 
   if (loading) {
@@ -141,8 +159,12 @@ export default function MessagesPage() {
                 </div>
                 {m.body && <div className="mt-1">{m.body}</div>}
               </div>
-              <button onClick={() => removeMessage(m.id)} className="text-sm underline text-neutral-700">
-                Удалить
+              <button
+                onClick={() => removeMessage(m.id)}
+                disabled={deleting === m.id}
+                className="text-sm underline text-neutral-700 disabled:opacity-60"
+              >
+                {deleting === m.id ? 'Удаляем…' : 'Удалить'}
               </button>
             </div>
 
