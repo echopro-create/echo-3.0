@@ -37,6 +37,10 @@ function fileNameFromKey(key: string) {
   const parts = key.split('/')
   return parts[parts.length - 1] || 'download'
 }
+const isImage = (m?: string|null) => !!m && m.startsWith('image/')
+const isAudio = (m?: string|null) => !!m && m.startsWith('audio/')
+const isVideo = (m?: string|null) => !!m && m.startsWith('video/')
+const isPdf   = (m?: string|null) => m === 'application/pdf'
 
 export default function MessagesPage() {
   const [loading, setLoading] = useState(true)
@@ -48,6 +52,9 @@ export default function MessagesPage() {
   const [shareTTL, setShareTTL] = useState(86400)
   const [sharePW, setSharePW] = useState('')
   const [shareMax, setShareMax] = useState<number | ''>('')
+
+  const [previewUrl, setPreviewUrl] = useState<Record<string, string>>({})
+  const [previewing, setPreviewing] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -70,36 +77,46 @@ export default function MessagesPage() {
     return () => { mounted = false }
   }, [])
 
+  async function signFor(path: string, expires = 180) {
+    const { data: s } = await supabase.auth.getSession()
+    const token = s.session?.access_token
+    if (!token) throw new Error('Нет сессии')
+    const res = await fetch('/api/uploads/sign-download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ path, expires })
+    })
+    const j = await res.json()
+    if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось подписать URL')
+    return j.url as string
+  }
+
+  async function showPreview(att: Attachment) {
+    try {
+      setPreviewing(att.id)
+      const url = await signFor(att.storage_key, 180)
+      setPreviewUrl(prev => ({ ...prev, [att.id]: url }))
+    } catch (e: any) {
+      alert(e?.message || 'Ошибка превью')
+    } finally {
+      setPreviewing(null)
+    }
+  }
+
   async function download(att: Attachment) {
     try {
       setDownloading(att.id)
-      const { data: s } = await supabase.auth.getSession()
-      const token = s.session?.access_token
-      if (!token) throw new Error('Нет сессии')
-
-      const res = await fetch('/api/uploads/sign-download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ path: att.storage_key, expires: 60 })
-      })
-      const j = await res.json()
-      if (!res.ok || !j?.url) throw new Error(j?.error || 'Не удалось получить ссылку')
-
-      const rsp = await fetch(j.url)
+      const url = await signFor(att.storage_key, 60)
+      const rsp = await fetch(url)
       if (!rsp.ok) throw new Error('Ошибка загрузки файла')
       const blob = await rsp.blob()
-
-      const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
+      a.href = URL.createObjectURL(blob)
       a.download = fileNameFromKey(att.storage_key)
       document.body.appendChild(a)
       a.click()
       a.remove()
-      URL.revokeObjectURL(url)
+      URL.revokeObjectURL(a.href)
     } catch (e: any) {
       alert(e?.message || 'Ошибка скачивания')
     } finally {
@@ -111,17 +128,12 @@ export default function MessagesPage() {
     try {
       if (!confirm('Удалить это послание и связанные файлы?')) return
       setDeleting(id)
-
       const { data: s } = await supabase.auth.getSession()
       const token = s.session?.access_token
       if (!token) throw new Error('Нет сессии')
-
       const res = await fetch('/api/messages/delete', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ id })
       })
       const j = await res.json()
@@ -167,23 +179,6 @@ export default function MessagesPage() {
     }
   }
 
-  async function revokeByToken(token: string) {
-    try {
-      const { data: s } = await supabase.auth.getSession()
-      const t = s.session?.access_token
-      if (!t) throw new Error('Нет сессии')
-      const res = await fetch('/api/shares/revoke', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` },
-        body: JSON.stringify({ token })
-      })
-      if (!res.ok) throw new Error('Не удалось отозвать')
-      alert('Ссылка отозвана')
-    } catch (e: any) {
-      alert(e?.message || 'Ошибка')
-    }
-  }
-
   if (loading) {
     return (
       <main className="min-h-[100svh] grid place-items-center px-6">
@@ -197,6 +192,7 @@ export default function MessagesPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-medium">Мои послания</h1>
         <div className="flex items-center gap-2">
+          <a href="/activity" className="rounded-xl px-4 py-2 text-sm border">Журнал</a>
           <a href="/settings" className="rounded-xl px-4 py-2 text-sm border">Настройки</a>
           <a href="/messages/new" className="rounded-xl bg-black text-white px-4 py-2 text-sm">Создать</a>
         </div>
@@ -275,25 +271,48 @@ export default function MessagesPage() {
 
             {!!m.attachments?.length && (
               <div className="mt-3 grid gap-2">
-                {m.attachments!.map(a => (
-                  <div key={a.id} className="flex items-center justify-between rounded-lg border px-3 py-2">
-                    <div className="truncate text-sm">
-                      {a.storage_key.split('/').slice(1).join('/')}
-                      {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+                {m.attachments!.map(a => {
+                  const url = previewUrl[a.id]
+                  const mime = a.mime_type || ''
+                  return (
+                    <div key={a.id} className="flex flex-col gap-2 rounded-lg border px-3 py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="truncate text-sm">
+                          {a.storage_key.split('/').slice(1).join('/')}
+                          {a.size_bytes ? <span className="text-neutral-500"> · {fmtSize(a.size_bytes)}</span> : null}
+                          {mime ? <span className="text-neutral-500"> · {mime}</span> : null}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(isImage(mime) || isAudio(mime) || isVideo(mime) || isPdf(mime)) && (
+                            <button
+                              onClick={() => showPreview(a)}
+                              disabled={previewing === a.id}
+                              className="text-sm underline disabled:opacity-60"
+                            >
+                              {url ? 'Обновить превью' : (previewing === a.id ? 'Готовим…' : 'Показать')}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => download(a)}
+                            disabled={downloading === a.id}
+                            className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
+                          >
+                            {downloading === a.id ? 'Готовим…' : 'Скачать'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {url && (
+                        <div className="mt-1">
+                          {isImage(mime) && <img src={url} alt="" className="max-h-[40vh] rounded-lg border" />}
+                          {isAudio(mime) && <audio src={url} controls className="w-full" />}
+                          {isVideo(mime) && <video src={url} controls className="w-full max-h-[50vh] rounded-lg border" />}
+                          {isPdf(mime) && <a href={url} target="_blank" rel="noreferrer" className="underline text-sm">Открыть PDF в новой вкладке</a>}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => download(a)}
-                        disabled={downloading === a.id}
-                        className="text-sm rounded-lg px-3 py-1 bg-black text-white disabled:opacity-60"
-                      >
-                        {downloading === a.id ? 'Готовим…' : 'Скачать'}
-                      </button>
-                      {/* пример отзыва — вставь сюда токен вручную, если надо протестить */}
-                      {/* <button onClick={()=>revokeByToken('TOKEN_HERE')} className="text-xs underline">Отозвать тест</button> */}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </li>
