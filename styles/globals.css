@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("./../styles/styles.css");
+
+html, body { height: 100%; }
+body {
+  background: var(--colors-bg, var(--colors-bg, #fff));
+  background: var(--colors-bg, #fff);
+  color: var(--colors-fg, #111);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.container { @apply mx-auto px-4; }
+.btn { @apply inline-flex items-center justify-center rounded-md border border-black/10 px-4 py-2 text-sm font-medium shadow-sm active:scale-[.98]; background:#111; color:#fff; }
+.btn.secondary { background:#f3f4f6; color:#111; }
+.card { @apply rounded-xl border border-black/10 p-4 shadow-sm bg-white; }
+.title { @apply text-3xl md:text-5xl font-semibold tracking-tight; }
+.subtitle { @apply text-base md:text-lg text-gray-600; }
+.wrap { @apply container max-w-5xl; }
+.hero { min-height: 100svh; display: grid; place-items: center; }
+.rings { position:absolute; inset:0; pointer-events:none; background:
+  radial-gradient(840px 420px at 50% 40%, rgba(0,0,0,0.06), transparent 60%) no-repeat,
+  radial-gradient(540px 270px at 80% 30%, rgba(0,0,0,0.045), transparent 60%) no-repeat,
+  radial-gradient(540px 270px at 20% 70%, rgba(0,0,0,0.04), transparent 60%) no-repeat;
+  mask-image: radial-gradient(1200px 600px at 50% 40%, black, transparent 70%);
+}
+.tabbar { @apply fixed bottom-0 left-0 right-0 border-t border-black/10 bg-white; }
+.tabbar-inner { @apply container h-14 grid grid-cols-4 items-center; }
+.tab { @apply text-xs flex flex-col items-center justify-center gap-1; }

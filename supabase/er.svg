@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
+  <style>
+    .box { fill:#fff; stroke:#111; stroke-width:1.2; }
+    .title { font: 700 14px ui-sans-serif, system-ui; }
+    .row { font: 12px ui-sans-serif, system-ui; fill:#333; }
+    .line { stroke:#111; stroke-width:1; marker-end:url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L6,3 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <!-- profiles -->
+  <g transform="translate(50,40)">
+    <rect class="box" width="240" height="140" rx="8"/>
+    <text x="12" y="24" class="title">profiles</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">email: text unique</text>
+    <text x="12" y="88" class="row">created_at: timestamp</text>
+    <text x="12" y="108" class="row">last_seen: timestamp</text>
+  </g>
+
+  <!-- recipients -->
+  <g transform="translate(360,40)">
+    <rect class="box" width="260" height="140" rx="8"/>
+    <text x="12" y="24" class="title">recipients</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">user_id → profiles.id</text>
+    <text x="12" y="88" class="row">name, email</text>
+    <text x="12" y="108" class="row">created_at</text>
+  </g>
+
+  <!-- messages -->
+  <g transform="translate(50,220)">
+    <rect class="box" width="360" height="220" rx="8"/>
+    <text x="12" y="24" class="title">messages</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">user_id → profiles.id</text>
+    <text x="12" y="88" class="row">title, type(enum)</text>
+    <text x="12" y="108" class="row">content, attachment_url</text>
+    <text x="12" y="128" class="row">delivery_mode(enum), delivery_date</text>
+    <text x="12" y="148" class="row">password_hash, ttl_seconds</text>
+    <text x="12" y="168" class="row">view_limit, status(enum)</text>
+    <text x="12" y="188" class="row">created_at</text>
+  </g>
+
+  <!-- message_recipients -->
+  <g transform="translate(460,220)">
+    <rect class="box" width="300" height="140" rx="8"/>
+    <text x="12" y="24" class="title">message_recipients</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">message_id → messages.id</text>
+    <text x="12" y="88" class="row">recipient_id → recipients.id</text>
+  </g>
+
+  <!-- heartbeats -->
+  <g transform="translate(800,40)">
+    <rect class="box" width="260" height="120" rx="8"/>
+    <text x="12" y="24" class="title">heartbeats</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">user_id → profiles.id</text>
+    <text x="12" y="88" class="row">last_ping, interval_days</text>
+  </g>
+
+  <!-- events -->
+  <g transform="translate(800,200)">
+    <rect class="box" width="300" height="160" rx="8"/>
+    <text x="12" y="24" class="title">events</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">user_id → profiles.id</text>
+    <text x="12" y="88" class="row">message_id → messages.id (nullable)</text>
+    <text x="12" y="108" class="row">event_type, details jsonb</text>
+    <text x="12" y="128" class="row">created_at</text>
+  </g>
+
+  <!-- shares -->
+  <g transform="translate(800,400)">
+    <rect class="box" width="300" height="180" rx="8"/>
+    <text x="12" y="24" class="title">shares</text>
+    <text x="12" y="48" class="row">id: uuid PK</text>
+    <text x="12" y="68" class="row">message_id → messages.id</text>
+    <text x="12" y="88" class="row">token unique</text>
+    <text x="12" y="108" class="row">expires_at, max_views</text>
+    <text x="12" y="128" class="row">views, password_hash</text>
+  </g>
+
+  <!-- relations -->
+  <line class="line" x1="290" y1="110" x2="360" y2="110" />
+  <line class="line" x1="230" y1="330" x2="460" y2="330" />
+  <line class="line" x1="920" y1="100" x2="290" y2="100" />
+  <line class="line" x1="920" y1="260" x2="410" y2="260" />
+  <line class="line" x1="920" y1="470" x2="410" y2="330" />
+</svg>
