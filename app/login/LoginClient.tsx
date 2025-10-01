@@ -1,13 +1,12 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase.client';
 
 type Phase = 'email' | 'code';
 
 export default function LoginClient() {
-  const router = useRouter();
   const sp = useSearchParams();
   const next = useMemo(() => sp?.get('next') || '/messages/new', [sp]);
 
@@ -50,48 +49,41 @@ export default function LoginClient() {
     }
   }, [email]);
 
-  const requestOtp = resend; // переиспользуем
+  const requestOtp = resend;
 
   const verifyOtp = useCallback(async () => {
     setErr(null); setMsg(null);
     const e = email.trim();
-
-    // нормализуем код: только ASCII-цифры
     const token = code.replace(/[^\d]/g, '').trim();
-    if (token.length < 4) {
-      setErr('Введите код из письма');
-      return;
-    }
-
+    if (token.length < 4) { setErr('Введите код из письма'); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: e,
-        token,
-        type: 'email',
-      });
+      const { data, error } = await supabase.auth.verifyOtp({ email: e, token, type: 'email' });
       if (error) throw error;
+
       const accessToken = data.session?.access_token;
+      const refreshToken = data.session?.refresh_token;
       const expiresIn = data.session?.expires_in ?? 3600;
       if (!accessToken) throw new Error('Нет access token в ответе');
 
       const r = await fetch('/api/auth/callback', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token: accessToken, expiresIn }),
+        body: JSON.stringify({ token: accessToken, refreshToken, expiresIn }),
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
         throw new Error(j?.error || 'Не удалось установить сессию');
       }
-      router.replace(next);
+
+      // ВАЖНО: делаем полноценный переход, чтобы кука точно уехала на сервер
+      window.location.assign(next);
     } catch (e: any) {
-      // типовые тексты Supabase: "Token has expired or is invalid"
-      setErr('Код истёк или неверен. Запросите новый и попробуйте ещё раз.');
+      setErr('Код истёк или неверен. Прислать новый и попробовать ещё раз.');
     } finally {
       setLoading(false);
     }
-  }, [email, code, next, router]);
+  }, [email, code, next]);
 
   return (
     <div className="wrap py-10" style={{ maxWidth: 540 }}>
