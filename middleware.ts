@@ -26,11 +26,12 @@ function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(p => pathname === p || pathname.startsWith(p + "/"));
 }
 
-// Набор возможных имен куки, где может лежать токен
+// Возможные имена куки сессии (видим и access, и refresh)
 const ACCESS_COOKIE_CANDIDATES = [
-  "sb-access-token",               // частый кейс
-  "access-token",                  // запасной вариант
-  "supabase-access-token",         // некоторые обёртки
+  "sb-access-token",
+  "sb-refresh-token",
+  "access-token",
+  "supabase-access-token",
 ];
 
 export function middleware(req: NextRequest) {
@@ -41,12 +42,17 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // не блокируем статические и api-эндпоинты
+  if (pathname.startsWith("/api/") || pathname.startsWith("/_next/")) {
+    return NextResponse.next();
+  }
+
   // если путь не защищён — пропускаем
   if (!isProtectedPath(pathname)) {
     return NextResponse.next();
   }
 
-  // есть ли какой-то из access-куки
+  // проверяем наличие хотя бы одной из кук
   const hasAccess = ACCESS_COOKIE_CANDIDATES.some(name => !!req.cookies.get(name)?.value);
 
   if (hasAccess) {
@@ -61,8 +67,9 @@ export function middleware(req: NextRequest) {
   return NextResponse.redirect(url);
 }
 
+// исключаем служебные пути из матчера
 export const config = {
   matcher: [
-    "/((?!_next/|favicon.ico|robots.txt|sitemap.xml).*)"
+    "/((?!_next/|favicon.ico|robots.txt|sitemap.xml|api/).*)"
   ],
 };
