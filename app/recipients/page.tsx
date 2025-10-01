@@ -1,3 +1,4 @@
+// app/recipients/page.tsx
 import { Suspense } from "react";
 import RecipientsClient from "./RecipientsClient";
 import type { Metadata } from "next";
