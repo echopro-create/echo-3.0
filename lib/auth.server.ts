@@ -1,16 +1,15 @@
-// lib/auth.server.ts
 import { cookies } from "next/headers";
 
 /**
- * Простая проверка факта авторизации по наличию одной из сервисных кук.
- * Мы НЕ проверяем валидность JWT здесь, только факт присутствия.
+ * Мини-проверка авторизации по наличию сервисных кук.
+ * JWT не валидируем, нужен только факт входа.
  */
-export function isAuthenticated(): boolean {
-  const jar = cookies();
+export async function isAuthenticated(): Promise<boolean> {
+  const jar = await cookies(); // в Next 15 может быть Promise
   const names = [
-    "sb-access-token",       // наш основной
-    "sb-refresh-token",      // на всякий
-    "access-token",          // запасные варианты
+    "sb-access-token",
+    "sb-refresh-token",
+    "access-token",
     "supabase-access-token",
   ];
   return names.some(n => !!jar.get(n)?.value);

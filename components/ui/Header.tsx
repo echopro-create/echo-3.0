@@ -2,7 +2,7 @@ import Link from "next/link";
 import { isAuthenticated } from "../../lib/auth.server";
 
 export default async function Header() {
-  const authed = isAuthenticated();
+  const authed = await isAuthenticated();
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-black/10">
