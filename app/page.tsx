@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const metadata = {
   title: "Послания, которые будут доставлены позже… — ECHO"
 };
@@ -13,9 +15,9 @@ export default function HomePage() {
         <p className="subtitle max-w-2xl opacity-0 animate-fadein" style={{animationDelay:"200ms"}}>
           Мы доставим их адресатам в нужный день, даже после вашей смерти.
         </p>
-        <a href="/messages/new" className="btn opacity-0 animate-fadein" style={{animationDelay:"400ms"}}>
+        <Link href="/messages/new" className="btn opacity-0 animate-fadein" style={{animationDelay:"400ms"}}>
           Оставить послание
-        </a>
+        </Link>
       </div>
     </section>
   );
