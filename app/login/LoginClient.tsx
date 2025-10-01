@@ -18,13 +18,18 @@ export default function LoginClient() {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const requestOtp = useCallback(async () => {
+  const isEmailRoughlyValid = (val: string) => {
+    const e = val.trim();
+    const at = e.indexOf('@');
+    if (at <= 0) return false;
+    const domain = e.slice(at + 1);
+    return domain.includes('.');
+  };
+
+  const resend = useCallback(async () => {
     setErr(null); setMsg(null);
-    const e = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
-      setErr('Введите корректный email');
-      return;
-    }
+    const e = email.trim();
+    if (!isEmailRoughlyValid(e)) { setErr('Введите корректный email'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/otp', {
@@ -36,7 +41,7 @@ export default function LoginClient() {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error || 'Не удалось отправить код');
       }
-      setMsg('Код отправлен на почту. Проверьте inbox и спам.');
+      setMsg('Новый код отправлен. Проверьте почту.');
       setPhase('code');
     } catch (e: any) {
       setErr(e.message || 'Ошибка отправки кода');
@@ -45,14 +50,19 @@ export default function LoginClient() {
     }
   }, [email]);
 
+  const requestOtp = resend; // переиспользуем
+
   const verifyOtp = useCallback(async () => {
     setErr(null); setMsg(null);
-    const e = email.trim().toLowerCase();
-    const token = code.trim();
+    const e = email.trim();
+
+    // нормализуем код: только ASCII-цифры
+    const token = code.replace(/[^\d]/g, '').trim();
     if (token.length < 4) {
       setErr('Введите код из письма');
       return;
     }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.verifyOtp({
@@ -76,7 +86,8 @@ export default function LoginClient() {
       }
       router.replace(next);
     } catch (e: any) {
-      setErr(e.message || 'Неверный код');
+      // типовые тексты Supabase: "Token has expired or is invalid"
+      setErr('Код истёк или неверен. Запросите новый и попробуйте ещё раз.');
     } finally {
       setLoading(false);
     }
@@ -91,6 +102,7 @@ export default function LoginClient() {
             <label className="text-sm">Email</label>
             <input
               className="border rounded-md px-3 py-2"
+              type="email"
               placeholder="you@example.com"
               inputMode="email"
               autoComplete="email"
@@ -115,12 +127,17 @@ export default function LoginClient() {
               inputMode="numeric"
               autoComplete="one-time-code"
               value={code}
-              onChange={e => setCode(e.target.value.replace(/\s+/g, ''))}
+              onChange={e => setCode(e.target.value)}
               disabled={loading}
             />
-            <button className="btn" onClick={verifyOtp} disabled={loading}>
-              {loading ? 'Проверяю…' : 'Войти'}
-            </button>
+            <div className="flex gap-2">
+              <button className="btn" onClick={verifyOtp} disabled={loading}>
+                {loading ? 'Проверяю…' : 'Войти'}
+              </button>
+              <button className="btn secondary" onClick={resend} disabled={loading}>
+                Прислать новый код
+              </button>
+            </div>
             <button
               className="btn secondary"
               onClick={() => { setPhase('email'); setCode(''); setMsg(null); setErr(null); }}

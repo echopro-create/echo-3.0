@@ -9,7 +9,7 @@ function roughEmailOk(e: string): boolean {
   const at = s.indexOf("@");
   if (at <= 0) return false;
   const domain = s.slice(at + 1);
-  return domain.includes("."); // минимальная адекватность, детали — на совести провайдера
+  return domain.includes(".");
 }
 
 export async function POST(req: NextRequest) {
@@ -25,15 +25,17 @@ export async function POST(req: NextRequest) {
     const { error } = await supabase.auth.signInWithOtp({
       email: e,
       options: {
-        // редирект не обязателен для кода, но пусть будет валидный URL проекта
+        shouldCreateUser: true, // создаём при необходимости
         emailRedirectTo:
           (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000") + "/login",
       },
     });
 
     if (error) {
-      // пробрасываем текст супабейза, но без внутренностей
-      return NextResponse.json({ error: error.message || "Не удалось отправить код" }, { status: 400 });
+      return NextResponse.json(
+        { error: error.message || "Не удалось отправить код" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ ok: true });
