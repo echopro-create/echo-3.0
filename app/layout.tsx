@@ -7,12 +7,13 @@ export const metadata: Metadata = {
   title: "ECHO — Послания, которые будут доставлены позже",
   description:
     "Запишите текст, голос или видео. Мы доставим адресатам позже, даже после вашей смерти.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://echoproject.space"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://echoproject.space")
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Серверная проверка сессии с fail-safe, чтобы не падать при сбое куки/клиента
-  const supabase = createSupabaseServerClient();
+  // Асинхронная фабрика: обязательно await
+  const supabase = await createSupabaseServerClient();
+
   let user: { id: string; email?: string | null } | null = null;
   try {
     const { data, error } = await supabase.auth.getUser();
@@ -29,7 +30,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header className="border-b">
           <div className="container flex items-center justify-between py-3">
             <a href="/" className="font-semibold">ECHO</a>
-
             <nav className="hidden md:flex items-center gap-4">
               <a href="/messages">Послания</a>
               <a href="/recipients">Получатели</a>
@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </ul>
         </div>
 
-        {/* Индикатор только авторизованным, чтобы анонимам не мигало */}
+        {/* Индикатор только для авторизованных */}
         {user ? <OnlineBadge /> : null}
       </body>
     </html>
