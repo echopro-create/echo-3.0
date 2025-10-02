@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Базовые переменные и светлая тема */
+:root {
+  --bg: #ffffff;
+  --ink: #0a0a0a;
+  --mute: #666;
+  --line: #ebebeb;
+  --brand: #111;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-feature-settings: "ss01" 1, "cv02" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.container {
+  @apply mx-auto px-4;
+  max-width: 1120px;
+}
+
+/* Анти-«первая буква» защита для заголовков (микро-guard) */
+.title::first-letter { letter-spacing: 0.02em; }
+
+/* Карточки */
+.card {
+  @apply rounded-2xl border p-5;
+  border-color: var(--line);
+}
+
+/* Кнопки */
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 border text-sm;
+  border-color: var(--line);
+}
+.btn.primary { @apply bg-black text-white; }
+.btn.secondary { @apply bg-white text-black; }
+
+/* Мелкие анимации появления */
+.fade-in-up { 
+  opacity: 0; transform: translateY(8px);
+  animation: fadeInUp .5s ease forwards;
+}
+.fade-in-up.delay-1 { animation-delay: .12s; }
+.fade-in-up.delay-2 { animation-delay: .24s; }
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Мобильный таб-бар */
+.mobile-tabbar {
+  @apply fixed bottom-0 inset-x-0 border-t bg-white;
+  border-color: var(--line);
+}
+.mobile-tabbar ul { @apply grid grid-cols-4; }
+.mobile-tabbar a { @apply block text-center py-3 text-sm; }
+
+/* Hover состояния и фокус */
+a:hover { text-decoration: underline; }
+.btn.primary:hover { filter: brightness(0.92); }
+.btn.secondary:hover { filter: brightness(0.98); }
+:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
