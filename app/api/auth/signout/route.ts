@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
-export async function POST() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut({ scope: "local" }); // чистим cookie-сессию
-  const url = new URL("/login", process.env.NEXT_PUBLIC_APP_URL || "https://echoproject.space");
-  return NextResponse.redirect(url);
+// Делаем роут динамическим, чтобы не прилипал к кэшу.
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  const supabase = createSupabaseServerClient();
+  // Чистим локальную сессию (куки)
+  await supabase.auth.signOut({ scope: "local" });
+  const { origin } = new URL(req.url);
+  return NextResponse.redirect(`${origin}/login`, { status: 302 });
+}
+
+// На всякий случай позволим и GET (если кто-то ткнёт ссылкой)
+export async function GET(req: Request) {
+  const supabase = createSupabaseServerClient();
+  await supabase.auth.signOut({ scope: "local" });
+  const { origin } = new URL(req.url);
+  return NextResponse.redirect(`${origin}/login`, { status: 302 });
 }

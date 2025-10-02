@@ -11,24 +11,24 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Проверяем сессию на сервере через cookie
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Серверная проверка сессии с fail-safe, чтобы не падать при сбое куки/клиента
+  const supabase = createSupabaseServerClient();
+  let user: { id: string; email?: string | null } | null = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error) user = (data.user as any) ?? null;
+  } catch {
+    user = null;
+  }
 
   return (
     <html lang="ru">
       <body>
-        <a href="#main" className="sr-only focus:not-sr-only">
-          Пропустить к содержимому
-        </a>
+        <a href="#main" className="sr-only focus:not-sr-only">Пропустить к содержимому</a>
 
         <header className="border-b">
           <div className="container flex items-center justify-between py-3">
-            <a href="/" className="font-semibold">
-              ECHO
-            </a>
+            <a href="/" className="font-semibold">ECHO</a>
 
             <nav className="hidden md:flex items-center gap-4">
               <a href="/messages">Послания</a>
@@ -44,16 +44,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </button>
               </form>
             ) : (
-              <a className="btn primary" href="/login">
-                Войти
-              </a>
+              <a className="btn primary" href="/login">Войти</a>
             )}
           </div>
         </header>
 
-        <main id="main" className="min-h-[70vh]">
-          {children}
-        </main>
+        <main id="main" className="min-h-[70vh]">{children}</main>
 
         <footer className="border-t">
           <div className="container py-10 text-center text-sm">© 2025 ECHO</div>
@@ -61,22 +57,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <div className="mobile-tabbar md:hidden">
           <ul>
-            <li>
-              <a href="/messages">Послания</a>
-            </li>
-            <li>
-              <a href="/messages/new">Создать</a>
-            </li>
-            <li>
-              <a href="/recipients">Получатели</a>
-            </li>
-            <li>
-              <a href="/settings">Настройки</a>
-            </li>
+            <li><a href="/messages">Послания</a></li>
+            <li><a href="/messages/new">Создать</a></li>
+            <li><a href="/recipients">Получатели</a></li>
+            <li><a href="/settings">Настройки</a></li>
           </ul>
         </div>
 
-        {/* Индикатор показываем только авторизованным */}
+        {/* Индикатор только авторизованным, чтобы анонимам не мигало */}
         {user ? <OnlineBadge /> : null}
       </body>
     </html>
