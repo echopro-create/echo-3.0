@@ -6,19 +6,14 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function bad(status: number, error: string) {
-  return NextResponse.json(
-    { ok: false, error },
-    { status, headers: { "Cache-Control": "no-store" } }
-  );
+  return NextResponse.json({ ok: false, error }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
 function ok(payload: Record<string, unknown>) {
-  return NextResponse.json(
-    { ok: true, ...payload },
-    { headers: { "Cache-Control": "no-store" } }
-  );
+  return NextResponse.json({ ok: true, ...payload }, { headers: { "Cache-Control": "no-store" } });
 }
 
+// SHA-256( password || salt )
 async function deriveHash(password: string, saltBytes: Uint8Array) {
   const enc = new TextEncoder();
   const passBytes = enc.encode(password);
@@ -26,36 +21,31 @@ async function deriveHash(password: string, saltBytes: Uint8Array) {
   toHash.set(passBytes, 0);
   toHash.set(saltBytes, passBytes.length);
   const digest = await crypto.subtle.digest("SHA-256", toHash);
-  const hashHex = Array.from(new Uint8Array(digest))
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-  const saltHex = Array.from(saltBytes)
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
+  const hashHex = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+  const saltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, "0")).join("");
   return { hashHex, saltHex };
 }
 
 /**
  * POST /api/shares/[token]/password
- * Установка/снятие пароля шаринга (SHA-256 + соль).
+ * Установить/снять пароль шаринга.
+ * body: { password?: string | null } — пустая строка/null снимает пароль.
  */
-export async function POST(
-  req: Request,
-  context: { params: { token: string } }
-) {
+export async function POST(req: Request, ctx: any) {
   const supabase = await createSupabaseServerClient();
 
   const { data: au } = await supabase.auth.getUser();
   const user = au?.user;
   if (!user) return bad(401, "Не авторизован");
 
-  const token = context.params.token?.trim();
+  const token = String(ctx?.params?.token || "").trim();
   if (!token) return bad(400, "token обязателен в пути");
 
   const body = await req.json().catch(() => ({} as any));
   const raw = body?.password;
   const hasPassword = typeof raw === "string" ? raw.trim().length > 0 : false;
 
+  // Снятие пароля
   if (!hasPassword) {
     const { data: cleared, error: clrErr } = await supabase
       .from("shares")
@@ -67,13 +57,10 @@ export async function POST(
     if (clrErr) return bad(400, clrErr.message);
     if (!cleared) return bad(404, "Ссылка не найдена или нет прав");
 
-    return ok({
-      token: cleared.token,
-      password_protected: false,
-      status: "password_removed",
-    });
+    return ok({ token: cleared.token, password_protected: false, status: "password_removed" });
   }
 
+  // Установка пароля
   const password = String(raw);
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const { hashHex, saltHex } = await deriveHash(password, salt);
@@ -88,9 +75,5 @@ export async function POST(
   if (updErr) return bad(400, updErr.message);
   if (!updated) return bad(404, "Ссылка не найдена или нет прав");
 
-  return ok({
-    token: updated.token,
-    password_protected: true,
-    status: "password_set",
-  });
+  return ok({ token: updated.token, password_protected: true, status: "password_set" });
 }
