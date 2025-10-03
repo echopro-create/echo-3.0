@@ -2,10 +2,11 @@
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type FileRow = {
   id: string;
-  path: string;
+  path: string | null; // важное: может быть null в БД
   mime: string | null;
   bytes: number | null;
 };
@@ -16,6 +17,7 @@ type SignedView = {
   mime: string | null;
   bytes: number | null;
   name: string;
+  err?: string | null;
 };
 
 export default async function MessageDetail(props: any) {
@@ -29,8 +31,6 @@ export default async function MessageDetail(props: any) {
     );
   }
 
-  let debugNote: string | null = null;
-
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -38,7 +38,7 @@ export default async function MessageDetail(props: any) {
     const { data: au, error: auErr } = await supabase.auth.getUser();
     if (auErr) {
       console.error("[message detail] auth.getUser error:", auErr);
-      debugNote = `auth.getUser: ${auErr.message}`;
+      return fail("Ошибка авторизации: " + auErr.message);
     }
     if (!au?.user) {
       return (
@@ -58,14 +58,7 @@ export default async function MessageDetail(props: any) {
 
     if (msgErr) {
       console.error("[message detail] select messages error:", msgErr);
-      return (
-        <div className="container py-6">
-          <div className="card text-red-600">
-            Ошибка загрузки послания: {msgErr.message}
-          </div>
-          <a className="btn secondary mt-3" href="/messages">К списку</a>
-        </div>
-      );
+      return fail("Ошибка загрузки послания: " + msgErr.message);
     }
     if (!msg || msg.user_id !== au.user.id) {
       return (
@@ -85,25 +78,42 @@ export default async function MessageDetail(props: any) {
 
     if (filesErr) {
       console.error("[message detail] select message_files error:", filesErr);
-      debugNote = `message_files: ${filesErr.message}`;
     }
 
-    // 4) Подписанные ссылки (10 минут)
+    // 4) Подписанные ссылки (10 минут), НИКОГДА не падаем из-за storage
     const signed: SignedView[] = [];
     for (const f of (files || []) as FileRow[]) {
-      const name = f.path?.split("/").pop() || f.path || "file";
-      const { data: s, error: sErr } = await supabase.storage
-        .from("attachments")
-        .createSignedUrl(f.path, 600);
-      if (sErr) {
-        console.error("[message detail] signed url error:", sErr, "path:", f.path);
+      const rawPath = f?.path ?? null;
+      const name = rawPath?.split("/").pop() || rawPath || "file";
+      let url: string | null = null;
+      let err: string | null = null;
+
+      if (rawPath && typeof rawPath === "string" && rawPath.trim().length > 0) {
+        try {
+          const { data: s, error: sErr } = await supabase.storage
+            .from("attachments")
+            .createSignedUrl(rawPath, 600);
+          if (sErr) {
+            console.error("[message detail] signed url error:", sErr, "path:", rawPath);
+            err = sErr.message ?? "signed url error";
+          } else {
+            url = s?.signedUrl ?? null;
+          }
+        } catch (e: any) {
+          console.error("[message detail] signed url throw:", e, "path:", rawPath);
+          err = String(e?.message || e);
+        }
+      } else {
+        err = "empty path";
       }
+
       signed.push({
         id: f.id,
-        url: s?.signedUrl ?? null,
+        url,
         mime: f.mime ?? null,
         bytes: f.bytes ?? null,
         name,
+        err,
       });
     }
 
@@ -114,13 +124,8 @@ export default async function MessageDetail(props: any) {
           <div className="flex gap-2">
             <a className="btn secondary" href="/messages">Назад</a>
             <a className="btn" href={`/messages/${id}/edit`}>Редактировать</a>
-            <form
-              action={`/api/messages/${id}`}
-              method="post"
-              onSubmit={(e) => {
-                if (!confirm("Удалить послание безвозвратно?")) e.preventDefault();
-              }}
-            >
+            <form action={`/api/messages/${id}`} method="post">
+              {/* HTML-форма не умеет DELETE — прокидываем через _method */}
               <input type="hidden" name="_method" value="DELETE" />
               <button className="btn danger" type="submit">Удалить</button>
             </form>
@@ -128,12 +133,8 @@ export default async function MessageDetail(props: any) {
         </div>
 
         <div className="card grid gap-2">
-          <div className="text-sm opacity-70">
-            Создано: {safeDate(msg.created_at)}
-          </div>
-          <div className="text-sm">
-            Тип: {labelKind(msg.kind)}
-          </div>
+          <div className="text-sm opacity-70">Создано: {safeDate(msg.created_at)}</div>
+          <div className="text-sm">Тип: {labelKind(msg.kind)}</div>
           <div className="text-sm">
             Доставка: {msg.delivery_mode === "heartbeat"
               ? "по пульсу"
@@ -141,9 +142,7 @@ export default async function MessageDetail(props: any) {
           </div>
         </div>
 
-        {msg.content && (
-          <div className="card whitespace-pre-wrap">{msg.content}</div>
-        )}
+        {msg.content && <div className="card whitespace-pre-wrap">{msg.content}</div>}
 
         {signed.length > 0 && (
           <div className="card grid gap-3">
@@ -154,27 +153,14 @@ export default async function MessageDetail(props: any) {
                   <div className="text-sm">
                     {f.name} {f.bytes ? `· ${(f.bytes / 1024 / 1024).toFixed(2)} MB` : ""}
                   </div>
-                  {f.url && f.mime?.startsWith("audio") && (
-                    <audio controls src={f.url} className="w-full" />
+                  {f.url && f.mime?.startsWith("audio") && <audio controls src={f.url} className="w-full" />}
+                  {f.url && f.mime?.startsWith("video") && <video controls src={f.url} className="w-full rounded-xl bg-black/5" />}
+                  {f.url && !f.mime?.startsWith("audio") && !f.mime?.startsWith("video") && (
+                    <a className="btn secondary w-fit" href={f.url} target="_blank" rel="noreferrer">Скачать</a>
                   )}
-                  {f.url && f.mime?.startsWith("video") && (
-                    <video controls src={f.url} className="w-full rounded-xl bg-black/5" />
-                  )}
-                  {f.url &&
-                    !f.mime?.startsWith("audio") &&
-                    !f.mime?.startsWith("video") && (
-                      <a
-                        className="btn secondary w-fit"
-                        href={f.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Скачать
-                      </a>
-                    )}
                   {!f.url && (
                     <div className="text-xs text-red-600">
-                      Не удалось создать ссылку на файл: {f.name}
+                      Не удалось создать ссылку на файл: {f.name}{f.err ? ` · ${f.err}` : ""}
                     </div>
                   )}
                 </li>
@@ -182,29 +168,24 @@ export default async function MessageDetail(props: any) {
             </ul>
           </div>
         )}
-
-        {debugNote && (
-          <div className="card text-xs text-[var(--mute)]">
-            Debug: {debugNote}
-          </div>
-        )}
       </div>
     );
   } catch (e: any) {
-    // Лог в верселе + аккуратный вывод пользователю
     console.error("[message detail] fatal error:", e);
-    return (
-      <div className="container py-6">
-        <div className="card text-red-600">
-          Не удалось отобразить послание.
-          <div className="mt-2 text-xs opacity-70">
-            {String(e?.message || e)}
-          </div>
-        </div>
-        <a className="btn secondary mt-3" href="/messages">К списку</a>
-      </div>
-    );
+    return fail(String(e?.message || e));
   }
+}
+
+function fail(text: string) {
+  return (
+    <div className="container py-6">
+      <div className="card text-red-600">
+        Не удалось отобразить послание.
+        <div className="mt-2 text-xs opacity-70">{text}</div>
+      </div>
+      <a className="btn secondary mt-3" href="/messages">К списку</a>
+    </div>
+  );
 }
 
 function safeDate(s: string | null) {
