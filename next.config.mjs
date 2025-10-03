@@ -12,8 +12,8 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Разрешаем микрофон на своём домене, остальное остаётся запрещённым
-          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" }
+          // Разрешаем камеру и микрофон только на своём домене; геолокацию оставляем выключенной
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" }
         ]
       }
     ];
