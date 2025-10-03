@@ -1,38 +1,60 @@
-// app/api/_diag/health/route.ts
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
+  const t0 = Date.now();
+  const headers = { "Cache-Control": "no-store" };
+
   try {
     const supabase = await createSupabaseServerClient();
 
-    const auth = await supabase.auth.getUser();
-    const messages = await supabase.from("messages").select("id").limit(1);
-    const files = await supabase.from("message_files").select("path").limit(1);
-
-    let signedUrl: string | null = null;
-    let signedErr: string | null = null;
-
-    const p = files.data?.[0]?.path;
-    if (p) {
-      const { data, error } = await supabase.storage.from("attachments").createSignedUrl(p, 60);
-      signedUrl = data?.signedUrl ?? null;
-      signedErr = error?.message ?? null;
+    // 1) БД: безопасный head-select без данных
+    let dbOk = true;
+    let dbErr: string | null = null;
+    {
+      const { error } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .limit(1);
+      if (error) {
+        dbOk = false;
+        dbErr = error.message;
+      }
     }
 
-    return NextResponse.json({
-      ok: true,
-      auth: { user: auth.data?.user ?? null, error: auth.error?.message ?? null },
-      db: {
-        messages: { error: messages.error?.message ?? null },
-        message_files: { error: files.error?.message ?? null }
-      },
-      storage: { tried: !!p, path: p ?? null, signedUrl, error: signedErr }
-    }, { status: 200 });
+    // 2) Storage: пробуем создать подписанную ссылку на фиктивный путь
+    // Ничего не читаем и ничего не возвращаем наружу.
+    let storageOk = true;
+    let storageErr: string | null = null;
+    {
+      const { error } = await supabase.storage
+        .from("attachments")
+        .createSignedUrl("diag/_probe.txt", 30, { download: false });
+      if (error) {
+        storageOk = false;
+        storageErr = error.message;
+      }
+    }
 
+    const ok = dbOk && storageOk;
+    const ms = Date.now() - t0;
+
+    return NextResponse.json(
+      {
+        ok,
+        ms,
+        db: { ok: dbOk, error: dbErr },
+        storage: { ok: storageOk, error: storageErr }
+      },
+      { status: ok ? 200 : 503, headers }
+    );
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "server_error" },
+      { status: 500, headers }
+    );
   }
 }
