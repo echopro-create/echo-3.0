@@ -1,14 +1,15 @@
+// lib/supabase.server.ts
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /**
- * Серверный клиент Supabase.
- * - На серверных страницах (RSC) cookies только читаем.
- * - В Route Handlers / Server Actions set/delete сработают нормально.
- * - В RSC попытки set/delete молча игнорируются, чтобы не падать.
+ * Серверный клиент Supabase под Next 15.
+ * - cookies() в твоей сборке — Promise, поэтому ждём его.
+ * - В RSC запись/удаление куков глушим try/catch, чтобы не падать.
+ * - В Route Handler / Server Action set/delete сработают нормально.
  */
-export function createSupabaseServerClient() {
-  const cookieStore = cookies(); // sync, без await в Next 15
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies(); // <- важное отличие: await
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,19 +20,17 @@ export function createSupabaseServerClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          // В RSC это кинет ошибку — глушим. В Route Handler пройдет.
           try {
             cookieStore.set({ name, value, ...options });
           } catch {
-            // noop в среде, где менять куки нельзя
+            // В RSC менять нельзя — молча игнорируем.
           }
         },
         remove(name: string, options: CookieOptions) {
-          // Аналогично — тихо игнорируем в RSC.
           try {
             cookieStore.delete({ name, ...options });
           } catch {
-            // noop
+            // В RSC менять нельзя — молча игнорируем.
           }
         },
       },
