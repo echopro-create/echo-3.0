@@ -3,10 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/app/lib/i18n";
 
-/**
- * RecorderBase — запись аудио, предпрослушивание и загрузка с прогрессом в /api/media/upload.
- */
-
 type UploadResponse = {
   ok: boolean;
   id?: string | null;
@@ -18,9 +14,9 @@ type UploadResponse = {
 };
 
 export type RecorderBaseProps = {
-  messageId?: string;             // если есть — файл привяжется к сообщению
-  maxBytes?: number;              // по умолчанию 25 МБ
-  maxDurationSec?: number;        // по умолчанию 30 минут
+  messageId?: string;
+  maxBytes?: number;        // по умолчанию 25 МБ
+  maxDurationSec?: number;  // по умолчанию 10 минут
   onUploaded?: (res: UploadResponse) => void;
   title?: string;
 };
@@ -36,8 +32,9 @@ const AUDIO_CANDIDATES = [
 ];
 
 function isTypeSupported(mime: string) {
-  // @ts-ignore
-  return typeof window !== "undefined" && window.MediaRecorder && (window.MediaRecorder as any).isTypeSupported
+  return typeof window !== "undefined" &&
+    window.MediaRecorder &&
+    (window.MediaRecorder as any).isTypeSupported
     ? (window.MediaRecorder as any).isTypeSupported(mime)
     : false;
 }
@@ -59,24 +56,24 @@ type UiState = "idle" | "recording" | "stopped" | "uploading" | "success" | "err
 export default function RecorderBase({
   messageId,
   maxBytes = 25 * MB,
-  maxDurationSec = 30 * 60,
+  maxDurationSec = 10 * 60,
   onUploaded,
   title = "Голосовое послание",
 }: RecorderBaseProps) {
   const t = useT();
-  const [supported, setSupported] = useState<boolean>(false);
+  const [supported, setSupported] = useState(false);
   const [mime, setMime] = useState<string | null>(null);
   const [ui, setUi] = useState<UiState>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const [duration, setDuration] = useState<number>(0);
+  const [duration, setDuration] = useState(0);
   const durationTimerRef = useRef<number | null>(null);
 
   const [chunks, setChunks] = useState<Blob[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const [uploadPct, setUploadPct] = useState<number>(0);
+  const [uploadPct, setUploadPct] = useState(0);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   const stopBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -95,14 +92,12 @@ export default function RecorderBase({
 
   useEffect(() => {
     if (ui === "recording") {
-      durationTimerRef.current = window.setInterval(() => setDuration((d) => d + 1), 1000) as unknown as number;
+      durationTimerRef.current = window.setInterval(() => setDuration(d => d + 1), 1000) as unknown as number;
     } else if (durationTimerRef.current) {
       clearInterval(durationTimerRef.current);
       durationTimerRef.current = null;
     }
-    return () => {
-      if (durationTimerRef.current) clearInterval(durationTimerRef.current);
-    };
+    return () => { if (durationTimerRef.current) clearInterval(durationTimerRef.current); };
   }, [ui]);
 
   useEffect(() => {
@@ -130,25 +125,12 @@ export default function RecorderBase({
       setChunks([]);
       setDuration(0);
 
-      mr.ondataavailable = (ev) => {
-        if (ev.data && ev.data.size > 0) setChunks((prev) => prev.concat(ev.data));
-      };
-
-      mr.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-        setUi("stopped");
-      };
-
-      mr.onerror = (ev: any) => {
-        setError(ev?.error?.message || "Ошибка записи");
-        try { stream.getTracks().forEach((t) => t.stop()); } catch {}
-        setUi("error");
-      };
+      mr.ondataavailable = ev => { if (ev.data && ev.data.size > 0) setChunks(prev => prev.concat(ev.data)); };
+      mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); streamRef.current = null; setUi("stopped"); };
+      mr.onerror = (ev: any) => { setError(ev?.error?.message || "Ошибка записи"); try { stream.getTracks().forEach(t => t.stop()); } catch {} setUi("error"); };
 
       mr.start(1000);
       setUi("recording");
-      // фокус на «Остановить», чтобы клавиатурой было удобно
       setTimeout(() => stopBtnRef.current?.focus(), 0);
     } catch (e: any) {
       setError(e?.message || "Не удалось начать запись (доступ к микрофону?)");
@@ -157,80 +139,49 @@ export default function RecorderBase({
   }
 
   function stopRecording() {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") mediaRecorderRef.current.stop();
   }
 
   function discardRecording() {
     try { xhrRef.current?.abort(); } catch {}
     xhrRef.current = null;
-
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.stop();
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") mediaRecorderRef.current.stop();
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
     resetAll();
   }
 
   async function uploadRecording() {
-    if (!chunks.length) {
-      setError("Нет данных записи");
-      setUi("error");
-      return;
-    }
+    if (!chunks.length) { setError("Нет данных записи"); setUi("error"); return; }
 
     const blob = new Blob(chunks, { type: mime || "audio/webm" });
     const size = blob.size;
-    if (size > maxBytes) {
-      setError(`Файл ${fmtBytes(size)} превышает лимит ${fmtBytes(maxBytes)}`);
-      setUi("error");
-      return;
-    }
+    if (size > maxBytes) { setError(`Файл ${fmtBytes(size)} превышает лимит ${fmtBytes(maxBytes)}`); setUi("error"); return; }
 
     const filename = `audio_${new Date().toISOString().replace(/[:.]/g, "-")}.${(mime || "audio/webm").includes("mp4") ? "m4a" : "webm"}`;
     const file = new File([blob], filename, { type: mime || "audio/webm" });
 
-    setUi("uploading");
-    setError(null);
-    setUploadPct(0);
+    setUi("uploading"); setError(null); setUploadPct(0);
 
     try {
       const form = new FormData();
       form.append("file", file);
       if (messageId) form.append("message_id", messageId);
 
-      const res = await xhrUpload(
-        "/api/media/upload",
-        form,
+      const res = await xhrUpload("/api/media/upload", form,
         (loaded, total) => { if (total > 0) setUploadPct(Math.min(99, Math.round((loaded / total) * 100))); },
-        (xhr) => { xhrRef.current = xhr; }
+        xhr => { xhrRef.current = xhr; }
       );
 
       setUploadPct(100);
 
-      if (!res.ok) {
-        setError(res.error || "Ошибка загрузки");
-        setUi("error");
-        return;
-      }
+      if (!res.ok) { setError(res.error || "Ошибка загрузки"); setUi("error"); return; }
 
       setUi("success");
       onUploaded?.(res);
     } catch (e: any) {
-      if (e?.message === "__aborted__") {
-        setUi("canceled");
-        setError("Загрузка отменена");
-      } else {
-        setError(e?.message || "Сбой загрузки");
-        setUi("error");
-      }
-    } finally {
-      xhrRef.current = null;
-    }
+      if (e?.message === "__aborted__") { setUi("canceled"); setError("Загрузка отменена"); }
+      else { setError(e?.message || "Сбой загрузки"); setUi("error"); }
+    } finally { xhrRef.current = null; }
   }
 
   const recording = ui === "recording";
@@ -241,74 +192,28 @@ export default function RecorderBase({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <strong>{title}</strong>
         <span style={{ fontSize: 12, opacity: 0.7 }}>
-          {t.limit}: {fmtBytes(maxBytes)} • {mime ? mime : t.defaultFormat}
+          {t.limit}: {fmtBytes(maxBytes)} • {mime ? mime : t.defaultFormat} • {Math.floor(maxDurationSec/60)} мин
         </span>
       </div>
 
-      {!supported && (
-        <div className="muted" role="alert">
-          {t.browserNoSupportAudio}
-        </div>
-      )}
+      {!supported && <div className="muted" role="alert">{t.browserNoSupportAudio}</div>}
 
       {supported && (
         <>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              className="btn"
-              type="button"
-              onClick={startRecording}
-              disabled={recording || uploading}
-              aria-disabled={recording || uploading}
-              aria-label={t.record}
-            >
+            <button className="btn" type="button" onClick={startRecording} disabled={recording || uploading}>
               {t.record}
             </button>
-
-            <button
-              ref={stopBtnRef}
-              className="btn danger"
-              type="button"
-              onClick={stopRecording}
-              disabled={!recording || uploading}
-              aria-disabled={!recording || uploading}
-              aria-label={t.stop}
-            >
+            <button ref={stopBtnRef} className="btn danger" type="button" onClick={stopRecording} disabled={!recording || uploading}>
               {t.stop}
             </button>
-
-            <button
-              className="btn secondary"
-              type="button"
-              onClick={discardRecording}
-              disabled={recording || uploading}
-              aria-disabled={recording || uploading}
-              aria-label={t.reset}
-            >
+            <button className="btn secondary" type="button" onClick={discardRecording} disabled={recording || uploading}>
               {t.reset}
             </button>
-
-            <button
-              className="btn"
-              type="button"
-              onClick={uploadRecording}
-              disabled={uploading || recording || !chunks.length}
-              aria-disabled={uploading || recording || !chunks.length}
-              aria-label={t.upload}
-            >
+            <button className="btn" type="button" onClick={uploadRecording} disabled={uploading || recording || !chunks.length}>
               {t.upload}
             </button>
-
-            {uploading && (
-              <button
-                className="btn secondary"
-                type="button"
-                onClick={() => { try { xhrRef.current?.abort(); } catch {} }}
-                aria-label={t.cancelUpload}
-              >
-                {t.cancelUpload}
-              </button>
-            )}
+            {uploading && <button className="btn secondary" type="button" onClick={() => { try { xhrRef.current?.abort(); } catch {} }}>{t.cancelUpload}</button>}
           </div>
 
           <div style={{ fontSize: 13, opacity: 0.85 }} aria-live="polite">
@@ -320,20 +225,12 @@ export default function RecorderBase({
             {ui === "error" && <span>{t.error}: {error}</span>}
           </div>
 
-          {audioUrl && (
-            <audio src={audioUrl} controls style={{ width: "100%", marginTop: 8 }} preload="metadata" />
-          )}
+          {audioUrl && <audio src={audioUrl} controls style={{ width: "100%", marginTop: 8 }} preload="metadata" />}
 
           {uploading && (
-            <div
-              aria-label="progress"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={uploadPct}
-              style={{ width: "100%", height: 6, background: "#eee", borderRadius: 6 }}
-            >
-              <div style={{ width: `${uploadPct}%`, height: "100%", borderRadius: 6 }} />
+            <div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadPct}
+              style={{ width: "100%", height: 6, background: "#eee", borderRadius: 6, marginTop: 8 }}>
+              <div style={{ width: `${uploadPct}%`, height: "100%", borderRadius: 6, background: "#1463FF" }} />
             </div>
           )}
         </>
@@ -342,9 +239,6 @@ export default function RecorderBase({
   );
 }
 
-/**
- * XHR загрузка с onprogress и поддержкой отмены.
- */
 function xhrUpload(
   url: string,
   form: FormData,
@@ -355,9 +249,7 @@ function xhrUpload(
     const xhr = new XMLHttpRequest();
     onInit?.(xhr);
     xhr.open("POST", url);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total);
-    };
+    xhr.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total); };
     xhr.responseType = "json";
     xhr.onerror = () => reject(new Error("Сетевая ошибка"));
     xhr.onabort = () => reject(new Error("__aborted__"));
