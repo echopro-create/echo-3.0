@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /**
- * Продакшен-конфиг для медиа
- * Лимиты и белые списки можно вынести в ENV позднее.
+ * Лимиты и белые списки.
+ * ALLOW_ARCHIVES=true в env включает поддержку zip/7z/rar/tar.
  */
 const MB = 1024 * 1024;
 const LIMITS = {
@@ -19,6 +20,8 @@ const AUDIO_MIME = new Set<string>([
   "audio/ogg",
   "audio/mpeg", // mp3
   "audio/mp4",  // m4a/aac контейнер
+  "audio/aac",
+  "audio/wav",
 ]);
 
 const VIDEO_MIME = new Set<string>([
@@ -26,26 +29,32 @@ const VIDEO_MIME = new Set<string>([
   "video/mp4",
 ]);
 
-const OTHER_MIME = new Set<string>([
+const OTHER_BASE = [
   "application/pdf",
   "image/jpeg",
   "image/png",
   "image/webp",
   "text/plain",
+] as const;
+
+const ARCHIVE_MIME = [
   "application/zip",
   "application/x-zip-compressed",
   "application/x-7z-compressed",
   "application/x-tar",
   "application/x-rar-compressed",
-]);
+] as const;
 
-// Нормализация имени файла
+const ALLOW_ARCHIVES = String(process.env.ALLOW_ARCHIVES || "").toLowerCase() === "true";
+const OTHER_MIME = new Set<string>([...OTHER_BASE, ...(ALLOW_ARCHIVES ? ARCHIVE_MIME : [])]);
+
+// Нормализация имени файла: безопасные символы + обрезка до 200
 function sanitizeFilename(name: string) {
-  const clean = name.replace(/[^\w.\-]+/g, "_");
-  return clean.length ? clean : "file";
+  const clean = (name || "file").replace(/[^\w.\-]+/g, "_");
+  return clean.length > 200 ? clean.slice(0, 200) : clean;
 }
 
-// Нормализуем MIME: срезаем параметры после ';' и приводим к нижнему регистру
+// Нормализация MIME: нижний регистр, без параметров ;codecs=...
 function baseMime(m?: string | null) {
   return (m || "").split(";")[0].trim().toLowerCase();
 }
@@ -56,8 +65,12 @@ function pickCategory(mime: string): "audio" | "video" | "other" {
   return "other";
 }
 
+function json(status: number, payload: Record<string, unknown>) {
+  return NextResponse.json(payload, { status, headers: { "Cache-Control": "no-store" } });
+}
+
 function errorJson(status: number, message: string) {
-  return NextResponse.json({ ok: false, error: message }, { status });
+  return json(status, { ok: false, error: message });
 }
 
 // Принимаем multipart/form-data: fields: message_id (опц.), file
@@ -89,7 +102,7 @@ export async function POST(req: Request) {
 
   // Валидация типа и размера
   const rawMime = file.type || "";
-  const mime = baseMime(rawMime); // нормализованный
+  const mime = baseMime(rawMime); // нормализованный без параметров
   const bytes = typeof file.size === "number" ? file.size : 0;
 
   const category = pickCategory(mime);
@@ -104,6 +117,7 @@ export async function POST(req: Request) {
     (category === "other" && OTHER_MIME.has(mime));
 
   if (!allowed) {
+    // Явно укажем, что именно не нравится
     return errorJson(415, `Формат не поддерживается: ${rawMime || "unknown"}`);
   }
 
@@ -139,7 +153,7 @@ export async function POST(req: Request) {
   const filename = sanitizeFilename(file.name || "file");
   const path = `${user.id}/${yyyy}/${mm}/${rand}_${filename}`;
 
-  // Загружаем в Storage (используем нормализованный contentType)
+  // Загружаем в Storage с нормализованным contentType
   const arrayBuf = await file.arrayBuffer();
   const { data: uploadRes, error: uploadErr } = await supabase.storage
     .from("attachments")
@@ -149,6 +163,11 @@ export async function POST(req: Request) {
     });
 
   if (uploadErr) {
+    // Превратим явный конфликт в 409, остальное как 400
+    const msg = String(uploadErr.message || "");
+    if (msg.toLowerCase().includes("the resource already exists") || msg.includes("409")) {
+      return errorJson(409, "Файл с таким путём уже существует");
+    }
     return errorJson(400, `Ошибка загрузки в хранилище: ${uploadErr.message}`);
   }
 
@@ -168,12 +187,13 @@ export async function POST(req: Request) {
       .single();
 
     if (mfErr) {
+      // Файл уже в бакете, но запись в БД не создалась: сообщаем честно
       return errorJson(400, `Файл загружен, но запись БД не создана: ${mfErr.message}`);
     }
     messageFileId = inserted?.id ?? null;
   }
 
-  return NextResponse.json({
+  return json(200, {
     ok: true,
     id: messageFileId,
     path: uploadRes?.path || path,

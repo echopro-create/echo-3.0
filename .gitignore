@@ -7,3 +7,5 @@ dist
 .DS_Store
 .idea
 .vscode
+git ls-files | findstr /i "\.env$"
+
