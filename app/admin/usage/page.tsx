@@ -30,14 +30,13 @@ export default async function AdminUsagePage() {
     return new Response("Not Found", { status: 404 }) as any;
   }
 
-  // В твоей БД нет message_files.created_at, поэтому забираем дату из messages.created_at.
-  // Вытягиваем:
-  // - bytes из message_files
-  // - owner user_id и created_at из messages через inner join
+  // Берем bytes и created_at из message_files,
+  // плюс owner и дата создания сообщения из messages (fallback для last_at).
   const { data, error } = await supabase
     .from("message_files")
     .select(`
       bytes,
+      created_at,
       messages!inner (
         user_id,
         created_at
@@ -58,20 +57,27 @@ export default async function AdminUsagePage() {
     user_id: string;
     total_bytes: number;
     files: number;
-    last_at: string | null; // берём из messages.created_at как приближение
+    last_at: string | null; // приоритет: message_files.created_at, иначе messages.created_at
   };
 
   const byUser = new Map<string, Row>();
   for (const r of (data as any[])) {
     const user_id: string | undefined = r?.messages?.user_id;
     if (!user_id) continue;
+
     const bytes: number = Number(r?.bytes || 0);
-    const msg_created: string | null = r?.messages?.created_at ?? null;
+
+    // приоритет created_at файла, затем дата сообщения
+    const fileCreated: string | null = r?.created_at ?? null;
+    const msgCreated: string | null = r?.messages?.created_at ?? null;
+    const effectiveCreated: string | null = fileCreated ?? msgCreated;
 
     const agg = byUser.get(user_id) || { user_id, total_bytes: 0, files: 0, last_at: null };
     agg.total_bytes += bytes;
     agg.files += 1;
-    if (!agg.last_at || (msg_created && msg_created > agg.last_at)) agg.last_at = msg_created;
+    if (!agg.last_at || (effectiveCreated && effectiveCreated > agg.last_at)) {
+      agg.last_at = effectiveCreated;
+    }
     byUser.set(user_id, agg);
   }
 
@@ -118,7 +124,8 @@ export default async function AdminUsagePage() {
       </div>
 
       <p className="mt-3 text-xs opacity-70">
-        Примечание: используется <code>messages.created_at</code> как приближение для «последней активности».
+        Примечание: при наличии <code>message_files.created_at</code> используется она; при отсутствии — падение на
+        <code> messages.created_at</code>.
       </p>
     </div>
   ) as any;
