@@ -7,6 +7,14 @@ type Kind = 'text' | 'audio' | 'video' | 'files'
 type Mode = 'heartbeat' | 'date'
 type Picked = { file: File, id: string, preview?: string }
 
+// Константы лимитов (синхронны серверу)
+const MB = 1024 * 1024
+const LIMIT_AUDIO_BYTES = 25 * MB
+const LIMIT_VIDEO_BYTES = 100 * MB
+const LIMIT_OTHER_BYTES = 50 * MB
+const LIMIT_AUDIO_SEC = 10 * 60      // 10 минут
+const LIMIT_VIDEO_SEC = 2 * 60       // 2 минуты
+
 export default function NewMessagePage() {
   const [tab, setTab] = useState<Kind>('text')
   const [mode, setMode] = useState<Mode>('heartbeat')
@@ -64,7 +72,7 @@ export default function NewMessagePage() {
     setErr(null)
     setBusy(true)
     try {
-      // Текстовое послание: просто создаём и уходим
+      // Текстовое послание
       if (tab === 'text') {
         const payload: any = { kind: 'text', delivery_mode: mode, content }
         if (mode === 'date' && deliverAt) payload.deliver_at = new Date(deliverAt).toISOString()
@@ -86,7 +94,7 @@ export default function NewMessagePage() {
       // Для аудио/видео/файлов: убеждаемся, что черновик есть
       const id = await ensureMessageId(tab)
 
-      // Обновляем режим доставки/дату (на случай изменения после создания черновика)
+      // Обновляем режим доставки/дату (если менялись)
       {
         const patch: any = { delivery_mode: mode }
         if (mode === 'date' && deliverAt) patch.deliver_at = new Date(deliverAt).toISOString()
@@ -180,11 +188,15 @@ export default function NewMessagePage() {
 
       {tab === 'audio' && (
         <div className="card mt-3 grid gap-3">
-          <div className="text-sm">Запишите голос или загрузите файл</div>
-          {/* Наш продакшен-рекордер: сам пишет и грузит в /api/media/upload, если есть messageId */}
+          <div className="text-sm">
+            Запишите голос или загрузите файл. Лимиты: до 25 MB, длительность до 10 минут.
+          </div>
           <RecorderBase
             messageId={messageId ?? undefined}
-            onUploaded={() => {/* можно обновить список файлов, если появится UI */}}
+            maxBytes={LIMIT_AUDIO_BYTES}
+            maxDurationSec={LIMIT_AUDIO_SEC}
+            onUploaded={() => {/* при необходимости можно обновить список вложений */}}
+            title="Голосовое послание"
           />
           <div className="flex flex-wrap gap-2">
             <button className="btn secondary" type="button" onClick={() => wantFiles('audio/*')}>Выбрать аудио</button>
@@ -195,10 +207,15 @@ export default function NewMessagePage() {
 
       {tab === 'video' && (
         <div className="card mt-3 grid gap-3">
-          <div className="text-sm">Запишите видео или загрузите файл</div>
+          <div className="text-sm">
+            Запишите видео или загрузите файл. Лимиты: до 100 MB, длительность до 2 минут.
+          </div>
           <VideoRecorder
             messageId={messageId ?? undefined}
-            onUploaded={() => {/* аналогично, при необходимости */}}
+            maxBytes={LIMIT_VIDEO_BYTES}
+            maxDurationSec={LIMIT_VIDEO_SEC}
+            onUploaded={() => {/* при необходимости можно обновить список вложений */}}
+            title="Видеопослание"
           />
           <div className="flex flex-wrap gap-2">
             <button className="btn secondary" type="button" onClick={() => wantFiles('video/*')}>Выбрать видео</button>
@@ -209,7 +226,7 @@ export default function NewMessagePage() {
 
       {tab === 'files' && (
         <div className="card mt-3 grid gap-2">
-          <div className="text-sm">Прикрепите файлы</div>
+          <div className="text-sm">Прикрепите файлы. Лимит: до 50 MB на файл.</div>
           <div className="flex gap-2">
             <button className="btn secondary" type="button" onClick={() => wantFiles('*/*')}>Выбрать файлы</button>
           </div>
@@ -217,7 +234,7 @@ export default function NewMessagePage() {
         </div>
       )}
 
-      {/* Список выбранных (ручной выбор через input). Рекордеры сюда не добавляют, они сразу грузят. */}
+      {/* Список выбранных вручную (input). Рекордеры сюда не добавляют, они сразу грузят. */}
       {picked.length > 0 && (
         <div className="card mt-3">
           <div className="text-sm font-medium">Будут прикреплены (после нажатия «Сохранить»):</div>
