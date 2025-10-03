@@ -1,5 +1,6 @@
 // app/messages/[id]/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase.server";
+import ShareButton from "@/app/components/ShareButton";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -58,7 +59,7 @@ export default async function MessageDetail(props: any) {
       );
     }
 
-    // 3) Вложения, сортируем по message_files.created_at (если колонки не будет — у тебя уже есть)
+    // 3) Вложения
     const { data: files, error: filesErr } = await supabase
       .from("message_files")
       .select("id, path, mime, bytes, created_at")
@@ -66,11 +67,10 @@ export default async function MessageDetail(props: any) {
       .order("created_at", { ascending: true });
 
     if (filesErr) {
-      // Не роняем страницу из-за бага стораджа
       console.error("[message detail] select message_files error:", filesErr);
     }
 
-    // 4) Подписанные ссылки (TTL 10 минут). Не падаем из-за отдельных фейлов.
+    // 4) Подписанные ссылки (TTL 10 минут)
     const signed: SignedView[] = [];
     for (const f of (files || []) as FileRow[]) {
       const rawPath = f?.path ?? null;
@@ -112,14 +112,19 @@ export default async function MessageDetail(props: any) {
       <div className="container py-6 grid gap-4" style={{ maxWidth: 860 }}>
         <div className="flex items-center justify-between gap-3">
           <h1 className="title text-2xl font-semibold">Послание</h1>
-          <div className="flex gap-2">
-            <a className="btn secondary" href="/messages">Назад</a>
-            <a className="btn" href={`/messages/${id}/edit`}>Редактировать</a>
-            <form action={`/api/messages/${id}`} method="post">
-              {/* HTML-форма не умеет DELETE — прокидываем через _method */}
-              <input type="hidden" name="_method" value="DELETE" />
-              <button className="btn danger" type="submit">Удалить</button>
-            </form>
+          <div className="flex gap-3 items-center flex-wrap">
+            {/* управление */}
+            <div className="flex gap-2">
+              <a className="btn secondary" href="/messages">Назад</a>
+              <a className="btn" href={`/messages/${id}/edit`}>Редактировать</a>
+              <form action={`/api/messages/${id}`} method="post">
+                {/* HTML-форма не умеет DELETE — прокидываем через _method */}
+                <input type="hidden" name="_method" value="DELETE" />
+                <button className="btn danger" type="submit">Удалить</button>
+              </form>
+            </div>
+            {/* создание публичной ссылки /s/[token] */}
+            <ShareButton messageId={id} defaultDays={7} />
           </div>
         </div>
 
@@ -149,13 +154,11 @@ export default async function MessageDetail(props: any) {
                       {f.bytes ? ` · ${humanBytes(f.bytes)}` : ""}
                       {f.created_at ? ` · ${safeDate(f.created_at)}` : ""}
                     </span>
-                    {/* Фолбэк: ссылка СКАЧАТЬ, если предпросмотр невозможен */}
                     {f.url && !canInlinePreview(f.mime) && (
                       <a className="btn secondary" href={f.url} target="_blank" rel="noreferrer">Скачать</a>
                     )}
                   </div>
 
-                  {/* Инлайн-просмотр в приоритете */}
                   {f.url && f.mime?.startsWith("audio") && (
                     <audio controls src={f.url} className="w-full" />
                   )}
