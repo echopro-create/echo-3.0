@@ -1,5 +1,7 @@
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+// app/s/[token]/page.tsx
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 
 type ShareFile = {
   id: string;
@@ -10,44 +12,46 @@ type ShareFile = {
   name: string;
 };
 
-function humanBytes(n?: number | null) {
-  if (!n || n <= 0) return "";
-  const units = ["B", "KB", "MB", "GB"];
-  let i = 0; let x = n;
-  while (x >= 1024 && i < units.length - 1) { x /= 1024; i++; }
-  return `${x.toFixed(1)} ${units[i]}`;
-}
-function safeDate(s?: string | null) {
-  if (!s) return "—";
-  const t = new Date(s);
-  return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
-}
-function canInline(m?: string | null) {
-  return !!m && (m.startsWith("audio") || m.startsWith("video") || m.startsWith("image/") || m === "application/pdf");
-}
+export default function PublicSharePage({ params }: { params: { token: string } }) {
+  const token = params?.token || "";
+  const [state, setState] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
 
-async function getShare(token: string) {
-  // Всегда ходим в наш серверный API, никаких прямых запросов к БД
-  const base = process.env.NEXT_PUBLIC_APP_URL || "";
-  const endpoint = base
-    ? `${base}/api/public-share/${encodeURIComponent(token)}`
-    : `/api/public-share/${encodeURIComponent(token)}`;
+  const endpoint = useMemo(() => {
+    const base = process.env.NEXT_PUBLIC_APP_URL || "";
+    return base ? `${base}/api/public-share/${encodeURIComponent(token)}` : `/api/public-share/${encodeURIComponent(token)}`;
+  }, [token]);
 
-  const res = await fetch(endpoint, { cache: "no-store" });
-  const json = await res.json().catch(() => ({}));
-  return { ok: res.ok && json?.ok, data: json, status: res.status, error: json?.error };
-}
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(endpoint, { cache: "no-store" });
+        const json = await res.json().catch(() => ({}));
+        if (!alive) return;
+        setState({ ok: res.ok && json?.ok, status: res.status, data: json, error: json?.error });
+      } catch (e: any) {
+        if (!alive) return;
+        setState({ ok: false, status: 0, data: null, error: e?.message || "Network error" });
+      }
+    })();
+    return () => { alive = false; };
+  }, [endpoint]);
 
-// В Next 15 params может быть промисом — распаковываем
-export default async function PublicSharePage({ params }: { params: Promise<{ token: string }> }) {
-  const { token } = await params;
+  if (!state) {
+    return (
+      <div className="container py-6 grid gap-3" style={{ maxWidth: 860 }}>
+        <h1 className="title text-2xl font-semibold">Публичный просмотр</h1>
+        <div className="card">Загружаем…</div>
+      </div>
+    );
+  }
 
-  const { ok, data, status, error } = await getShare(token || "");
-  if (!ok) {
+  if (!state.ok) {
+    const status = state.status;
     const text =
       status === 404 ? "Ссылка не найдена." :
       status === 410 ? "Ссылка истекла." :
-      error || "Ссылка недоступна.";
+      state.error || "Ссылка недоступна.";
     return (
       <div className="container py-6 grid gap-3" style={{ maxWidth: 860 }}>
         <h1 className="title text-2xl font-semibold">Публичный просмотр</h1>
@@ -56,14 +60,10 @@ export default async function PublicSharePage({ params }: { params: Promise<{ to
     );
   }
 
-  const msg = data.message as {
-    kind: string;
-    content?: string | null;
-    delivery_mode: string;
-    deliver_at?: string | null;
-    created_at: string;
+  const msg = state.data.message as {
+    kind: string; content?: string | null; delivery_mode: string; deliver_at?: string | null; created_at: string;
   };
-  const files = data.files as ShareFile[];
+  const files = (state.data.files as ShareFile[]) || [];
 
   return (
     <div className="container py-6 grid gap-4" style={{ maxWidth: 860 }}>
@@ -71,7 +71,7 @@ export default async function PublicSharePage({ params }: { params: Promise<{ to
 
       <div className="card grid gap-2">
         <div className="text-sm opacity-70">Создано: {safeDate(msg.created_at)}</div>
-        <div className="text-sm">Тип: {msg.kind === "text" ? "Текст" : msg.kind === "audio" ? "Голос" : msg.kind === "video" ? "Видео" : "Файлы"}</div>
+        <div className="text-sm">Тип: {labelKind(msg.kind)}</div>
         <div className="text-sm">
           Доставка: {msg.delivery_mode === "heartbeat"
             ? "по пульсу"
@@ -81,7 +81,7 @@ export default async function PublicSharePage({ params }: { params: Promise<{ to
 
       {msg.content && <div className="card whitespace-pre-wrap">{msg.content}</div>}
 
-      {files?.length > 0 && (
+      {files.length > 0 && (
         <div className="card grid gap-3">
           <div className="font-medium">Вложения</div>
           <ul className="grid gap-4">
@@ -108,9 +108,27 @@ export default async function PublicSharePage({ params }: { params: Promise<{ to
         </div>
       )}
 
-      {(!files || files.length === 0) && !msg.content && (
+      {files.length === 0 && !msg.content && (
         <div className="card text-sm opacity-70">Содержимого нет.</div>
       )}
     </div>
   );
+}
+
+function labelKind(k: string) {
+  return k === "text" ? "Текст" : k === "audio" ? "Голос" : k === "video" ? "Видео" : "Файлы";
+}
+function humanBytes(n?: number | null) {
+  if (!n || n <= 0) return "";
+  const units = ["B","KB","MB","GB"]; let i=0; let x=n;
+  while (x >= 1024 && i < units.length-1) { x/=1024; i++; }
+  return `${x.toFixed(1)} ${units[i]}`;
+}
+function safeDate(s?: string | null) {
+  if (!s) return "—";
+  const t = new Date(s);
+  return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
+}
+function canInline(m?: string | null) {
+  return !!m && (m.startsWith("audio") || m.startsWith("video") || m.startsWith("image/") || m === "application/pdf");
 }
