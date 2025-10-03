@@ -31,7 +31,7 @@ const VIDEO_CANDIDATES = [
 
 function isTypeSupported(mime: string) {
   // @ts-ignore
-  return typeof window !== "undefined" && window.MediaRecorder && (window.MediaRecorder as any).isTypeSupported
+  return typeof window !== "undefined" && (window as any).MediaRecorder && (window.MediaRecorder as any).isTypeSupported
     ? (window.MediaRecorder as any).isTypeSupported(mime)
     : false;
 }
@@ -81,8 +81,12 @@ export default function VideoRecorder({
   }, [chunks, mime]);
 
   useEffect(() => {
-    const has = typeof window !== "undefined" && "MediaRecorder" in window && navigator?.mediaDevices?.getUserMedia;
-    setSupported(has);
+    const has =
+      typeof window !== "undefined" &&
+      typeof navigator !== "undefined" &&
+      "MediaRecorder" in window &&
+      !!navigator.mediaDevices?.getUserMedia;
+    setSupported(Boolean(has));
     setMime(pickSupportedVideoMime());
   }, []);
 
