@@ -31,8 +31,9 @@ const VIDEO_CANDIDATES = [
 ];
 
 function isTypeSupported(mime: string) {
-  // @ts-ignore
-  return typeof window !== "undefined" && (window as any).MediaRecorder && (window.MediaRecorder as any).isTypeSupported
+  return typeof window !== "undefined"
+    && (window as any).MediaRecorder
+    && (window.MediaRecorder as any).isTypeSupported
     ? (window.MediaRecorder as any).isTypeSupported(mime)
     : false;
 }
@@ -72,17 +73,18 @@ export default function VideoRecorder({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // ЕДИНЫЙ <video>
   const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
 
   const [uploadPct, setUploadPct] = useState<number>(0);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   const stopBtnRef = useRef<HTMLButtonElement | null>(null);
 
-  const videoUrl = useMemo(() => {
+  const blobForUpload = useMemo(() => {
     if (!chunks.length) return null;
-    const blob = new Blob(chunks, { type: mime || "video/webm" });
-    return URL.createObjectURL(blob);
+    return new Blob(chunks, { type: mime || "video/webm" });
   }, [chunks, mime]);
 
   useEffect(() => {
@@ -102,9 +104,7 @@ export default function VideoRecorder({
       clearInterval(durationTimerRef.current);
       durationTimerRef.current = null;
     }
-    return () => {
-      if (durationTimerRef.current) clearInterval(durationTimerRef.current);
-    };
+    return () => { if (durationTimerRef.current) clearInterval(durationTimerRef.current); };
   }, [ui]);
 
   useEffect(() => {
@@ -112,18 +112,33 @@ export default function VideoRecorder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, maxDurationSec, ui]);
 
+  const revokePlaybackUrl = useCallback(() => {
+    if (playbackUrl) {
+      URL.revokeObjectURL(playbackUrl);
+      setPlaybackUrl(null);
+    }
+  }, [playbackUrl]);
+
   const resetAll = useCallback(() => {
     setUi("idle");
     setError(null);
     setDuration(0);
     setChunks([]);
     setUploadPct(0);
-    if (videoUrl) URL.revokeObjectURL(videoUrl);
-  }, [videoUrl]);
+    // возвращаем единый <video> в пустое состояние
+    if (videoElRef.current) {
+      try { videoElRef.current.pause(); } catch {}
+      videoElRef.current.removeAttribute("src");
+      (videoElRef.current as any).srcObject = null;
+      videoElRef.current.load();
+    }
+    revokePlaybackUrl();
+  }, [revokePlaybackUrl]);
 
   async function startRecording() {
     try {
       setError(null);
+      revokePlaybackUrl(); // если было предыдущее превью — убрать
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: true,
@@ -131,7 +146,9 @@ export default function VideoRecorder({
       streamRef.current = stream;
 
       if (videoElRef.current) {
-        videoElRef.current.srcObject = stream;
+        (videoElRef.current as any).srcObject = stream;
+        videoElRef.current.muted = true;      // live-превью без эха
+        videoElRef.current.controls = false;  // во время записи — без контролов
         await videoElRef.current.play().catch(() => {});
       }
 
@@ -140,25 +157,42 @@ export default function VideoRecorder({
       setChunks([]);
       setDuration(0);
 
-      mr.ondataavailable = (ev) => {
-        if (ev.data && ev.data.size > 0) setChunks((prev) => prev.concat(ev.data));
-      };
+      mr.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) setChunks((prev) => prev.concat(ev.data)); };
 
-      mr.onstop = () => {
+      mr.onstop = async () => {
+        // останавливаем стрим
         stream.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
+
+        // переключаем единый <video> на записанный файл
+        if (videoElRef.current) {
+          (videoElRef.current as any).srcObject = null;
+          videoElRef.current.muted = false;
+          videoElRef.current.controls = true;
+
+          const blob = new Blob(chunks, { type: mime || "video/webm" });
+          const url = URL.createObjectURL(blob);
+          setPlaybackUrl(url);
+          videoElRef.current.src = url;
+          // автоплей не навязываем, чтобы не бесить пользователя
+        }
+
         setUi("stopped");
       };
 
       mr.onerror = (ev: any) => {
         setError(ev?.error?.message || "Ошибка записи видео");
         try { stream.getTracks().forEach((t) => t.stop()); } catch {}
+        if (videoElRef.current) {
+          try { videoElRef.current.pause(); } catch {}
+          (videoElRef.current as any).srcObject = null;
+          videoElRef.current.controls = false;
+        }
         setUi("error");
       };
 
       mr.start(1000);
       setUi("recording");
-      // сразу фокус на «Остановить», чтобы клавиатурой было удобно
       setTimeout(() => stopBtnRef.current?.focus(), 0);
     } catch (e: any) {
       setError(e?.message || "Не удалось начать запись (доступ к камере/микрофону?)");
@@ -170,9 +204,9 @@ export default function VideoRecorder({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    if (videoElRef.current && videoElRef.current.srcObject) {
-      videoElRef.current.pause();
-      videoElRef.current.srcObject = null;
+    if (videoElRef.current && (videoElRef.current as any).srcObject) {
+      try { videoElRef.current.pause(); } catch {}
+      (videoElRef.current as any).srcObject = null;
     }
   }
 
@@ -187,20 +221,12 @@ export default function VideoRecorder({
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
-    if (videoElRef.current && videoElRef.current.srcObject) {
-      videoElRef.current.pause();
-      videoElRef.current.srcObject = null;
-    }
     resetAll();
   }
 
   async function uploadRecording() {
-    if (!chunks.length) {
-      setError("Нет данных записи");
-      setUi("error");
-      return;
-    }
-    const blob = new Blob(chunks, { type: mime || "video/webm" });
+    if (!blobForUpload) { setError("Нет данных записи"); setUi("error"); return; }
+    const blob = blobForUpload;
     const size = blob.size;
 
     if (size > maxBytes) {
@@ -259,7 +285,7 @@ export default function VideoRecorder({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <strong>{title}</strong>
         <span style={{ fontSize: 12, opacity: 0.7 }}>
-          {t.limit}: {fmtBytes(maxBytes)} • {mime ? mime : t.defaultFormat}
+          {t.limit}: {fmtBytes(maxBytes)} • {mime ? mime : t.defaultFormat} • {Math.floor(maxDurationSec/60)} мин
         </span>
       </div>
 
@@ -271,13 +297,13 @@ export default function VideoRecorder({
 
       {supported && (
         <>
-          {/* Live-превью во время записи */}
-          <video ref={videoElRef} muted playsInline style={{ width: "100%", background: "#000", borderRadius: 12 }} />
-
-          {/* Превью записанного видео после остановки */}
-          {videoUrl && (
-            <video src={videoUrl} controls playsInline style={{ width: "100%", background: "#000", borderRadius: 12 }} preload="metadata" />
-          )}
+          {/* ЕДИНЫЙ <video>: live во время записи, потом — проигрывание записи */}
+          <video
+            ref={videoElRef}
+            playsInline
+            style={{ width: "100%", background: "#000", borderRadius: 12 }}
+            preload="metadata"
+          />
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
@@ -318,8 +344,8 @@ export default function VideoRecorder({
               className="btn"
               type="button"
               onClick={uploadRecording}
-              disabled={uploading || recording || !chunks.length}
-              aria-disabled={uploading || recording || !chunks.length}
+              disabled={uploading || recording || !blobForUpload}
+              aria-disabled={uploading || recording || !blobForUpload}
               aria-label={t.upload}
             >
               {t.upload}
@@ -341,7 +367,7 @@ export default function VideoRecorder({
             {recording && <span>{t.recording} {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}</span>}
             {uploading && <span>{t.uploading} {uploadPct}%</span>}
             {ui === "success" && <span>{t.ready}</span>}
-            {ui === "stopped" && <span>{t.stopped}</span>}
+            {ui === "stopped" && !recording && playbackUrl && <span>{t.stopped}</span>}
             {ui === "canceled" && <span>{t.canceled}</span>}
             {ui === "error" && <span>{t.error}: {error}</span>}
           </div>
@@ -374,9 +400,7 @@ function xhrUpload(
     const xhr = new XMLHttpRequest();
     onInit?.(xhr);
     xhr.open("POST", url);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total);
-    };
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total); };
     xhr.responseType = "json";
     xhr.onerror = () => reject(new Error("Сетевая ошибка"));
     xhr.onabort = () => reject(new Error("__aborted__"));
