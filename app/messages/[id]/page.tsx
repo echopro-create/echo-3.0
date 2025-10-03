@@ -1,8 +1,7 @@
 // app/messages/[id]/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase.server";
-import { createSupabaseAdminClient } from "@/lib/supabase.admin";
 import ShareButton from "@/app/components/ShareButton";
-import SharePassword from "@/app/components/SharePassword";
+import SharePanel from "@/app/components/SharePanel";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,16 +22,6 @@ type SignedView = {
   name: string;
   created_at: string | null;
   err?: string | null;
-};
-
-type ShareRow = {
-  token: string;
-  expires_at: string | null;
-  views: number | null;
-  max_views: number | null;
-  revoked: boolean | null;
-  password_hash: string | null;
-  created_at?: string | null;
 };
 
 export default async function MessageDetail(props: any) {
@@ -120,23 +109,6 @@ export default async function MessageDetail(props: any) {
       });
     }
 
-    // 5) Активная публичная ссылка
-    // Берём через admin-клиент (service role), чтобы не споткнуться о RLS и кеш.
-    const admin = createSupabaseAdminClient();
-    const { data: shares, error: shErr } = await admin
-      .from("shares")
-      .select("token, expires_at, views, max_views, revoked, password_hash, created_at")
-      .eq("message_id", id)
-      .order("created_at", { ascending: false });
-
-    if (shErr) {
-      console.error("[message detail] select shares error:", shErr);
-    }
-
-    const activeShare = (shares as ShareRow[] | null)?.find(s => !s.revoked) || null;
-    const appBase = process.env.NEXT_PUBLIC_APP_URL || "";
-    const shareUrl = activeShare ? (appBase ? `${appBase}/s/${activeShare.token}` : `/s/${activeShare.token}`) : null;
-
     return (
       <div className="container py-6 grid gap-4" style={{ maxWidth: 860 }}>
         <div className="flex items-center justify-between gap-3">
@@ -157,39 +129,8 @@ export default async function MessageDetail(props: any) {
           </div>
         </div>
 
-        {/* блок публичной ссылки + пароль */}
-        <div className="card grid gap-3">
-          <div className="font-medium">Публичная ссылка</div>
-          {activeShare ? (
-            <div className="grid gap-2">
-              <div className="flex gap-2 items-center">
-                <input
-                  className="input flex-1"
-                  readOnly
-                  value={shareUrl ?? ""}
-                  onFocus={e => e.currentTarget.select()}
-                />
-                <button
-                  className="btn secondary"
-                  onClick={async () => {
-                    try { await navigator.clipboard.writeText(shareUrl ?? ""); } catch {}
-                  }}
-                >
-                  Копировать
-                </button>
-              </div>
-              <div className="text-sm opacity-70">
-                Просмотры: {activeShare.views ?? 0}
-                {activeShare.max_views ? ` / лимит ${activeShare.max_views}` : ""} ·
-                Истекает: {safeDate(activeShare.expires_at)} ·
-                Пароль: {activeShare.password_hash ? "включён" : "выключен"}
-              </div>
-              <SharePassword token={activeShare.token} passwordEnabled={!!activeShare.password_hash} />
-            </div>
-          ) : (
-            <div className="text-sm opacity-70">Ссылка ещё не создана. Нажмите «Создать публичную ссылку».</div>
-          )}
-        </div>
+        {/* Публичная ссылка — теперь клиентский блок, сам ходит в /api/shares/by-message/[id] */}
+        <SharePanel messageId={id} />
 
         <div className="card grid gap-2">
           <div className="text-sm opacity-70">Создано: {safeDate(msg.created_at)}</div>
