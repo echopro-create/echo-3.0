@@ -1,5 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import RecorderBase from '@/app/components/RecorderBase'
+import VideoRecorder from '@/app/components/VideoRecorder'
 
 type Kind = 'text' | 'audio' | 'video' | 'files'
 type Mode = 'heartbeat' | 'date'
@@ -12,16 +14,10 @@ export default function NewMessagePage() {
   const [deliverAt, setDeliverAt] = useState('')          // datetime-local
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
-  const [picked, setPicked] = useState<Picked[]>([])      // выбранные/записанные файлы
-  const fileInput = useRef<HTMLInputElement | null>(null)
+  const [picked, setPicked] = useState<Picked[]>([])      // выбранные файлы (ручной выбор)
+  const [messageId, setMessageId] = useState<string | null>(null) // черновик для вложений
 
-  // --- Рекордер ---
-  const mediaStreamRef = useRef<MediaStream | null>(null)
-  const recorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<BlobPart[]>([])
-  const videoEl = useRef<HTMLVideoElement | null>(null)
-  const [recState, setRecState] = useState<'idle'|'recording'|'stopped'>('idle')
-  const [recErr, setRecErr] = useState<string | null>(null)
+  const fileInput = useRef<HTMLInputElement | null>(null)
 
   function humanBytes(n?: number | null) {
     if (!n || n <= 0) return ''
@@ -30,33 +26,83 @@ export default function NewMessagePage() {
     return `${x.toFixed(1)} ${units[i]}`
   }
 
+  // Создание черновика сообщения для вкладок с вложениями
+  async function ensureMessageId(kind: Kind): Promise<string> {
+    if (messageId) return messageId
+    const payload: any = { kind, delivery_mode: mode }
+    if (mode === 'date' && deliverAt) payload.deliver_at = new Date(deliverAt).toISOString()
+
+    const resp = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    })
+    const json = await resp.json().catch(() => ({}))
+    if (!resp.ok || json?.ok !== true || !json?.id) {
+      throw new Error(json?.error || 'Не удалось создать черновик послания')
+    }
+    setMessageId(json.id as string)
+    return json.id as string
+  }
+
+  // Автосоздание черновика при переходе на аудио/видео/файлы
+  useEffect(() => {
+    (async () => {
+      if ((tab === 'audio' || tab === 'video' || tab === 'files') && !messageId) {
+        try {
+          await ensureMessageId(tab)
+        } catch (e: any) {
+          setErr(e?.message || 'Не удалось подготовить черновик')
+        }
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
+
   async function onSave() {
     setErr(null)
     setBusy(true)
     try {
-      // 1) создаём запись сообщения
-      const payload: any = { kind: tab, delivery_mode: mode }
-      if (tab === 'text') payload.content = content
-      if (mode === 'date' && deliverAt) payload.deliver_at = new Date(deliverAt).toISOString()
+      // Текстовое послание: просто создаём и уходим
+      if (tab === 'text') {
+        const payload: any = { kind: 'text', delivery_mode: mode, content }
+        if (mode === 'date' && deliverAt) payload.deliver_at = new Date(deliverAt).toISOString()
 
-      const resp = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      })
-      const json = await resp.json()
-      if (!resp.ok || json?.ok !== true || !json?.id) {
-        throw new Error(json?.error || 'Не удалось сохранить послание')
+        const resp = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        })
+        const json = await resp.json()
+        if (!resp.ok || json?.ok !== true || !json?.id) {
+          throw new Error(json?.error || 'Не удалось сохранить послание')
+        }
+        window.location.href = '/messages'
+        return
       }
-      const messageId: string = json.id
 
-      // 2) грузим все выбранные/записанные файлы с привязкой
+      // Для аудио/видео/файлов: убеждаемся, что черновик есть
+      const id = await ensureMessageId(tab)
+
+      // Обновляем режим доставки/дату (на случай изменения после создания черновика)
+      {
+        const patch: any = { delivery_mode: mode }
+        if (mode === 'date' && deliverAt) patch.deliver_at = new Date(deliverAt).toISOString()
+        await fetch(`/api/messages/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ _method: 'PATCH', ...patch })
+        }).catch(() => {})
+      }
+
+      // Догружаем вручную выбранные файлы (рекордеры уже загрузили сами)
       for (const p of picked) {
-        if (p.file.size > 80 * 1024 * 1024) throw new Error(`Файл слишком большой: ${p.file.name}`)
         const fd = new FormData()
         fd.append('file', p.file)
-        fd.append('message_id', messageId)
+        fd.append('message_id', id)
         const r = await fetch('/api/media/upload', { method: 'POST', body: fd, credentials: 'include' })
         const j = await r.json().catch(() => ({}))
         if (!r.ok || !j?.ok) throw new Error(j?.error || `Не удалось загрузить файл: ${p.file.name}`)
@@ -93,76 +139,10 @@ export default function NewMessagePage() {
     })
   }
 
-  // --- Работа с камерой/микрофоном ---
-  async function startRecording(kind: 'audio'|'video') {
-    setRecErr(null)
-    try {
-      const constraints: MediaStreamConstraints = kind === 'audio'
-        ? { audio: true }
-        : { audio: true, video: { facingMode: 'user' } }
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      mediaStreamRef.current = stream
-
-      if (kind === 'video' && videoEl.current) {
-        videoEl.current.srcObject = stream
-        await videoEl.current.play().catch(() => {})
-      }
-
-      const mimeCandidates = kind === 'audio'
-        ? ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg']
-        : ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4']
-      const mimeType = mimeCandidates.find(t => MediaRecorder.isTypeSupported(t)) || ''
-
-      const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
-      recorderRef.current = rec
-      chunksRef.current = []
-
-      rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunksRef.current.push(e.data) }
-      rec.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: rec.mimeType || (kind==='audio'?'audio/webm':'video/webm') })
-        const ext = blob.type.includes('mp4') ? 'mp4' : blob.type.includes('ogg') ? 'ogg' : 'webm'
-        const file = new File([blob], `${kind}-${Date.now()}.${ext}`, { type: blob.type })
-        const preview = URL.createObjectURL(file)
-        setPicked(prev => [...prev, { file, id: crypto.randomUUID(), preview }])
-
-        stream.getTracks().forEach(t => t.stop())
-        mediaStreamRef.current = null
-        recorderRef.current = null
-        setRecState('stopped')
-      }
-
-      rec.start()
-      setRecState('recording')
-    } catch (e: any) {
-      setRecErr(e.message || 'Не удалось запустить запись. Разрешите доступ к микрофону/камере.')
-      setRecState('idle')
-    }
-  }
-
-  function stopRecording() {
-    try { recorderRef.current?.stop() } catch {}
-  }
-
-  useEffect(() => {
-    return () => {
-      recorderRef.current?.state === 'recording' && recorderRef.current.stop()
-      mediaStreamRef.current?.getTracks().forEach(t => t.stop())
-      picked.forEach(p => p.preview && URL.revokeObjectURL(p.preview))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // если переключили вкладку — тушим запись
-  useEffect(() => {
-    if (recorderRef.current?.state === 'recording') {
-      try { recorderRef.current.stop() } catch {}
-    }
-    mediaStreamRef.current?.getTracks().forEach(t => t.stop())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab])
-
-  const canSave = (tab === 'text' ? content.trim().length > 0 : true) || picked.length > 0
+  const canSave =
+    tab === 'text'
+      ? content.trim().length > 0
+      : (picked.length > 0 || !!messageId)
 
   return (
     <div className="container py-6" style={{ maxWidth: 720 }}>
@@ -201,33 +181,29 @@ export default function NewMessagePage() {
       {tab === 'audio' && (
         <div className="card mt-3 grid gap-3">
           <div className="text-sm">Запишите голос или загрузите файл</div>
+          {/* Наш продакшен-рекордер: сам пишет и грузит в /api/media/upload, если есть messageId */}
+          <RecorderBase
+            messageId={messageId ?? undefined}
+            onUploaded={() => {/* можно обновить список файлов, если появится UI */}}
+          />
           <div className="flex flex-wrap gap-2">
-            {recState !== 'recording' ? (
-              <button className="btn secondary" type="button" onClick={() => startRecording('audio')}>Начать запись</button>
-            ) : (
-              <button className="btn primary" type="button" onClick={stopRecording}>Остановить</button>
-            )}
             <button className="btn secondary" type="button" onClick={() => wantFiles('audio/*')}>Выбрать аудио</button>
           </div>
-          {recErr && <div className="text-red-600 text-sm">{recErr}</div>}
+          {!messageId && <div className="text-sm opacity-70">Черновик создаётся автоматически при выборе этой вкладки…</div>}
         </div>
       )}
 
       {tab === 'video' && (
         <div className="card mt-3 grid gap-3">
           <div className="text-sm">Запишите видео или загрузите файл</div>
-          <div className="grid gap-2">
-            <video ref={videoEl} className="w-full rounded-xl bg-black/5" playsInline muted />
-            <div className="flex flex-wrap gap-2">
-              {recState !== 'recording' ? (
-                <button className="btn secondary" type="button" onClick={() => startRecording('video')}>Начать запись</button>
-              ) : (
-                <button className="btn primary" type="button" onClick={stopRecording}>Остановить</button>
-              )}
-              <button className="btn secondary" type="button" onClick={() => wantFiles('video/*')}>Выбрать видео</button>
-            </div>
-            {recErr && <div className="text-red-600 text-sm">{recErr}</div>}
+          <VideoRecorder
+            messageId={messageId ?? undefined}
+            onUploaded={() => {/* аналогично, при необходимости */}}
+          />
+          <div className="flex flex-wrap gap-2">
+            <button className="btn secondary" type="button" onClick={() => wantFiles('video/*')}>Выбрать видео</button>
           </div>
+          {!messageId && <div className="text-sm opacity-70">Черновик создаётся автоматически при выборе этой вкладки…</div>}
         </div>
       )}
 
@@ -237,13 +213,14 @@ export default function NewMessagePage() {
           <div className="flex gap-2">
             <button className="btn secondary" type="button" onClick={() => wantFiles('*/*')}>Выбрать файлы</button>
           </div>
+          {!messageId && <div className="text-sm opacity-70">Черновик создаётся автоматически при выборе этой вкладки…</div>}
         </div>
       )}
 
-      {/* Список выбранных/записанных */}
+      {/* Список выбранных (ручной выбор через input). Рекордеры сюда не добавляют, они сразу грузят. */}
       {picked.length > 0 && (
         <div className="card mt-3">
-          <div className="text-sm font-medium">Будут прикреплены:</div>
+          <div className="text-sm font-medium">Будут прикреплены (после нажатия «Сохранить»):</div>
           <ul className="mt-2 text-sm divide-y">
             {picked.map(p => (
               <li key={p.id} className="py-2 grid gap-2">
@@ -271,6 +248,8 @@ export default function NewMessagePage() {
             <input type="radio" name="mode" checked={mode === 'heartbeat'} onChange={() => setMode('heartbeat')} />
             По пульсу (Dead-man switch)
           </label>
+        </div>
+        <div className="grid gap-2">
           <label className="inline-flex items-center gap-2">
             <input type="radio" name="mode" checked={mode === 'date'} onChange={() => setMode('date')} />
             По дате
