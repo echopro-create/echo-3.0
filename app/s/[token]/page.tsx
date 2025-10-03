@@ -12,8 +12,13 @@ type ShareFile = {
   name: string;
 };
 
-export default function PublicSharePage({ params }: { params: { token: string } }) {
-  const token = params?.token || "";
+export default function PublicSharePage(props: any) {
+  // Не доверяем типам Next 15: берём токен гибко
+  const token: string =
+    (props?.params && (props.params as any).token) ||
+    (props && (props as any).token) ||
+    "";
+
   const [state, setState] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
 
   const endpoint = useMemo(() => {
@@ -34,7 +39,9 @@ export default function PublicSharePage({ params }: { params: { token: string } 
         setState({ ok: false, status: 0, data: null, error: e?.message || "Network error" });
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [endpoint]);
 
   if (!state) {
@@ -115,6 +122,7 @@ export default function PublicSharePage({ params }: { params: { token: string } 
   );
 }
 
+/* helpers */
 function labelKind(k: string) {
   return k === "text" ? "Текст" : k === "audio" ? "Голос" : k === "video" ? "Видео" : "Файлы";
 }
