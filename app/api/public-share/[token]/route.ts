@@ -33,12 +33,14 @@ function createAdminClient() {
 async function hashPassword(password: string, saltHex: string) {
   const enc = new TextEncoder();
   const passBytes = enc.encode(password);
-  const saltBytes = new Uint8Array(saltHex.match(/.{1,2}/g)?.map(h => parseInt(h, 16)) || []);
+  const saltBytes = new Uint8Array(saltHex.match(/.{1,2}/g)?.map((h) => parseInt(h, 16)) || []);
   const toHash = new Uint8Array(passBytes.length + saltBytes.length);
   toHash.set(passBytes, 0);
   toHash.set(saltBytes, passBytes.length);
   const digest = await crypto.subtle.digest("SHA-256", toHash);
-  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 // ===== primitive in-memory rate limit (per instance) =====
@@ -63,6 +65,133 @@ function rateLimit(ip: string, token: string) {
 function getIP(req: Request) {
   const fwd = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim();
   return fwd || "0.0.0.0";
+}
+
+function getUA(req: Request) {
+  return req.headers.get("user-agent") || "";
+}
+
+// ===== notification (best-effort, never breaks the response) =====
+async function tryNotifyFirstView(opts: {
+  admin: ReturnType<typeof createAdminClient>;
+  wasFirstView: boolean;
+  messageId: string;
+  messageKind: string | null;
+  messageCreatedAt: string | null;
+  shareToken: string;
+  req: Request;
+}) {
+  try {
+    if (!opts.wasFirstView) return; // только при первом просмотре
+
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.MAIL_FROM || "echo@echoproject.space";
+    const overrideTo = process.env.NOTIFY_OWNER_EMAIL_OVERRIDE || "";
+
+    if (!apiKey && !overrideTo) {
+      // нет ни API ключа, ни тестового адреса — тихо выходим
+      return;
+    }
+
+    // 1) Пытаемся понять email владельца сообщения
+    let ownerEmail: string | null = null;
+
+    if (overrideTo) {
+      ownerEmail = overrideTo;
+    } else {
+      // а) пробуем messages.owner_email (если колонка есть)
+      let msgOwnerEmail: string | null = null;
+      try {
+        const { data, error } = await opts.admin
+          .from("messages")
+          .select("owner_email")
+          .eq("id", opts.messageId)
+          .maybeSingle();
+        if (!error) msgOwnerEmail = (data as any)?.owner_email ?? null;
+      } catch {
+        /* ignore */
+      }
+      if (msgOwnerEmail) ownerEmail = msgOwnerEmail;
+
+      // б) пробуем messages.user_id → profiles.email
+      if (!ownerEmail) {
+        try {
+          const { data: m, error: mErr } = await opts.admin
+            .from("messages")
+            .select("user_id")
+            .eq("id", opts.messageId)
+            .maybeSingle();
+          const userId = (m as any)?.user_id as string | undefined;
+          if (!mErr && userId) {
+            const { data: p, error: pErr } = await opts.admin
+              .from("profiles")
+              .select("email")
+              .eq("id", userId)
+              .maybeSingle();
+            if (!pErr) {
+              ownerEmail = (p as any)?.email ?? null;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    if (!ownerEmail) return; // не смогли вычислить куда отправлять — тихо выходим
+
+    // 2) Собираем письмо
+    const subject = "ECHO: первое открытие публичной ссылки";
+    const ip = getIP(opts.req);
+    const ua = getUA(opts.req);
+    const viewedAt = new Date().toISOString();
+    const kindText =
+      opts.messageKind === "text"
+        ? "Текст"
+        : opts.messageKind === "audio"
+        ? "Аудио"
+        : opts.messageKind === "video"
+        ? "Видео"
+        : opts.messageKind === "files"
+        ? "Файлы"
+        : "Послание";
+    const createdText = opts.messageCreatedAt
+      ? new Date(opts.messageCreatedAt).toLocaleString("ru-RU")
+      : "—";
+    const link = `${process.env.NEXT_PUBLIC_SITE_ORIGIN || ""}/s/${encodeURIComponent(opts.shareToken)}`;
+
+    const html =
+      `<p>Ваше послание открыли впервые.</p>` +
+      `<p><b>Тип:</b> ${kindText}<br/>` +
+      `<b>Создано:</b> ${createdText}<br/>` +
+      `<b>Первый просмотр:</b> ${new Date(viewedAt).toLocaleString("ru-RU")}<br/>` +
+      `<b>Ссылка:</b> <a href="${link}">${link}</a><br/>` +
+      `<b>IP:</b> ${ip}<br/>` +
+      `<b>UA:</b> ${ua}</p>`;
+
+    const payload = {
+      from,
+      to: [ownerEmail],
+      subject,
+      html,
+    };
+
+    // 3) Отправляем через Resend API (если есть ключ)
+    if (apiKey) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }).catch(() => {
+        /* ignore email errors */
+      });
+    }
+  } catch {
+    // Никогда не валим основной ответ из-за письма
+  }
 }
 
 // ===== handler =====
@@ -103,15 +232,11 @@ export async function GET(req: Request) {
     }
 
     // 3) инкремент просмотров
-    // Логика по ТЗ: увеличиваем views, а если лимит превышен — 410.
-    const nextViews = (share.views ?? 0) + 1;
+    const prevViews = share.views ?? 0;
+    const nextViews = prevViews + 1;
     {
-      const { error: vuErr } = await admin
-        .from("shares")
-        .update({ views: nextViews })
-        .eq("id", share.id);
+      const { error: vuErr } = await admin.from("shares").update({ views: nextViews }).eq("id", share.id);
       if (vuErr) {
-        // не блокируем выдачу, но отмечаем ошибку инкремента
         return jsonErr(500, `Counter error: ${vuErr.message}`);
       }
     }
@@ -141,7 +266,7 @@ export async function GET(req: Request) {
     // 6) подписанные ссылки — минимум 10 минут
     const TTL_SEC = Math.max(600, Number(url.searchParams.get("ttl") || 600));
     const signed = await Promise.all(
-      (files || []).map(async f => {
+      (files || []).map(async (f) => {
         const rawPath = f?.path || null;
         const name = rawPath?.split("/").pop() || rawPath || "file";
         let signedUrl: string | null = null;
@@ -162,6 +287,17 @@ export async function GET(req: Request) {
       })
     );
 
+    // 7) уведомление при первом просмотре (best-effort, не ломает ответ)
+    tryNotifyFirstView({
+      admin,
+      wasFirstView: prevViews === 0,
+      messageId: msg.id,
+      messageKind: (msg as any)?.kind ?? null,
+      messageCreatedAt: (msg as any)?.created_at ?? null,
+      shareToken: token,
+      req,
+    }).catch(() => {});
+
     return jsonOk({
       ok: true,
       share: {
@@ -170,19 +306,19 @@ export async function GET(req: Request) {
         max_views: share.max_views ?? null,
         revoked: !!share.revoked,
         password_protected: !!share.password_hash,
+        // last_view_at может появиться в будущем; клиент обработает отсутствующее поле
       },
       message: {
         id: msg.id,
-        kind: msg.kind,
-        content: msg.content,
-        delivery_mode: msg.delivery_mode,
-        deliver_at: msg.deliver_at,
-        created_at: msg.created_at,
+        kind: (msg as any)?.kind,
+        content: (msg as any)?.content,
+        delivery_mode: (msg as any)?.delivery_mode,
+        deliver_at: (msg as any)?.deliver_at,
+        created_at: (msg as any)?.created_at,
       },
       files: signed,
     });
   } catch (e: any) {
-    // Явное сообщение про сервисный ключ уже бросили в createAdminClient
     return jsonErr(500, e?.message || "Server error");
   }
 }
