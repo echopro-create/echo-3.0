@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
-// Хелпер: проверить, что сообщение принадлежит текущему пользователю
+// Проверка владельца сообщения
 async function getOwnedMessage(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   id: string
@@ -26,7 +26,9 @@ async function getOwnedMessage(
 export async function PATCH(req: Request, ctx: any) {
   try {
     const { id } = ctx.params || {};
-    if (!id) return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
+    }
 
     const supabase = await createSupabaseServerClient();
     const check = await getOwnedMessage(supabase, String(id));
@@ -56,7 +58,9 @@ export async function PATCH(req: Request, ctx: any) {
     }
 
     const { error } = await supabase.from("messages").update(patch).eq("id", String(id));
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    }
 
     return NextResponse.json({ ok: true, id: String(id) });
   } catch (e: any) {
@@ -68,7 +72,9 @@ export async function PATCH(req: Request, ctx: any) {
 export async function DELETE(_req: Request, ctx: any) {
   try {
     const { id } = ctx.params || {};
-    if (!id) return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
+    }
 
     const supabase = await createSupabaseServerClient();
     const check = await getOwnedMessage(supabase, String(id));
@@ -84,15 +90,25 @@ export async function DELETE(_req: Request, ctx: any) {
 
     const paths = (files || []).map((f) => f.path);
     if (paths.length > 0) {
-      await supabase.storage.from("attachments").remove(paths).catch(() => {});
+      try {
+        await supabase.storage.from("attachments").remove(paths);
+      } catch {
+        // игнорируем неудачное удаление
+      }
     }
 
     // 2) Чистим таблицу файлов
-    await supabase.from("message_files").delete().eq("message_id", String(id)).catch(() => {});
+    try {
+      await supabase.from("message_files").delete().eq("message_id", String(id));
+    } catch {
+      // не критично, если не удалось удалить записи
+    }
 
     // 3) Удаляем само сообщение
     const { error } = await supabase.from("messages").delete().eq("id", String(id));
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+    }
 
     // Редирект на список
     return NextResponse.redirect(
