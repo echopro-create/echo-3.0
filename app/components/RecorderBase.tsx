@@ -7,8 +7,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
  * Запись аудио через MediaRecorder, предпрослушивание, размерные лимиты,
  * прогресс аплоада в /api/media/upload и аккуратные статусы.
  *
- * Пример:
- * <RecorderBase messageId={message.id} onUploaded={(res)=>{ /* обновить список файлов */ }} />
+ * Пример использования:
+ * <RecorderBase messageId={message.id} onUploaded={(res) => { console.log(res); }} />
  */
 
 type UploadResponse = {
@@ -36,13 +36,13 @@ export type RecorderBaseProps = {
 
 const MB = 1024 * 1024;
 
-// Кандидаты форматів по убыванию предпочтения
+// Кандидаты форматов по убыванию предпочтения
 const AUDIO_CANDIDATES = [
   "audio/webm;codecs=opus",
   "audio/webm",
   "audio/ogg;codecs=opus",
   "audio/ogg",
-  "audio/mp4", // контейнер m4a/aac; MediaRecorder поддерживает не везде
+  "audio/mp4", // контейнер m4a/aac; MediaRecorder поддерживается не везде
 ];
 
 /** Проверяем, что браузер умеет конкретный mime для MediaRecorder */
@@ -71,13 +71,7 @@ function fmtBytes(n: number) {
 }
 
 /** Простой класс состояний UI */
-type UiState =
-  | "idle"
-  | "recording"
-  | "stopped"
-  | "uploading"
-  | "success"
-  | "error";
+type UiState = "idle" | "recording" | "stopped" | "uploading" | "success" | "error";
 
 export default function RecorderBase({
   messageId,
@@ -236,9 +230,8 @@ export default function RecorderBase({
       form.append("file", file);
       if (messageId) form.append("message_id", messageId);
 
-      const res = await xhrUpload("/api/media/upload", form, (loaded, total) => {
+      const res = await xhrUpload("/api/media/upload", form, (/* loaded, total */) => {
         // можно расширить отображение прогресса
-        // console.log(`Progress: ${Math.round((loaded/total)*100)}%`);
       });
 
       if (!res.ok) {
