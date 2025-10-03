@@ -15,8 +15,11 @@ function err(status: number, message: string) {
   return NextResponse.json({ ok: false, error: message }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
-  const token = params?.token || "";
+export async function GET(req: Request) {
+  // Берём токен из URL, не полагаясь на типизацию второго аргумента
+  const url = new URL(req.url);
+  const parts = url.pathname.split("/"); // .../api/public-share/<token>
+  const token = parts[parts.length - 1] || "";
   if (!token || token.length < 12) return err(400, "Bad token");
 
   const admin = createAdminClient();
@@ -55,7 +58,7 @@ export async function GET(_req: Request, { params }: { params: { token: string }
 
   // 4) Подписанные ссылки (TTL 10 минут)
   const signed = await Promise.all(
-    (files || []).map(async f => {
+    (files || []).map(async (f) => {
       const rawPath = f?.path || null;
       const name = rawPath?.split("/").pop() || rawPath || "file";
       let url: string | null = null;
@@ -78,16 +81,19 @@ export async function GET(_req: Request, { params }: { params: { token: string }
     })
   );
 
-  return NextResponse.json({
-    ok: true,
-    message: {
-      id: msg.id,
-      kind: msg.kind,
-      content: msg.content,
-      delivery_mode: msg.delivery_mode,
-      deliver_at: msg.deliver_at,
-      created_at: msg.created_at,
+  return NextResponse.json(
+    {
+      ok: true,
+      message: {
+        id: msg.id,
+        kind: msg.kind,
+        content: msg.content,
+        delivery_mode: msg.delivery_mode,
+        deliver_at: msg.deliver_at,
+        created_at: msg.created_at,
+      },
+      files: signed,
     },
-    files: signed,
-  }, { headers: { "Cache-Control": "no-store" } });
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
