@@ -1,5 +1,6 @@
 // app/messages/[id]/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase.server";
+import { createSupabaseAdminClient } from "@/lib/supabase.admin";
 import ShareButton from "@/app/components/ShareButton";
 import SharePassword from "@/app/components/SharePassword";
 
@@ -31,6 +32,7 @@ type ShareRow = {
   max_views: number | null;
   revoked: boolean | null;
   password_hash: string | null;
+  created_at?: string | null;
 };
 
 export default async function MessageDetail(props: any) {
@@ -118,12 +120,18 @@ export default async function MessageDetail(props: any) {
       });
     }
 
-    // 5) Активная публичная ссылка (берём самую свежую неотозванную)
-    const { data: shares } = await supabase
+    // 5) Активная публичная ссылка
+    // Берём через admin-клиент (service role), чтобы не споткнуться о RLS и кеш.
+    const admin = createSupabaseAdminClient();
+    const { data: shares, error: shErr } = await admin
       .from("shares")
-      .select("token, expires_at, views, max_views, revoked, password_hash")
+      .select("token, expires_at, views, max_views, revoked, password_hash, created_at")
       .eq("message_id", id)
       .order("created_at", { ascending: false });
+
+    if (shErr) {
+      console.error("[message detail] select shares error:", shErr);
+    }
 
     const activeShare = (shares as ShareRow[] | null)?.find(s => !s.revoked) || null;
     const appBase = process.env.NEXT_PUBLIC_APP_URL || "";
@@ -139,7 +147,6 @@ export default async function MessageDetail(props: any) {
               <a className="btn secondary" href="/messages">Назад</a>
               <a className="btn" href={`/messages/${id}/edit`}>Редактировать</a>
               <form action={`/api/messages/${id}`} method="post">
-                {/* HTML-форма не умеет DELETE — прокидываем через _method */}
                 <input type="hidden" name="_method" value="DELETE" />
                 <button className="btn danger" type="submit">Удалить</button>
               </form>
@@ -165,9 +172,7 @@ export default async function MessageDetail(props: any) {
                 <button
                   className="btn secondary"
                   onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(shareUrl ?? "");
-                    } catch {}
+                    try { await navigator.clipboard.writeText(shareUrl ?? ""); } catch {}
                   }}
                 >
                   Копировать
