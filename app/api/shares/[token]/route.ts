@@ -27,19 +27,17 @@ function ok(payload: Record<string, unknown>) {
  */
 export async function DELETE(
   _req: Request,
-  { params }: { params: { token?: string } }
+  context: { params: { token: string } }
 ) {
   const supabase = await createSupabaseServerClient();
 
-  // Авторизация обязательна
   const { data: au } = await supabase.auth.getUser();
   const user = au?.user;
   if (!user) return bad(401, "Не авторизован");
 
-  const token = String(params?.token || "").trim();
+  const token = context.params.token?.trim();
   if (!token) return bad(400, "token обязателен в пути");
 
-  // Обновляем запись; RLS пустит только владельца
   const { data: updated, error: updErr } = await supabase
     .from("shares")
     .update({ revoked: true })
