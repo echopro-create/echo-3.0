@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Продакшен-конфиг для медиа
- * Лимиты и белые списки вытащим в ENV позже, пока фиксируем тут.
+ * Лимиты и белые списки можно вынести в ENV позднее.
  */
 const MB = 1024 * 1024;
 const LIMITS = {
@@ -26,14 +26,31 @@ const VIDEO_MIME = new Set<string>([
   "video/mp4",
 ]);
 
-// Простая нормализация имени файла
+const OTHER_MIME = new Set<string>([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "text/plain",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/x-7z-compressed",
+  "application/x-tar",
+  "application/x-rar-compressed",
+]);
+
+// Нормализация имени файла
 function sanitizeFilename(name: string) {
   const clean = name.replace(/[^\w.\-]+/g, "_");
   return clean.length ? clean : "file";
 }
 
-function pickCategory(mime: string | null | undefined): "audio" | "video" | "other" {
-  if (!mime) return "other";
+// Нормализуем MIME: срезаем параметры после ';' и приводим к нижнему регистру
+function baseMime(m?: string | null) {
+  return (m || "").split(";")[0].trim().toLowerCase();
+}
+
+function pickCategory(mime: string): "audio" | "video" | "other" {
   if (AUDIO_MIME.has(mime)) return "audio";
   if (VIDEO_MIME.has(mime)) return "video";
   return "other";
@@ -71,7 +88,8 @@ export async function POST(req: Request) {
   }
 
   // Валидация типа и размера
-  const mime = file.type || "";
+  const rawMime = file.type || "";
+  const mime = baseMime(rawMime); // нормализованный
   const bytes = typeof file.size === "number" ? file.size : 0;
 
   const category = pickCategory(mime);
@@ -80,27 +98,13 @@ export async function POST(req: Request) {
     category === "video" ? LIMITS.video :
     LIMITS.other;
 
-  // Явный белый список: для "other" принимаем ограниченно безопасные типы
-  const OTHER_MIME = new Set<string>([
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "text/plain",
-    "application/zip",
-    "application/x-zip-compressed",
-    "application/x-7z-compressed",
-    "application/x-tar",
-    "application/x-rar-compressed",
-  ]);
-
   const allowed =
     (category === "audio" && AUDIO_MIME.has(mime)) ||
     (category === "video" && VIDEO_MIME.has(mime)) ||
     (category === "other" && OTHER_MIME.has(mime));
 
   if (!allowed) {
-    return errorJson(415, `Формат не поддерживается: ${mime || "unknown"}`);
+    return errorJson(415, `Формат не поддерживается: ${rawMime || "unknown"}`);
   }
 
   if (!bytes || bytes < 1) {
@@ -135,8 +139,8 @@ export async function POST(req: Request) {
   const filename = sanitizeFilename(file.name || "file");
   const path = `${user.id}/${yyyy}/${mm}/${rand}_${filename}`;
 
-  // Загружаем в Storage
-  const arrayBuf = await file.arrayBuffer(); // Next/Supabase SDK съест ArrayBuffer нормально
+  // Загружаем в Storage (используем нормализованный contentType)
+  const arrayBuf = await file.arrayBuffer();
   const { data: uploadRes, error: uploadErr } = await supabase.storage
     .from("attachments")
     .upload(path, arrayBuf, {
@@ -145,7 +149,6 @@ export async function POST(req: Request) {
     });
 
   if (uploadErr) {
-    // Популярные кейсы: 409 (exists), 413 (server), 400 (policy)
     return errorJson(400, `Ошибка загрузки в хранилище: ${uploadErr.message}`);
   }
 
@@ -158,7 +161,7 @@ export async function POST(req: Request) {
       .insert({
         message_id: messageId,
         path: uploadRes?.path || path,
-        mime: mime || null,
+        mime: mime || null,   // сохраняем нормализованный mime
         bytes: bytes || null,
       })
       .select("id")
@@ -174,7 +177,7 @@ export async function POST(req: Request) {
     ok: true,
     id: messageFileId,
     path: uploadRes?.path || path,
-    mime,
+    mime,       // нормализованный
     bytes,
     category,
   });
