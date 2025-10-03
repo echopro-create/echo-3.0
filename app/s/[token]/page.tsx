@@ -13,7 +13,7 @@ type ShareFile = {
 };
 
 export default function PublicSharePage(props: any) {
-  // Не доверяем типам Next 15: берём токен гибко
+  // Не спорим с типами Next 15: достаём токен максимально терпеливо
   const token: string =
     (props?.params && (props.params as any).token) ||
     (props && (props as any).token) ||
@@ -21,9 +21,9 @@ export default function PublicSharePage(props: any) {
 
   const [state, setState] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
 
+  // Всегда ходим на same-origin API — никакого абсолютного URL
   const endpoint = useMemo(() => {
-    const base = process.env.NEXT_PUBLIC_APP_URL || "";
-    return base ? `${base}/api/public-share/${encodeURIComponent(token)}` : `/api/public-share/${encodeURIComponent(token)}`;
+    return `/api/public-share/${encodeURIComponent(token)}`;
   }, [token]);
 
   useEffect(() => {
@@ -39,9 +39,7 @@ export default function PublicSharePage(props: any) {
         setState({ ok: false, status: 0, data: null, error: e?.message || "Network error" });
       }
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { alive = false; };
   }, [endpoint]);
 
   if (!state) {
