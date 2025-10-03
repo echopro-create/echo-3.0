@@ -133,7 +133,7 @@ async function tryNotifyFirstView(opts: {
             }
           }
         } catch {
-          /* ignore */
+        /* ignore */
         }
       }
     }
@@ -210,7 +210,9 @@ export async function GET(req: Request) {
     // 1) share
     const { data: share, error: shareErr } = await admin
       .from("shares")
-      .select("id, message_id, expires_at, revoked, views, max_views, password_hash, password_salt")
+      .select(
+        "id, message_id, expires_at, revoked, views, max_views, password_hash, password_salt, last_view_at"
+      )
       .eq("token", token)
       .maybeSingle();
 
@@ -231,12 +233,18 @@ export async function GET(req: Request) {
       if (calc !== share.password_hash) return jsonErr(401, "Invalid password");
     }
 
-    // 3) инкремент просмотров
+    // 3) инкремент просмотров + отметка времени последнего просмотра
     const prevViews = share.views ?? 0;
     const nextViews = prevViews + 1;
+    const nowIso = new Date().toISOString();
+
     {
-      const { error: vuErr } = await admin.from("shares").update({ views: nextViews }).eq("id", share.id);
+      const { error: vuErr } = await admin
+        .from("shares")
+        .update({ views: nextViews, last_view_at: nowIso })
+        .eq("id", share.id);
       if (vuErr) {
+        // не блокируем выдачу, но отмечаем ошибку инкремента
         return jsonErr(500, `Counter error: ${vuErr.message}`);
       }
     }
@@ -272,7 +280,9 @@ export async function GET(req: Request) {
         let signedUrl: string | null = null;
 
         if (rawPath) {
-          const { data: s, error: sErr } = await admin.storage.from("attachments").createSignedUrl(rawPath, TTL_SEC);
+          const { data: s, error: sErr } = await admin.storage
+            .from("attachments")
+            .createSignedUrl(rawPath, TTL_SEC);
           if (!sErr) signedUrl = s?.signedUrl ?? null;
         }
 
@@ -306,7 +316,7 @@ export async function GET(req: Request) {
         max_views: share.max_views ?? null,
         revoked: !!share.revoked,
         password_protected: !!share.password_hash,
-        // last_view_at может появиться в будущем; клиент обработает отсутствующее поле
+        last_view_at: nowIso,
       },
       message: {
         id: msg.id,
@@ -319,6 +329,7 @@ export async function GET(req: Request) {
       files: signed,
     });
   } catch (e: any) {
+    // Явное сообщение про сервисный ключ уже бросили в createAdminClient
     return jsonErr(500, e?.message || "Server error");
   }
 }

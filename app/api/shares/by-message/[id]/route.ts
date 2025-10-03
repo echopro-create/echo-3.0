@@ -40,10 +40,10 @@ export async function GET(_req: Request, ctx: any) {
   if (msgErr) return bad(400, msgErr.message);
   if (!msg || msg.user_id !== user.id) return bad(403, "Нет доступа");
 
-  // берём самую свежую неотозванную ссылку
+  // берём несколько последних ссылок и ищем активную
   const { data: shares, error: shErr } = await adm
     .from("shares")
-    .select("token, expires_at, views, max_views, revoked, password_hash, created_at")
+    .select("token, expires_at, views, max_views, revoked, password_hash, created_at, last_view_at")
     .eq("message_id", id)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -51,7 +51,7 @@ export async function GET(_req: Request, ctx: any) {
   if (shErr) return bad(400, shErr.message);
 
   const active = (shares || []).find((s) => !s.revoked) || null;
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL; // не нужен для URL приложения
+
   const appBase = process.env.NEXT_PUBLIC_APP_URL || "";
   const url = active ? (appBase ? `${appBase}/s/${active.token}` : `/s/${active.token}`) : null;
 
@@ -64,6 +64,7 @@ export async function GET(_req: Request, ctx: any) {
           views: active.views ?? 0,
           max_views: active.max_views ?? null,
           password_enabled: !!active.password_hash,
+          last_view_at: active.last_view_at ?? null,
         }
       : null,
   });
