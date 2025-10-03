@@ -31,9 +31,9 @@ async function getShare(token: string) {
   return { ok: res.ok && json?.ok, data: json, status: res.status, error: json?.error };
 }
 
-export default async function PublicSharePage({ params }: { params: { token: string } }) {
-  const token = params?.token || "";
-  const { ok, data, status, error } = await getShare(token);
+export default async function PublicSharePage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const { ok, data, status, error } = await getShare(token || "");
 
   if (!ok) {
     const text = status === 410 ? "Ссылка истекла." : error || "Ссылка недоступна.";
