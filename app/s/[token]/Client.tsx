@@ -1,7 +1,7 @@
 // app/s/[token]/Client.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type FileView = {
   id: string;
@@ -31,53 +31,16 @@ type MessageView = {
 
 export default function PublicShareClient({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [pw, setPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [share, setShare] = useState<ShareMeta | null>(null);
   const [message, setMessage] = useState<MessageView | null>(null);
   const [files, setFiles] = useState<FileView[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const storageKey = useMemo(() => `echo-share-pw:${token}`, [token]);
-
-  async function load(withPassword?: string) {
-    setLoading(true);
-    setError(null);
-    try {
-      const q = withPassword ? `?pw=${encodeURIComponent(withPassword)}` : "";
-      const res = await fetch(`/api/public-share/${token}${q}`, { cache: "no-store" });
-      const j = await res.json().catch(() => ({} as any));
-
-      if (!res.ok || !j?.ok) {
-        const msg = String(j?.error || `HTTP ${res.status}`);
-        if (res.status === 401) throw new Error("Password required");
-        if (res.status === 404) throw new Error("Not found");
-        if (res.status === 410) throw new Error("Link unavailable");
-        throw new Error(msg);
-      }
-
-      setShare(j.share as ShareMeta);
-      setMessage(j.message as MessageView);
-      setFiles((j.files as FileView[]) || []);
-    } catch (e: any) {
-      setShare(null);
-      setMessage(null);
-      setFiles([]);
-      setError(String(e?.message || e));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem(storageKey) || "";
-    if (saved) {
-      setPw(saved);
-      load(saved);
-    } else {
-      load();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
 
   function humanBytes(n?: number | null) {
     if (!n || n <= 0) return "";
@@ -92,63 +55,161 @@ export default function PublicShareClient({ token }: { token: string }) {
     return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
   }
 
-  const needsPassword = error === "Password required";
+  async function load(withPassword?: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const q = withPassword ? `?pw=${encodeURIComponent(withPassword)}` : "";
+      const res = await fetch(`/api/public-share/${token}${q}`, { cache: "no-store" });
+      const j = await res.json().catch(() => ({} as any));
+
+      if (!res.ok || !j?.ok) {
+        if (res.status === 401) throw new Error("need_password"); // требуется пароль или неверный
+        if (res.status === 404) throw new Error("not_found");
+        if (res.status === 410) throw new Error("gone"); // expired/revoked/over views
+        throw new Error(String(j?.error || `HTTP ${res.status}`));
+      }
+
+      setShare(j.share as ShareMeta);
+      setMessage(j.message as MessageView);
+      setFiles((j.files as FileView[]) || []);
+    } catch (e: any) {
+      setShare(null);
+      setMessage(null);
+      setFiles([]);
+      const code = String(e?.message || e);
+      setError(code);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // первичная загрузка: пробуем пароль из sessionStorage
+  useEffect(() => {
+    const saved = sessionStorage.getItem(storageKey) || "";
+    if (saved) {
+      setPw(saved);
+      load(saved);
+    } else {
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  // после показа формы кладем фокус в поле
+  useEffect(() => {
+    if (needsPassword(error) && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [error]);
+
+  const formErrorText = (() => {
+    if (error === "need_password") return "Нужен пароль, либо введён неверный.";
+    if (error === "not_found") return "Ссылка не найдена.";
+    if (error === "gone") return "Ссылка недоступна: истекла, отозвана или превышен лимит просмотров.";
+    return error ? String(error) : "";
+  })();
+
+  function needsPassword(err: string | null) {
+    return err === "need_password";
+  }
+
+  async function submit(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!pw.trim()) {
+      setError("need_password");
+      return;
+    }
+    setSubmitting(true);
+    // пробуем запрос с паролем
+    await load(pw.trim());
+    // если всё ок, error больше не «need_password», сохраняем пароль до конца сессии
+    setSubmitting(false);
+    if (!needsPassword(error)) {
+      sessionStorage.setItem(storageKey, pw.trim());
+    }
+  }
 
   return (
     <div className="container py-8" style={{ maxWidth: 900 }}>
       <h1 className="text-2xl font-semibold mb-4">Публичный просмотр</h1>
 
+      {/* карточка с ошибками общего вида */}
+      {!needsPassword(error) && error && (
+        <div className="card p-4 text-red-600 max-w-xl mb-4" role="alert">
+          {formErrorText}
+        </div>
+      )}
+
       {/* форма пароля */}
-      {needsPassword && (
-        <div className="card p-4 grid gap-3 max-w-xl">
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const p = pw.trim();
-              if (!p) return;
-              await load(p);
-              // если не стало 401 — считаем пароль годным и запоминаем
-              if (!loading && error !== "Password required") {
-                sessionStorage.setItem(storageKey, p);
-              }
-            }}
-            className="grid gap-3"
-          >
-            <input
-              type="password"
-              className="input"
-              placeholder="Введите пароль"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              autoFocus
-            />
+      {needsPassword(error) && (
+        <div
+          className="card p-4 grid gap-3 max-w-xl mb-4"
+          role="dialog"
+          aria-labelledby="pw-title"
+          aria-describedby="pw-desc"
+        >
+          <div id="pw-title" className="font-medium">Доступ по паролю</div>
+          <div id="pw-desc" className="text-sm opacity-70">
+            Введите пароль от этой ссылки. Мы не сохраняем его на сервере, только в памяти вкладки.
+          </div>
+
+          <form onSubmit={submit} className="grid gap-3">
             <div className="flex gap-2">
-              <button type="submit" className="btn">Открыть</button>
+              <input
+                ref={inputRef}
+                type={showPw ? "text" : "password"}
+                className="input flex-1"
+                placeholder="Пароль"
+                aria-label="Пароль"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                className="btn secondary"
+                aria-pressed={showPw}
+                onClick={() => setShowPw((v) => !v)}
+                title={showPw ? "Скрыть пароль" : "Показать пароль"}
+              >
+                {showPw ? "Скрыть" : "Показать"}
+              </button>
+            </div>
+
+            {formErrorText && (
+              <div className="text-sm text-red-600" role="alert">
+                {formErrorText}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button type="submit" className="btn" disabled={submitting}>
+                {submitting ? "Проверяем…" : "Открыть"}
+              </button>
               <button
                 type="button"
                 className="btn secondary"
                 onClick={() => {
                   setPw("");
                   sessionStorage.removeItem(storageKey);
+                  // перезагружаем форму, если до этого был неверный пароль
+                  setError("need_password");
+                  inputRef.current?.focus();
                 }}
               >
                 Очистить
               </button>
             </div>
-            <div className="text-sm text-red-600">Password required</div>
           </form>
         </div>
       )}
 
-      {/* другие ошибки */}
-      {!needsPassword && error && (
-        <div className="card p-4 text-red-600 max-w-xl">{error}</div>
-      )}
-
-      {/* контент */}
-      {!needsPassword && !error && (
+      {/* контент при успехе */}
+      {!needsPassword(error) && !error && (
         <>
-          <div className="card p-4 grid gap-2 max-w-xl">
+          <div className="card p-4 grid gap-2 max-w-xl mb-4">
             <div className="text-sm opacity-70">
               Просмотры: {share?.views ?? 0}
               {share?.max_views ? ` / лимит ${share.max_views}` : ""} ·
