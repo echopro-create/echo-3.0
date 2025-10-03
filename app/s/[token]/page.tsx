@@ -3,147 +3,214 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type ShareFile = {
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+type FileView = {
   id: string;
   url: string | null;
   mime: string | null;
   bytes: number | null;
-  created_at: string | null;
   name: string;
+  created_at: string | null;
 };
 
-export default function PublicSharePage(props: any) {
-  // Не спорим с типами Next 15: достаём токен максимально терпеливо
-  const token: string =
-    (props?.params && (props.params as any).token) ||
-    (props && (props as any).token) ||
-    "";
+type ShareMeta = {
+  expires_at: string | null;
+  views: number;
+  max_views: number | null;
+  revoked: boolean;
+  password_protected: boolean;
+};
 
-  const [state, setState] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
+type MessageView = {
+  id: string;
+  kind: "text" | "audio" | "video" | "files";
+  content: string | null;
+  delivery_mode: "heartbeat" | "date";
+  deliver_at: string | null;
+  created_at: string | null;
+};
 
-  // Всегда same-origin API — никаких абсолютных URL, иначе CORS устроит истерику
-  const endpoint = useMemo(() => {
-    return `/api/public-share/${encodeURIComponent(token)}`;
-  }, [token]);
+export default function PublicSharePage({ params }: { params: { token: string } }) {
+  const token = params.token;
+  const [loading, setLoading] = useState(true);
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [share, setShare] = useState<ShareMeta | null>(null);
+  const [message, setMessage] = useState<MessageView | null>(null);
+  const [files, setFiles] = useState<FileView[]>([]);
+
+  // хранение пароля в sessionStorage (только для этого токена)
+  const storageKey = useMemo(() => `echo-share-pw:${token}`, [token]);
+
+  async function load(withPassword?: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const q = withPassword ? `?pw=${encodeURIComponent(withPassword)}` : "";
+      const res = await fetch(`/api/public-share/${token}${q}`, { cache: "no-store" });
+      const j = await res.json().catch(() => ({} as any));
+
+      if (!res.ok || !j?.ok) {
+        // нормализуем типовые ошибки
+        const msg = String(j?.error || `HTTP ${res.status}`);
+        if (res.status === 401) throw new Error("Password required");
+        if (res.status === 404) throw new Error("Not found");
+        if (res.status === 410) throw new Error("Link unavailable");
+        throw new Error(msg);
+      }
+
+      setShare(j.share as ShareMeta);
+      setMessage(j.message as MessageView);
+      setFiles((j.files as FileView[]) || []);
+    } catch (e: any) {
+      setShare(null);
+      setMessage(null);
+      setFiles([]);
+      setError(String(e?.message || e));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch(endpoint, { cache: "no-store" });
+    // пробуем пароль из sessionStorage
+    const saved = sessionStorage.getItem(storageKey) || "";
+    if (saved) {
+      setPw(saved);
+      load(saved);
+    } else {
+      load(); // получим 401 и покажем форму
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
-        // ── ВРЕМЕННЫЕ ЛОГИ ДЛЯ ДИАГНОСТИКИ ─────────────────────────────
-        // Должно быть: x-echo-api: public-share и x-echo-auth: service
-        // Если пусто или «anon» — значит страница идёт мимо нашего серверного роута.
-        console.log("[share] endpoint:", endpoint);
-        console.log("[share] x-echo-api:", res.headers.get("x-echo-api"));
-        console.log("[share] x-echo-auth:", res.headers.get("x-echo-auth"));
-        // ───────────────────────────────────────────────────────────────
-
-        const json = await res.json().catch(() => ({}));
-        if (!alive) return;
-        setState({ ok: res.ok && json?.ok, status: res.status, data: json, error: json?.error });
-      } catch (e: any) {
-        if (!alive) return;
-        setState({ ok: false, status: 0, data: null, error: e?.message || "Network error" });
-      }
-    })();
-    return () => { alive = false; };
-  }, [endpoint]);
-
-  if (!state) {
-    return (
-      <div className="container py-6 grid gap-3" style={{ maxWidth: 860 }}>
-        <h1 className="title text-2xl font-semibold">Публичный просмотр</h1>
-        <div className="card">Загружаем…</div>
-      </div>
-    );
+  function humanBytes(n?: number | null) {
+    if (!n || n <= 0) return "";
+    const units = ["B", "KB", "MB", "GB"];
+    let i = 0; let x = n;
+    while (x >= 1024 && i < units.length - 1) { x /= 1024; i++; }
+    return `${x.toFixed(1)} ${units[i]}`;
+  }
+  function safeDate(s: string | null) {
+    if (!s) return "—";
+    const t = new Date(s);
+    return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
   }
 
-  if (!state.ok) {
-    const status = state.status;
-    const text =
-      status === 404 ? "Ссылка не найдена." :
-      status === 410 ? "Ссылка истекла." :
-      state.error || "Ссылка недоступна.";
-    return (
-      <div className="container py-6 grid gap-3" style={{ maxWidth: 860 }}>
-        <h1 className="title text-2xl font-semibold">Публичный просмотр</h1>
-        <div className="card text-red-600">{text}</div>
-      </div>
-    );
-  }
-
-  const msg = state.data.message as {
-    kind: string; content?: string | null; delivery_mode: string; deliver_at?: string | null; created_at: string;
-  };
-  const files = (state.data.files as ShareFile[]) || [];
+  const needsPassword = error === "Password required";
 
   return (
-    <div className="container py-6 grid gap-4" style={{ maxWidth: 860 }}>
-      <h1 className="title text-2xl font-semibold">Послание</h1>
+    <div className="container py-8" style={{ maxWidth: 900 }}>
+      <h1 className="text-2xl font-semibold mb-4">Публичный просмотр</h1>
 
-      <div className="card grid gap-2">
-        <div className="text-sm opacity-70">Создано: {safeDate(msg.created_at)}</div>
-        <div className="text-sm">Тип: {labelKind(msg.kind)}</div>
-        <div className="text-sm">
-          Доставка: {msg.delivery_mode === "heartbeat"
-            ? "по пульсу"
-            : `по дате${msg.deliver_at ? ` — ${safeDate(msg.deliver_at)}` : ""}`}
-        </div>
-      </div>
-
-      {msg.content && <div className="card whitespace-pre-wrap">{msg.content}</div>}
-
-      {files.length > 0 && (
-        <div className="card grid gap-3">
-          <div className="font-medium">Вложения</div>
-          <ul className="grid gap-4">
-            {files.map(f => (
-              <li key={f.id} className="grid gap-2">
-                <div className="text-sm flex items-center justify-between gap-3">
-                  <span className="truncate">
-                    {f.name}{f.bytes ? ` · ${humanBytes(f.bytes)}` : ""}{f.created_at ? ` · ${safeDate(f.created_at)}` : ""}
-                  </span>
-                  {f.url && !canInline(f.mime) && (
-                    <a className="btn secondary" href={f.url} target="_blank" rel="noreferrer">Скачать</a>
-                  )}
-                </div>
-
-                {f.url && f.mime?.startsWith("audio") && <audio controls src={f.url} className="w-full" />}
-                {f.url && f.mime?.startsWith("video") && <video controls src={f.url} className="w-full rounded-xl bg-black/5" />}
-                {f.url && f.mime?.startsWith("image/") && <img src={f.url} alt={f.name} className="max-w-full rounded-xl border" />}
-                {f.url && f.mime === "application/pdf" && (
-                  <iframe src={f.url} className="w-full rounded-xl" style={{ minHeight: 420, background: "#fafafa", border: "1px solid #eee" }} />
-                )}
-              </li>
-            ))}
-          </ul>
+      {/* форма пароля */}
+      {needsPassword && (
+        <div className="card p-4 grid gap-3 max-w-xl">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const p = pw.trim();
+              if (!p) return;
+              // пробуем загрузить с паролем; если ок — запомним его в sessionStorage
+              await load(p);
+              if (!loading && !error) {
+                sessionStorage.setItem(storageKey, p);
+              }
+            }}
+            className="grid gap-3"
+          >
+            <input
+              type="password"
+              className="input"
+              placeholder="Введите пароль"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button type="submit" className="btn">Открыть</button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  setPw("");
+                  sessionStorage.removeItem(storageKey);
+                }}
+              >
+                Очистить
+              </button>
+            </div>
+            <div className="text-sm text-red-600">Password required</div>
+          </form>
         </div>
       )}
 
-      {files.length === 0 && !msg.content && (
-        <div className="card text-sm opacity-70">Содержимого нет.</div>
+      {/* другие ошибки */}
+      {!needsPassword && error && (
+        <div className="card p-4 text-red-600 max-w-xl">{error}</div>
       )}
+
+      {/* контент */}
+      {!needsPassword && !error && (
+        <>
+          <div className="card p-4 grid gap-2 max-w-xl">
+            <div className="text-sm opacity-70">
+              Просмотры: {share?.views ?? 0}
+              {share?.max_views ? ` / лимит ${share.max_views}` : ""} ·
+              Истекает: {safeDate(share?.expires_at ?? null)} ·
+              Пароль: {share?.password_protected ? "включен" : "выключен"}
+            </div>
+            {message?.content && (
+              <div className="whitespace-pre-wrap">{message.content}</div>
+            )}
+          </div>
+
+          {files.length > 0 && (
+            <div className="card p-4 grid gap-3">
+              <div className="font-medium">Вложения</div>
+              <ul className="grid gap-4">
+                {files.map((f) => (
+                  <li key={f.id} className="grid gap-2">
+                    <div className="text-sm flex items-center justify-between gap-3">
+                      <span className="truncate">
+                        {f.name}
+                        {f.bytes ? ` · ${humanBytes(f.bytes)}` : ""}
+                        {f.created_at ? ` · ${safeDate(f.created_at)}` : ""}
+                      </span>
+                      {f.url && (
+                        <a className="btn secondary" href={f.url} target="_blank" rel="noreferrer">
+                          Открыть
+                        </a>
+                      )}
+                    </div>
+
+                    {f.url && f.mime?.startsWith("audio") && (
+                      <audio controls src={f.url} className="w-full" />
+                    )}
+                    {f.url && f.mime?.startsWith("video") && (
+                      <video controls src={f.url} className="w-full rounded-xl bg-black/5" />
+                    )}
+                    {f.url && f.mime?.startsWith("image/") && (
+                      <img src={f.url} alt={f.name} className="max-w-full rounded-xl border" />
+                    )}
+                    {f.url && f.mime === "application/pdf" && (
+                      <iframe
+                        src={f.url}
+                        className="w-full rounded-xl"
+                        style={{ minHeight: 420, background: "#fafafa", border: "1px solid #eee" }}
+                      />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+
+      {loading && <div className="text-sm opacity-70">Загрузка…</div>}
     </div>
   );
-}
-
-/* helpers */
-function labelKind(k: string) {
-  return k === "text" ? "Текст" : k === "audio" ? "Голос" : k === "video" ? "Видео" : "Файлы";
-}
-function humanBytes(n?: number | null) {
-  if (!n || n <= 0) return "";
-  const units = ["B","KB","MB","GB"]; let i=0; let x=n;
-  while (x >= 1024 && i < units.length-1) { x/=1024; i++; }
-  return `${x.toFixed(1)} ${units[i]}`;
-}
-function safeDate(s?: string | null) {
-  if (!s) return "—";
-  const t = new Date(s);
-  return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
-}
-function canInline(m?: string | null) {
-  return !!m && (m.startsWith("audio") || m.startsWith("video") || m.startsWith("image/") || m === "application/pdf");
 }
