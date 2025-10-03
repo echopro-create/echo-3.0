@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 type Kind = 'text' | 'audio' | 'video' | 'files'
 type Mode = 'heartbeat' | 'date'
 
-export default function EditMessagePage({ params }: { params: { id: string } }) {
-  const { id } = params
+export default function EditMessagePage(props: any) {
+  const id = String(props?.params?.id || '')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [kind, setKind] = useState<Kind>('text')
@@ -15,6 +15,7 @@ export default function EditMessagePage({ params }: { params: { id: string } }) 
   const [deliverAt, setDeliverAt] = useState('')
 
   useEffect(() => {
+    if (!id) return
     let alive = true
     ;(async () => {
       try {
@@ -57,6 +58,7 @@ export default function EditMessagePage({ params }: { params: { id: string } }) 
     window.location.href = `/messages/${id}`
   }
 
+  if (!id) return <div className="container py-6"><div className="card text-red-600">Некорректный адрес.</div></div>
   if (loading) return <div className="container py-6"><div className="card">Загрузка…</div></div>
   if (error) return <div className="container py-6"><div className="card text-red-600">{error}</div></div>
 
