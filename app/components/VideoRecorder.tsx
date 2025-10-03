@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "@/app/lib/i18n";
 
 type UploadResponse = {
   ok: boolean;
@@ -57,6 +58,7 @@ export default function VideoRecorder({
   onUploaded,
   title = "Видеопослание",
 }: VideoRecorderProps) {
+  const t = useT();
   const [supported, setSupported] = useState(false);
   const [mime, setMime] = useState<string | null>(null);
 
@@ -74,6 +76,8 @@ export default function VideoRecorder({
 
   const [uploadPct, setUploadPct] = useState<number>(0);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  const stopBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const videoUrl = useMemo(() => {
     if (!chunks.length) return null;
@@ -154,6 +158,8 @@ export default function VideoRecorder({
 
       mr.start(1000);
       setUi("recording");
+      // сразу фокус на «Остановить», чтобы клавиатурой было удобно
+      setTimeout(() => stopBtnRef.current?.focus(), 0);
     } catch (e: any) {
       setError(e?.message || "Не удалось начать запись (доступ к камере/микрофону?)");
       setUi("error");
@@ -215,9 +221,12 @@ export default function VideoRecorder({
       form.append("file", file);
       if (messageId) form.append("message_id", messageId);
 
-      const res = await xhrUpload("/api/media/upload", form, (loaded, total) => {
-        if (total > 0) setUploadPct(Math.min(99, Math.round((loaded / total) * 100)));
-      }, (xhr) => { xhrRef.current = xhr; });
+      const res = await xhrUpload(
+        "/api/media/upload",
+        form,
+        (loaded, total) => { if (total > 0) setUploadPct(Math.min(99, Math.round((loaded / total) * 100))); },
+        (xhr) => { xhrRef.current = xhr; }
+      );
 
       setUploadPct(100);
 
@@ -250,13 +259,13 @@ export default function VideoRecorder({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <strong>{title}</strong>
         <span style={{ fontSize: 12, opacity: 0.7 }}>
-          Лимит: {fmtBytes(maxBytes)} • {mime ? mime : "формат по умолчанию"}
+          {t.limit}: {fmtBytes(maxBytes)} • {mime ? mime : t.defaultFormat}
         </span>
       </div>
 
       {!supported && (
         <div className="muted" role="alert">
-          Ваш браузер не поддерживает MediaRecorder или getUserMedia.
+          {t.browserNoSupportVideo}
         </div>
       )}
 
@@ -271,40 +280,81 @@ export default function VideoRecorder({
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button className="btn" type="button" onClick={startRecording} disabled={recording || uploading}>
-              Записать
+            <button
+              className="btn"
+              type="button"
+              onClick={startRecording}
+              disabled={recording || uploading}
+              aria-disabled={recording || uploading}
+              aria-label={t.record}
+            >
+              {t.record}
             </button>
-            <button className="btn danger" type="button" onClick={stopRecording} disabled={!recording || uploading}>
-              Остановить
+
+            <button
+              ref={stopBtnRef}
+              className="btn danger"
+              type="button"
+              onClick={stopRecording}
+              disabled={!recording || uploading}
+              aria-disabled={!recording || uploading}
+              aria-label={t.stop}
+            >
+              {t.stop}
             </button>
-            <button className="btn secondary" type="button" onClick={discardRecording} disabled={recording || uploading}>
-              Сбросить
+
+            <button
+              className="btn secondary"
+              type="button"
+              onClick={discardRecording}
+              disabled={recording || uploading}
+              aria-disabled={recording || uploading}
+              aria-label={t.reset}
+            >
+              {t.reset}
             </button>
-            <button className="btn" type="button" onClick={uploadRecording} disabled={uploading || recording || !chunks.length}>
-              Загрузить
+
+            <button
+              className="btn"
+              type="button"
+              onClick={uploadRecording}
+              disabled={uploading || recording || !chunks.length}
+              aria-disabled={uploading || recording || !chunks.length}
+              aria-label={t.upload}
+            >
+              {t.upload}
             </button>
+
             {uploading && (
-              <button className="btn secondary" type="button" onClick={() => { try { xhrRef.current?.abort(); } catch {} }}>
-                Отменить загрузку
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={() => { try { xhrRef.current?.abort(); } catch {} }}
+                aria-label={t.cancelUpload}
+              >
+                {t.cancelUpload}
               </button>
             )}
           </div>
 
-          <div style={{ fontSize: 13, opacity: 0.85 }}>
-            {recording && (
-              <span>
-                Идёт запись… {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}
-              </span>
-            )}
-            {uploading && <span>Загрузка… {uploadPct}%</span>}
-            {ui === "success" && <span>Готово. Файл сохранён.</span>}
-            {ui === "stopped" && <span>Запись остановлена. Можно просмотреть и загрузить.</span>}
-            {ui === "canceled" && <span>Загрузка отменена.</span>}
-            {ui === "error" && <span>Ошибка: {error}</span>}
+          <div style={{ fontSize: 13, opacity: 0.85 }} aria-live="polite">
+            {recording && <span>{t.recording} {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}</span>}
+            {uploading && <span>{t.uploading} {uploadPct}%</span>}
+            {ui === "success" && <span>{t.ready}</span>}
+            {ui === "stopped" && <span>{t.stopped}</span>}
+            {ui === "canceled" && <span>{t.canceled}</span>}
+            {ui === "error" && <span>{t.error}: {error}</span>}
           </div>
 
           {uploading && (
-            <div aria-label="progress" style={{ width: "100%", height: 6, background: "#eee", borderRadius: 6 }}>
+            <div
+              aria-label="progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={uploadPct}
+              style={{ width: "100%", height: 6, background: "#eee", borderRadius: 6 }}
+            >
               <div style={{ width: `${uploadPct}%`, height: "100%", borderRadius: 6 }} />
             </div>
           )}
