@@ -27,29 +27,20 @@ export default async function AdminUsagePage() {
     .filter(Boolean);
 
   if (!uid || !whitelist.includes(uid)) {
-    // 404 по ТЗ: чужим не светим наличие страницы
     return new Response("Not Found", { status: 404 }) as any;
   }
 
-  // 1) Тупая проверка: страница вообще рендерится?
-  // Если хочешь сначала убедиться на проде, раскомментируй ранний возврат:
-  // return (
-  //   <div className="container py-6" style={{ maxWidth: 960 }}>
-  //     <h1 className="text-2xl font-semibold">Storage usage</h1>
-  //     <p className="mt-4">Страница доступна. Сейчас подтянем данные…</p>
-  //   </div>
-  // ) as any;
-
-  // 2) Выбираем сырые записи и агрегируем в JS.
-  // Важно: должен существовать FK message_files.message_id -> messages.id.
-  // Мы выбираем message_files и отдельно вытягиваем user_id владельца через inner join.
+  // В твоей БД нет message_files.created_at, поэтому забираем дату из messages.created_at.
+  // Вытягиваем:
+  // - bytes из message_files
+  // - owner user_id и created_at из messages через inner join
   const { data, error } = await supabase
     .from("message_files")
     .select(`
       bytes,
-      created_at,
       messages!inner (
-        user_id
+        user_id,
+        created_at
       )
     `)
     .limit(20000);
@@ -67,7 +58,7 @@ export default async function AdminUsagePage() {
     user_id: string;
     total_bytes: number;
     files: number;
-    last_at: string | null;
+    last_at: string | null; // берём из messages.created_at как приближение
   };
 
   const byUser = new Map<string, Row>();
@@ -75,12 +66,12 @@ export default async function AdminUsagePage() {
     const user_id: string | undefined = r?.messages?.user_id;
     if (!user_id) continue;
     const bytes: number = Number(r?.bytes || 0);
-    const created_at: string | null = r?.created_at ?? null;
+    const msg_created: string | null = r?.messages?.created_at ?? null;
 
     const agg = byUser.get(user_id) || { user_id, total_bytes: 0, files: 0, last_at: null };
     agg.total_bytes += bytes;
     agg.files += 1;
-    if (!agg.last_at || (created_at && created_at > agg.last_at)) agg.last_at = created_at;
+    if (!agg.last_at || (msg_created && msg_created > agg.last_at)) agg.last_at = msg_created;
     byUser.set(user_id, agg);
   }
 
@@ -105,7 +96,7 @@ export default async function AdminUsagePage() {
               <th className="py-2 pr-3">User ID</th>
               <th className="py-2 pr-3">Файлов</th>
               <th className="py-2 pr-3">Объём</th>
-              <th className="py-2 pr-3">Последняя загрузка</th>
+              <th className="py-2 pr-3">Последняя активность</th>
             </tr>
           </thead>
           <tbody>
@@ -126,7 +117,9 @@ export default async function AdminUsagePage() {
         </table>
       </div>
 
-      <p className="mt-3 text-xs opacity-70">Доступ ограничен по ADMIN_USER_IDS.</p>
+      <p className="mt-3 text-xs opacity-70">
+        Примечание: используется <code>messages.created_at</code> как приближение для «последней активности».
+      </p>
     </div>
   ) as any;
 }
