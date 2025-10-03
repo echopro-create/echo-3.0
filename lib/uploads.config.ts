@@ -2,17 +2,20 @@
 
 export const BYTES = {
   MB: 1024 * 1024,
-  GB: 1024 * 1024 * 1024
+  GB: 1024 * 1024 * 1024,
 };
 
 export const LIMITS = {
   audioMax: 25 * BYTES.MB,
   videoMax: 100 * BYTES.MB,
-  fileMax: 50 * BYTES.MB
+  fileMax: 50 * BYTES.MB,
 };
 
-// Разрешённые MIME
-export const ALLOW = {
+// Категории для явной типизации
+export type Category = "audio" | "video" | "other";
+
+// Разрешённые MIME (тип элементов расширен до string[], чтобы .includes принимал обычный string)
+export const ALLOW: Record<Category, string[]> = {
   audio: [
     "audio/webm",
     "audio/webm;codecs=opus",
@@ -21,7 +24,7 @@ export const ALLOW = {
     "audio/mpeg",        // mp3
     "audio/mp4",         // m4a/aac контейнер
     "audio/aac",
-    "audio/wav"
+    "audio/wav",
   ],
   video: [
     "video/webm",
@@ -34,9 +37,9 @@ export const ALLOW = {
     "image/jpeg",
     "image/png",
     "image/webp",
-    "text/plain"
-  ]
-} as const;
+    "text/plain",
+  ],
+};
 
 // Нормализуем "video/webm;codecs=vp9,opus" -> "video/webm"
 export function normalizeMime(mime: string | null | undefined): string {
@@ -55,8 +58,6 @@ export function normalizeMime(mime: string | null | undefined): string {
   if (lower.startsWith("text/plain")) return "text/plain";
   return lower;
 }
-
-export type Category = "audio" | "video" | "other";
 
 export function detectCategory(mime: string): Category {
   if (mime.startsWith("audio/")) return "audio";
