@@ -48,6 +48,27 @@ const ARCHIVE_MIME = [
 const ALLOW_ARCHIVES = String(process.env.ALLOW_ARCHIVES || "").toLowerCase() === "true";
 const OTHER_MIME = new Set<string>([...OTHER_BASE, ...(ALLOW_ARCHIVES ? ARCHIVE_MIME : [])]);
 
+// Расширения → предполагаемый MIME (на случай пустого file.type)
+const EXT_MIME: Record<string, string> = {
+  ".webm": "video/webm",
+  ".mp4": "video/mp4",
+  ".m4a": "audio/mp4",
+  ".aac": "audio/aac",
+  ".mp3": "audio/mpeg",
+  ".ogg": "audio/ogg",
+  ".wav": "audio/wav",
+  ".pdf": "application/pdf",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".txt": "text/plain",
+  ".zip": "application/zip",
+  ".7z": "application/x-7z-compressed",
+  ".tar": "application/x-tar",
+  ".rar": "application/x-rar-compressed",
+};
+
 // Нормализация имени файла: безопасные символы + обрезка до 200
 function sanitizeFilename(name: string) {
   const clean = (name || "file").replace(/[^\w.\-]+/g, "_");
@@ -57,6 +78,11 @@ function sanitizeFilename(name: string) {
 // Нормализация MIME: нижний регистр, без параметров ;codecs=...
 function baseMime(m?: string | null) {
   return (m || "").split(";")[0].trim().toLowerCase();
+}
+
+function extOf(name?: string | null) {
+  const m = (name || "").toLowerCase().match(/\.([a-z0-9]+)$/i);
+  return m ? `.${m[1]}` : "";
 }
 
 function pickCategory(mime: string): "audio" | "video" | "other" {
@@ -100,17 +126,21 @@ export async function POST(req: Request) {
     return errorJson(400, "Нет файла");
   }
 
-  // Валидация типа и размера
+  // MIME: нормализуем и при пустом — фолбэк по расширению
   const rawMime = file.type || "";
-  const mime = baseMime(rawMime); // нормализованный без параметров
+  let mime = baseMime(rawMime);
+  if (!mime) {
+    const ext = extOf(file.name);
+    mime = EXT_MIME[ext] || "";
+  }
+
+  // Валидация типа и размера
   const bytes = typeof file.size === "number" ? file.size : 0;
 
+  // Категория по нормализованному MIME
   const category = pickCategory(mime);
-  const limit =
-    category === "audio" ? LIMITS.audio :
-    category === "video" ? LIMITS.video :
-    LIMITS.other;
 
+  // Разрешённость по белым спискам
   const allowed =
     (category === "audio" && AUDIO_MIME.has(mime)) ||
     (category === "video" && VIDEO_MIME.has(mime)) ||
@@ -118,8 +148,14 @@ export async function POST(req: Request) {
 
   if (!allowed) {
     // Явно укажем, что именно не нравится
-    return errorJson(415, `Формат не поддерживается: ${rawMime || "unknown"}`);
+    const mention = rawMime || mime || "unknown";
+    return errorJson(415, `Формат не поддерживается: ${mention}`);
   }
+
+  const limit =
+    category === "audio" ? LIMITS.audio :
+    category === "video" ? LIMITS.video :
+    LIMITS.other;
 
   if (!bytes || bytes < 1) {
     return errorJson(400, "Пустой файл");
@@ -197,7 +233,7 @@ export async function POST(req: Request) {
     ok: true,
     id: messageFileId,
     path: uploadRes?.path || path,
-    mime,       // нормализованный
+    mime,       // нормализованный или фолбэк по расширению
     bytes,
     category,
   });
