@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function ShareButton({
   messageId,
@@ -10,14 +9,13 @@ export default function ShareButton({
   messageId: string;
   defaultDays?: number;
 }) {
-  const router = useRouter();
   const [making, setMaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [days, setDays] = useState<number>(defaultDays);
 
   async function make() {
-    if (making) return; // защита от дабл-клика
+    if (making) return; // защита от двойного клика
     setMaking(true);
     setError(null);
     try {
@@ -31,10 +29,21 @@ export default function ShareButton({
       const j = await res.json().catch(() => ({} as any));
       if (!res.ok || !j?.ok) throw new Error(j?.error || "Не удалось создать ссылку");
 
-      // Показать URL сразу…
-      setUrl(j.url as string);
-      // …и обновить серверный рендер страницы, чтобы блок «Публичная ссылка» увидел новую запись
-      router.refresh();
+      const createdUrl = String(j.url || "");
+      setUrl(createdUrl);
+
+      // Сразу пытаемся скопировать
+      try {
+        await navigator.clipboard.writeText(createdUrl);
+      } catch {
+        // в некоторых браузерах/режимах инкогнито может не дать — не критично
+      }
+
+      // Жёстко обновляем страницу, чтобы серверная часть увидела новую запись shares
+      setTimeout(() => {
+        // сначала дадим пользователю увидеть появившееся поле с URL
+        location.reload();
+      }, 100);
     } catch (e: any) {
       setError(e?.message || "Ошибка");
     } finally {
@@ -47,7 +56,7 @@ export default function ShareButton({
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // молчим, браузеры иногда вредничают
+      // если браузер упёрся — можно выделить и скопировать руками
     }
   }
 
@@ -58,9 +67,7 @@ export default function ShareButton({
         min={1}
         max={30}
         value={days}
-        onChange={(e) =>
-          setDays(Math.max(1, Math.min(30, Number(e.target.value || 1))))
-        }
+        onChange={(e) => setDays(Math.max(1, Math.min(30, Number(e.target.value || 1))))}
         className="border rounded-xl px-2 py-1 w-20 text-sm"
         title="Срок в днях"
       />
@@ -68,6 +75,7 @@ export default function ShareButton({
         {making ? "Создаём…" : "Создать публичную ссылку"}
       </button>
 
+      {/* Плашка с URL сразу после создания (до перезагрузки страницы). */}
       {url && (
         <div className="flex items-center gap-2">
           <input
