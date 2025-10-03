@@ -1,3 +1,4 @@
+// app/messages/[id]/page.tsx
 import { createSupabaseServerClient } from "@/lib/supabase.server";
 
 export const dynamic = "force-dynamic";
@@ -9,12 +10,17 @@ type FileRow = {
   bytes: number | null;
 };
 
-export default async function MessageDetail({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = params; // ← убрали await
+export default async function MessageDetail(props: any) {
+  const id = String(props?.params?.id || "");
+  if (!id) {
+    return (
+      <div className="container py-6">
+        <div className="card text-red-600">Некорректный адрес.</div>
+        <a className="btn secondary mt-3" href="/messages">К списку</a>
+      </div>
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
 
   // Текущий пользователь
@@ -80,6 +86,7 @@ export default async function MessageDetail({
               if (!confirm("Удалить послание безвозвратно?")) e.preventDefault();
             }}
           >
+            {/* HTML-форма не умеет DELETE — прокидываем через _method */}
             <input type="hidden" name="_method" value="DELETE" />
             <button className="btn danger" type="submit">Удалить</button>
           </form>
