@@ -26,7 +26,7 @@ const VIDEO_CANDIDATES = [
   "video/webm;codecs=vp9,opus",
   "video/webm;codecs=vp8,opus",
   "video/webm",
-  "video/mp4", // часто не поддерживается MediaRecorder'ом; оставим как запасной
+  "video/mp4",
 ];
 
 function isTypeSupported(mime: string) {
@@ -37,9 +37,7 @@ function isTypeSupported(mime: string) {
 }
 
 function pickSupportedVideoMime(): string | null {
-  for (const m of VIDEO_CANDIDATES) {
-    if (isTypeSupported(m)) return m;
-  }
+  for (const m of VIDEO_CANDIDATES) if (isTypeSupported(m)) return m;
   return null;
 }
 
@@ -50,7 +48,7 @@ function fmtBytes(n: number) {
   return `${(n / (MB * 1024)).toFixed(1)} GB`;
 }
 
-type UiState = "idle" | "recording" | "stopped" | "uploading" | "success" | "error";
+type UiState = "idle" | "recording" | "stopped" | "uploading" | "success" | "error" | "canceled";
 
 export default function VideoRecorder({
   messageId,
@@ -73,6 +71,9 @@ export default function VideoRecorder({
   const streamRef = useRef<MediaStream | null>(null);
 
   const videoElRef = useRef<HTMLVideoElement | null>(null);
+
+  const [uploadPct, setUploadPct] = useState<number>(0);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   const videoUrl = useMemo(() => {
     if (!chunks.length) return null;
@@ -112,6 +113,7 @@ export default function VideoRecorder({
     setError(null);
     setDuration(0);
     setChunks([]);
+    setUploadPct(0);
     if (videoUrl) URL.revokeObjectURL(videoUrl);
   }, [videoUrl]);
 
@@ -124,7 +126,6 @@ export default function VideoRecorder({
       });
       streamRef.current = stream;
 
-      // Показ предпросмотра live
       if (videoElRef.current) {
         videoElRef.current.srcObject = stream;
         await videoElRef.current.play().catch(() => {});
@@ -147,9 +148,7 @@ export default function VideoRecorder({
 
       mr.onerror = (ev: any) => {
         setError(ev?.error?.message || "Ошибка записи видео");
-        try {
-          stream.getTracks().forEach((t) => t.stop());
-        } catch {}
+        try { stream.getTracks().forEach((t) => t.stop()); } catch {}
         setUi("error");
       };
 
@@ -165,7 +164,6 @@ export default function VideoRecorder({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    // Отключим live-превью
     if (videoElRef.current && videoElRef.current.srcObject) {
       videoElRef.current.pause();
       videoElRef.current.srcObject = null;
@@ -173,6 +171,9 @@ export default function VideoRecorder({
   }
 
   function discardRecording() {
+    try { xhrRef.current?.abort(); } catch {}
+    xhrRef.current = null;
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
     }
@@ -207,13 +208,19 @@ export default function VideoRecorder({
 
     setUi("uploading");
     setError(null);
+    setUploadPct(0);
 
     try {
       const form = new FormData();
       form.append("file", file);
       if (messageId) form.append("message_id", messageId);
 
-      const res = await xhrUpload("/api/media/upload", form);
+      const res = await xhrUpload("/api/media/upload", form, (loaded, total) => {
+        if (total > 0) setUploadPct(Math.min(99, Math.round((loaded / total) * 100)));
+      }, (xhr) => { xhrRef.current = xhr; });
+
+      setUploadPct(100);
+
       if (!res.ok) {
         setError(res.error || "Ошибка загрузки");
         setUi("error");
@@ -223,10 +230,20 @@ export default function VideoRecorder({
       setUi("success");
       onUploaded?.(res);
     } catch (e: any) {
-      setError(e?.message || "Сбой загрузки");
-      setUi("error");
+      if (e?.message === "__aborted__") {
+        setUi("canceled");
+        setError("Загрузка отменена");
+      } else {
+        setError(e?.message || "Сбой загрузки");
+        setUi("error");
+      }
+    } finally {
+      xhrRef.current = null;
     }
   }
+
+  const recording = ui === "recording";
+  const uploading = ui === "uploading";
 
   return (
     <div className="card" style={{ display: "grid", gap: 12 }}>
@@ -246,70 +263,73 @@ export default function VideoRecorder({
       {supported && (
         <>
           {/* Live-превью во время записи */}
-          <video
-            ref={videoElRef}
-            muted
-            playsInline
-            style={{ width: "100%", background: "#000", borderRadius: 12 }}
-          />
+          <video ref={videoElRef} muted playsInline style={{ width: "100%", background: "#000", borderRadius: 12 }} />
 
           {/* Превью записанного видео после остановки */}
           {videoUrl && (
-            <video
-              src={videoUrl}
-              controls
-              playsInline
-              style={{ width: "100%", background: "#000", borderRadius: 12 }}
-              preload="metadata"
-            />
+            <video src={videoUrl} controls playsInline style={{ width: "100%", background: "#000", borderRadius: 12 }} preload="metadata" />
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {ui !== "recording" && (
-              <button className="btn" type="button" onClick={startRecording}>
-                Записать
-              </button>
-            )}
-            {ui === "recording" && (
-              <button className="btn danger" type="button" onClick={stopRecording}>
-                Остановить
-              </button>
-            )}
-            {(ui === "stopped" || ui === "error" || ui === "success") && (
-              <button className="btn secondary" type="button" onClick={discardRecording}>
-                Сбросить
-              </button>
-            )}
-            {ui === "stopped" && (
-              <button className="btn" type="button" onClick={uploadRecording}>
-                Загрузить
+            <button className="btn" type="button" onClick={startRecording} disabled={recording || uploading}>
+              Записать
+            </button>
+            <button className="btn danger" type="button" onClick={stopRecording} disabled={!recording || uploading}>
+              Остановить
+            </button>
+            <button className="btn secondary" type="button" onClick={discardRecording} disabled={recording || uploading}>
+              Сбросить
+            </button>
+            <button className="btn" type="button" onClick={uploadRecording} disabled={uploading || recording || !chunks.length}>
+              Загрузить
+            </button>
+            {uploading && (
+              <button className="btn secondary" type="button" onClick={() => { try { xhrRef.current?.abort(); } catch {} }}>
+                Отменить загрузку
               </button>
             )}
           </div>
 
           <div style={{ fontSize: 13, opacity: 0.85 }}>
-            {ui === "recording" && (
+            {recording && (
               <span>
                 Идёт запись… {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}
               </span>
             )}
-            {ui === "uploading" && <span>Загрузка…</span>}
+            {uploading && <span>Загрузка… {uploadPct}%</span>}
             {ui === "success" && <span>Готово. Файл сохранён.</span>}
             {ui === "stopped" && <span>Запись остановлена. Можно просмотреть и загрузить.</span>}
+            {ui === "canceled" && <span>Загрузка отменена.</span>}
             {ui === "error" && <span>Ошибка: {error}</span>}
           </div>
+
+          {uploading && (
+            <div aria-label="progress" style={{ width: "100%", height: 6, background: "#eee", borderRadius: 6 }}>
+              <div style={{ width: `${uploadPct}%`, height: "100%", borderRadius: 6 }} />
+            </div>
+          )}
         </>
       )}
     </div>
   );
 }
 
-function xhrUpload(url: string, form: FormData): Promise<UploadResponse> {
+function xhrUpload(
+  url: string,
+  form: FormData,
+  onProgress?: (loaded: number, total: number) => void,
+  onInit?: (xhr: XMLHttpRequest) => void
+): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    onInit?.(xhr);
     xhr.open("POST", url);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total);
+    };
     xhr.responseType = "json";
     xhr.onerror = () => reject(new Error("Сетевая ошибка"));
+    xhr.onabort = () => reject(new Error("__aborted__"));
     xhr.onload = () => {
       const status = xhr.status;
       const json = xhr.response as UploadResponse | null;
