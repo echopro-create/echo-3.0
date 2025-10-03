@@ -6,9 +6,10 @@ export const runtime = "nodejs";
 
 type FileRow = {
   id: string;
-  path: string | null; // важное: может быть null в БД
+  path: string | null;
   mime: string | null;
   bytes: number | null;
+  created_at: string | null;
 };
 
 type SignedView = {
@@ -17,29 +18,20 @@ type SignedView = {
   mime: string | null;
   bytes: number | null;
   name: string;
+  created_at: string | null;
   err?: string | null;
 };
 
 export default async function MessageDetail(props: any) {
   const id = String(props?.params?.id || "");
-  if (!id) {
-    return (
-      <div className="container py-6">
-        <div className="card text-red-600">Некорректный адрес.</div>
-        <a className="btn secondary mt-3" href="/messages">К списку</a>
-      </div>
-    );
-  }
+  if (!id) return bad("Некорректный адрес.");
 
   try {
     const supabase = await createSupabaseServerClient();
 
     // 1) Аутентификация
     const { data: au, error: auErr } = await supabase.auth.getUser();
-    if (auErr) {
-      console.error("[message detail] auth.getUser error:", auErr);
-      return fail("Ошибка авторизации: " + auErr.message);
-    }
+    if (auErr) return bad("Ошибка авторизации: " + auErr.message);
     if (!au?.user) {
       return (
         <div className="container py-6">
@@ -49,17 +41,14 @@ export default async function MessageDetail(props: any) {
       );
     }
 
-    // 2) Сообщение
+    // 2) Сообщение (строго владельцу)
     const { data: msg, error: msgErr } = await supabase
       .from("messages")
       .select("id, user_id, kind, content, delivery_mode, deliver_at, created_at")
       .eq("id", id)
       .single();
 
-    if (msgErr) {
-      console.error("[message detail] select messages error:", msgErr);
-      return fail("Ошибка загрузки послания: " + msgErr.message);
-    }
+    if (msgErr) return bad("Ошибка загрузки послания: " + msgErr.message);
     if (!msg || msg.user_id !== au.user.id) {
       return (
         <div className="container py-6">
@@ -69,18 +58,19 @@ export default async function MessageDetail(props: any) {
       );
     }
 
-    // 3) Вложения
+    // 3) Вложения, сортируем по message_files.created_at (если колонки не будет — у тебя уже есть)
     const { data: files, error: filesErr } = await supabase
       .from("message_files")
-      .select("id, path, mime, bytes")
+      .select("id, path, mime, bytes, created_at")
       .eq("message_id", id)
-      .order("id", { ascending: true });
+      .order("created_at", { ascending: true });
 
     if (filesErr) {
+      // Не роняем страницу из-за бага стораджа
       console.error("[message detail] select message_files error:", filesErr);
     }
 
-    // 4) Подписанные ссылки (10 минут), НИКОГДА не падаем из-за storage
+    // 4) Подписанные ссылки (TTL 10 минут). Не падаем из-за отдельных фейлов.
     const signed: SignedView[] = [];
     for (const f of (files || []) as FileRow[]) {
       const rawPath = f?.path ?? null;
@@ -110,8 +100,9 @@ export default async function MessageDetail(props: any) {
       signed.push({
         id: f.id,
         url,
-        mime: f.mime ?? null,
+        mime: (f.mime ?? "") || null,
         bytes: f.bytes ?? null,
+        created_at: f.created_at ?? null,
         name,
         err,
       });
@@ -142,22 +133,46 @@ export default async function MessageDetail(props: any) {
           </div>
         </div>
 
-        {msg.content && <div className="card whitespace-pre-wrap">{msg.content}</div>}
+        {msg.content && (
+          <div className="card whitespace-pre-wrap">{msg.content}</div>
+        )}
 
         {signed.length > 0 && (
           <div className="card grid gap-3">
             <div className="font-medium">Вложения</div>
-            <ul className="grid gap-3">
+            <ul className="grid gap-4">
               {signed.map((f) => (
                 <li key={f.id} className="grid gap-2">
-                  <div className="text-sm">
-                    {f.name} {f.bytes ? `· ${(f.bytes / 1024 / 1024).toFixed(2)} MB` : ""}
+                  <div className="text-sm flex items-center justify-between gap-3">
+                    <span className="truncate">
+                      {f.name}
+                      {f.bytes ? ` · ${humanBytes(f.bytes)}` : ""}
+                      {f.created_at ? ` · ${safeDate(f.created_at)}` : ""}
+                    </span>
+                    {/* Фолбэк: ссылка СКАЧАТЬ, если предпросмотр невозможен */}
+                    {f.url && !canInlinePreview(f.mime) && (
+                      <a className="btn secondary" href={f.url} target="_blank" rel="noreferrer">Скачать</a>
+                    )}
                   </div>
-                  {f.url && f.mime?.startsWith("audio") && <audio controls src={f.url} className="w-full" />}
-                  {f.url && f.mime?.startsWith("video") && <video controls src={f.url} className="w-full rounded-xl bg-black/5" />}
-                  {f.url && !f.mime?.startsWith("audio") && !f.mime?.startsWith("video") && (
-                    <a className="btn secondary w-fit" href={f.url} target="_blank" rel="noreferrer">Скачать</a>
+
+                  {/* Инлайн-просмотр в приоритете */}
+                  {f.url && f.mime?.startsWith("audio") && (
+                    <audio controls src={f.url} className="w-full" />
                   )}
+                  {f.url && f.mime?.startsWith("video") && (
+                    <video controls src={f.url} className="w-full rounded-xl bg-black/5" />
+                  )}
+                  {f.url && f.mime?.startsWith("image/") && (
+                    <img src={f.url} alt={f.name} className="max-w-full rounded-xl border" />
+                  )}
+                  {f.url && f.mime === "application/pdf" && (
+                    <iframe
+                      src={f.url}
+                      className="w-full rounded-xl"
+                      style={{ minHeight: 420, background: "#fafafa", border: "1px solid #eee" }}
+                    />
+                  )}
+
                   {!f.url && (
                     <div className="text-xs text-red-600">
                       Не удалось создать ссылку на файл: {f.name}{f.err ? ` · ${f.err}` : ""}
@@ -168,15 +183,21 @@ export default async function MessageDetail(props: any) {
             </ul>
           </div>
         )}
+
+        {signed.length === 0 && !msg.content && (
+          <div className="card text-sm opacity-70">Содержимого нет.</div>
+        )}
       </div>
     );
   } catch (e: any) {
     console.error("[message detail] fatal error:", e);
-    return fail(String(e?.message || e));
+    return bad(String(e?.message || e));
   }
 }
 
-function fail(text: string) {
+/* ───────────────────────── helpers ───────────────────────── */
+
+function bad(text: string) {
   return (
     <div className="container py-6">
       <div className="card text-red-600">
@@ -194,6 +215,19 @@ function safeDate(s: string | null) {
   return Number.isNaN(t.getTime()) ? "—" : t.toLocaleString("ru-RU");
 }
 
+function humanBytes(n?: number | null) {
+  if (!n || n <= 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0; let x = n;
+  while (x >= 1024 && i < units.length - 1) { x /= 1024; i++; }
+  return `${x.toFixed(1)} ${units[i]}`;
+}
+
 function labelKind(k: string) {
   return k === "text" ? "Текст" : k === "audio" ? "Голос" : k === "video" ? "Видео" : "Файлы";
+}
+
+function canInlinePreview(m?: string | null) {
+  if (!m) return false;
+  return m.startsWith("audio") || m.startsWith("video") || m.startsWith("image/") || m === "application/pdf";
 }
