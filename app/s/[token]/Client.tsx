@@ -1,6 +1,7 @@
 // app/s/[token]/Client.tsx
 "use client";
 
+import React from "react"; // страховка для JSX-парсера SWC/TS
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type FileView = {
@@ -143,8 +144,7 @@ export default function PublicShareClient({ token }: { token: string }) {
     setSubmitting(true);
     await load(pw.trim());
     setSubmitting(false);
-    // ВАЖНО: error обновится асинхронно, читаем актуальное состояние через setTimeout 0,
-    // чтобы понять, прошёл ли пароль
+    // читаем актуальное состояние в следующем тике
     setTimeout(() => {
       if (!needsPassword(error)) {
         sessionStorage.setItem(storageKey, pw.trim());
@@ -157,7 +157,6 @@ export default function PublicShareClient({ token }: { token: string }) {
     navigator.clipboard
       .writeText(link)
       .catch(() => {
-        // fallback на prompt, если Clipboard API не дался
         // eslint-disable-next-line no-alert
         prompt("Скопируйте ссылку вручную:", link);
       });
@@ -169,7 +168,9 @@ export default function PublicShareClient({ token }: { token: string }) {
     <main className="px-4 py-6" style={{ maxWidth: 980, margin: "0 auto" }}>
       <header className="mb-4">
         <h1 className="text-2xl font-semibold tracking-tight">Публичное послание</h1>
-        <p className="text-sm opacity-70">Эта страница открывает доступ к посланию, которым с вами поделились.</p>
+        <p className="text-sm opacity-70">
+          Эта страница открывает доступ к посланию, которым с вами поделились.
+        </p>
       </header>
 
       {/* Глобальные ошибки (кроме 401) */}
@@ -197,13 +198,12 @@ export default function PublicShareClient({ token }: { token: string }) {
             <button
               className="btn"
               onClick={() => {
-                // попытка закрыть вкладку/окно; если нельзя — упадём на главную
-                if (!window.close) location.href = "/";
                 try {
                   window.close();
                 } catch {
-                  location.href = "/";
+                  /* ignore */
                 }
+                location.href = "/";
               }}
             >
               Закрыть
@@ -303,7 +303,9 @@ export default function PublicShareClient({ token }: { token: string }) {
                   Пароль: {share?.password_protected ? "включён" : "выключен"}
                 </span>
                 {share?.last_view_at ? (
-                  <span className="text-sm opacity-70">Последний просмотр: {safeDate(share.last_view_at)}</span>
+                  <span className="text-sm opacity-70">
+                    Последний просмотр: {safeDate(share.last_view_at)}
+                  </span>
                 ) : null}
                 <button className="btn secondary" onClick={copyLink} title="Скопировать ссылку">
                   Скопировать ссылку
@@ -317,9 +319,18 @@ export default function PublicShareClient({ token }: { token: string }) {
           {message?.content && (
             <section className="card p-4 grid gap-2 mb-4">
               <div className="text-sm opacity-70">
-                Тип: {message.kind === "text" ? "Текст" : message.kind === "audio" ? "Аудио" : message.kind === "video" ? "Видео" : "Файлы"}
+                Тип:{" "}
+                {message.kind === "text"
+                  ? "Текст"
+                  : message.kind === "audio"
+                  ? "Аудио"
+                  : message.kind === "video"
+                  ? "Видео"
+                  : "Файлы"}
               </div>
-              <div className="whitespace-pre-wrap leading-relaxed text-[15px]">{message.content}</div>
+              <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
+                {message.content}
+              </div>
             </section>
           )}
 
@@ -343,7 +354,9 @@ export default function PublicShareClient({ token }: { token: string }) {
                       )}
                     </div>
 
-                    {f.url && f.mime?.startsWith("audio") && <audio controls src={f.url} className="w-full" />}
+                    {f.url && f.mime?.startsWith("audio") && (
+                      <audio controls src={f.url} className="w-full" />
+                    )}
                     {f.url && f.mime?.startsWith("video") && (
                       <video controls src={f.url} className="w-full rounded-xl bg-black/5" />
                     )}
@@ -359,3 +372,62 @@ export default function PublicShareClient({ token }: { token: string }) {
                     )}
                   </li>
                 ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+
+      {loading && <div className="text-sm opacity-70">Загрузка…</div>}
+    </main>
+  );
+}
+
+/* ---------------- UI helpers ---------------- */
+
+function BadgeStatus({
+  code,
+  label,
+}: {
+  code: "active" | "expired" | "revoked" | "overlimit" | "unknown";
+  label: string;
+}) {
+  const palette: Record<string, string> = {
+    active: "bg-green-100 text-green-700 border-green-200",
+    expired: "bg-gray-100 text-gray-700 border-gray-200",
+    revoked: "bg-red-100 text-red-700 border-red-200",
+    overlimit: "bg-amber-100 text-amber-800 border-amber-200",
+    unknown: "bg-zinc-100 text-zinc-700 border-zinc-200",
+  };
+  const cls = palette[code] || palette.unknown;
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function StatusBlock({
+  variant,
+  title,
+  hint,
+}: {
+  variant: "error" | "warning" | "info";
+  title: string;
+  hint?: string;
+}) {
+  const palette: Record<string, string> = {
+    error: "border-red-200 bg-red-50 text-red-800",
+    warning: "border-amber-200 bg-amber-50 text-amber-900",
+    info: "border-blue-200 bg-blue-50 text-blue-800",
+  };
+  const cls = palette[variant] || palette.info;
+  return (
+    <div className={`rounded-xl border p-3 ${cls}`}>
+      <div className="font-medium">{title}</div>
+      {hint ? <div className="text-sm opacity-80">{hint}</div> : null}
+    </div>
+  );
+}
