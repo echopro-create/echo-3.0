@@ -15,13 +15,13 @@ function err(status: number, message: string) {
   return NextResponse.json({ ok: false, error: message }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
-export async function GET(_: Request, ctx: { params: { token: string } }) {
-  const token = ctx.params?.token || "";
+export async function GET(_req: Request, { params }: { params: { token: string } }) {
+  const token = params?.token || "";
   if (!token || token.length < 12) return err(400, "Bad token");
 
   const admin = createAdminClient();
 
-  // 1) Находим share по токену, проверяем TTL
+  // 1) Шара по токену + TTL
   const { data: share, error: shareErr } = await admin
     .from("shares")
     .select("id, message_id, expires_at")
@@ -34,7 +34,7 @@ export async function GET(_: Request, ctx: { params: { token: string } }) {
     return err(410, "Link expired");
   }
 
-  // 2) Забираем сообщение
+  // 2) Сообщение
   const { data: msg, error: msgErr } = await admin
     .from("messages")
     .select("id, kind, content, delivery_mode, deliver_at, created_at")
@@ -44,7 +44,7 @@ export async function GET(_: Request, ctx: { params: { token: string } }) {
   if (msgErr) return err(400, msgErr.message);
   if (!msg) return err(404, "Message missing");
 
-  // 3) Файлы сообщения
+  // 3) Файлы
   const { data: files, error: filesErr } = await admin
     .from("message_files")
     .select("id, path, mime, bytes, created_at")
@@ -53,32 +53,30 @@ export async function GET(_: Request, ctx: { params: { token: string } }) {
 
   if (filesErr) return err(400, filesErr.message);
 
-  // 4) Подписанные ссылки на вложения (TTL 10 минут)
-  const signed: Array<{
-    id: string; url: string | null; mime: string | null; bytes: number | null; created_at: string | null; name: string;
-  }> = [];
+  // 4) Подписанные ссылки (TTL 10 минут)
+  const signed = await Promise.all(
+    (files || []).map(async f => {
+      const rawPath = f?.path || null;
+      const name = rawPath?.split("/").pop() || rawPath || "file";
+      let url: string | null = null;
 
-  for (const f of files || []) {
-    const rawPath = f?.path || null;
-    const name = rawPath?.split("/").pop() || rawPath || "file";
-    let url: string | null = null;
+      if (rawPath) {
+        const { data: s, error: sErr } = await admin.storage
+          .from("attachments")
+          .createSignedUrl(rawPath, 600);
+        if (!sErr) url = s?.signedUrl ?? null;
+      }
 
-    if (rawPath) {
-      const { data: s, error: sErr } = await admin.storage
-        .from("attachments")
-        .createSignedUrl(rawPath, 600);
-      if (!sErr) url = s?.signedUrl ?? null;
-    }
-
-    signed.push({
-      id: f.id,
-      url,
-      mime: (f.mime ?? "") || null,
-      bytes: f.bytes ?? null,
-      created_at: f.created_at ?? null,
-      name,
-    });
-  }
+      return {
+        id: f.id,
+        url,
+        mime: (f.mime ?? "") || null,
+        bytes: f.bytes ?? null,
+        created_at: f.created_at ?? null,
+        name,
+      };
+    })
+  );
 
   return NextResponse.json({
     ok: true,
