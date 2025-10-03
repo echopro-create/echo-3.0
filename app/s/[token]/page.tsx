@@ -21,7 +21,7 @@ export default function PublicSharePage(props: any) {
 
   const [state, setState] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
 
-  // Всегда ходим на same-origin API — никакого абсолютного URL
+  // Всегда same-origin API — никаких абсолютных URL, иначе CORS устроит истерику
   const endpoint = useMemo(() => {
     return `/api/public-share/${encodeURIComponent(token)}`;
   }, [token]);
@@ -31,6 +31,15 @@ export default function PublicSharePage(props: any) {
     (async () => {
       try {
         const res = await fetch(endpoint, { cache: "no-store" });
+
+        // ── ВРЕМЕННЫЕ ЛОГИ ДЛЯ ДИАГНОСТИКИ ─────────────────────────────
+        // Должно быть: x-echo-api: public-share и x-echo-auth: service
+        // Если пусто или «anon» — значит страница идёт мимо нашего серверного роута.
+        console.log("[share] endpoint:", endpoint);
+        console.log("[share] x-echo-api:", res.headers.get("x-echo-api"));
+        console.log("[share] x-echo-auth:", res.headers.get("x-echo-auth"));
+        // ───────────────────────────────────────────────────────────────
+
         const json = await res.json().catch(() => ({}));
         if (!alive) return;
         setState({ ok: res.ok && json?.ok, status: res.status, data: json, error: json?.error });
