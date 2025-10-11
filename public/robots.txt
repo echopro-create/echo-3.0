@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /test/
+Disallow: /api/
+Sitemap: https://www.echoproject.space/sitemap.xml
