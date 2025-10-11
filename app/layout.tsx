@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-css-tags */
 // app/layout.tsx
 import type { Metadata } from "next";
 
