@@ -1,3 +1,4 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 export default {
@@ -10,8 +11,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // системный стек поверх переменной, чтобы не было «голого» webfont
-        sans: ["var(--font-poppins)", "ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Arial", "sans-serif"],
+        // читаем переменную от next/font
+        sans: ["var(--font-roboto)", "ui-sans-serif", "system-ui", "Segoe UI", "Arial", "sans-serif"],
       },
       colors: {
         bg: { DEFAULT: "#0b0e14", light: "#ffffff" },
