@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -19,9 +18,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild size="sm">
-            <Link href="#start">Начать</Link>
-          </Button>
+          <Link
+            href="#start"
+            className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium ring-1 ring-[color:var(--fg)]/20 hover:bg-[color:var(--fg)]/5"
+          >
+            Начать
+          </Link>
         </div>
       </div>
     </header>
