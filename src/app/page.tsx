@@ -1,6 +1,4 @@
-// ISR: пересборка раз в сутки; SSG включится автоматически
-export const revalidate = 60 * 60 * 24;
-
+// без revalidate/dynamic — чистый дефолт, чтобы прошёл сборку
 export default function Home() {
   return (
     <main className="min-h-dvh flex flex-col items-center justify-center gap-4 p-8">
