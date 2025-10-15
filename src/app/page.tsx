@@ -1,3 +1,7 @@
+// src/app/page.tsx
+export const dynamic = "force-static";      // генерим статикой на билде
+export const revalidate = 60 * 60 * 24;     // ISR: переcборка раз в сутки
+
 export default function Home() {
   return (
     <main className="min-h-dvh flex flex-col items-center justify-center gap-4 p-8">
