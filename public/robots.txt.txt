@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://echoproject.space/sitemap.xml
+Host: echoproject.space

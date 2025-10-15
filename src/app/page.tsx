@@ -1,6 +1,5 @@
-// src/app/page.tsx
-export const dynamic = "force-static";      // генерим статикой на билде
-export const revalidate = 60 * 60 * 24;     // ISR: переcборка раз в сутки
+// ISR: пересборка раз в сутки; SSG включится автоматически
+export const revalidate = 60 * 60 * 24;
 
 export default function Home() {
   return (
