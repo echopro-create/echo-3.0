@@ -1,4 +1,6 @@
 import { Header } from "@/components/header";
+import { CTA } from "@/components/cta";
+import { FormatsSection } from "@/components/sections/formats";
 
 export default function Home() {
   return (
@@ -14,29 +16,11 @@ export default function Home() {
             Echo собирает текст, голос и видео в одно место и доставляет их по расписанию:
             по дате, событию или вашему «пульсу». Быстро, предсказуемо, без цирка.
           </p>
-          <div className="flex gap-3">
-            <a
-              href="#start"
-              className="inline-flex h-10 items-center rounded-xl px-4 font-medium ring-1 ring-[color:var(--fg)]/15 hover:bg-[color:var(--fg)]/5"
-            >
-              Посмотреть демо
-            </a>
-            <a
-              href="#formats"
-              className="inline-flex h-10 items-center rounded-xl px-4 font-medium bg-[color:var(--fg)] text-white dark:text-black"
-            >
-              Что умеет
-            </a>
-          </div>
+          <CTA />
         </section>
 
         {/* СЕКЦИИ */}
-        <section id="formats" className="py-20 border-t">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">Форматы</h2>
-          <p className="opacity-80">
-            Текст, голос, видео, файлы. Здесь будут карточки с краткими тезисами.
-          </p>
-        </section>
+        <FormatsSection />
 
         <section id="delivery" className="py-20 border-t">
           <h2 className="mb-4 text-2xl font-semibold tracking-tight">Доставка</h2>
