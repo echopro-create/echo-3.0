@@ -124,52 +124,83 @@ export default function Home() {
         <StartSection />
       </section>
 
-      {/* Мини-пэйджер для резкого колеса. Без зависимостей и без Client Component. */}
+      {/* ЖЁСТКИЙ, НО МАЛЕНЬКИЙ ПЭЙДЖЕР ДЛЯ КОЛЕСА */}
       <Script id="snap-wheel-helper" strategy="afterInteractive">{`
         (function(){
           var root = document.getElementById('snapper');
           if(!root) return;
-          var busy = false;
-          var sections = Array.prototype.slice.call(root.querySelectorAll('section[data-snap]'));
 
-          function nearestNext(dy){
-            var y = root.scrollTop;
-            if(dy > 0){
-              for(var i=0;i<sections.length;i++){
-                if(sections[i].offsetTop > y + 1) return sections[i];
-              }
-              return sections[sections.length-1];
-            } else {
-              var prev = null;
-              for(var j=0;j<sections.length;j++){
-                if(sections[j].offsetTop < y - 1) prev = sections[j]; else break;
-              }
-              return prev || sections[0];
-            }
+          var sections = Array.prototype.slice.call(root.querySelectorAll('section[data-snap]'));
+          if(!sections.length) return;
+
+          function sectionTop(el){
+            var rb = root.getBoundingClientRect();
+            var eb = el.getBoundingClientRect();
+            return eb.top - rb.top + root.scrollTop;
           }
 
-          function release(){ busy = false; }
+          function currentIndex(){
+            var y = root.scrollTop;
+            var nearest = 0;
+            var best = Infinity;
+            for(var i=0;i<sections.length;i++){
+              var t = sectionTop(sections[i]);
+              var d = Math.abs(t - y);
+              if(d < best){ best = d; nearest = i; }
+            }
+            return nearest;
+          }
+
+          var scrolling = false;
+          var targetY = 0;
+          function scrollToIndex(idx){
+            idx = Math.max(0, Math.min(idx, sections.length - 1));
+            targetY = sectionTop(sections[idx]);
+            scrolling = true;
+            try { root.scrollTo({ top: targetY, behavior: 'smooth' }); }
+            catch(_) { root.scrollTop = targetY; scrolling = false; }
+          }
+
+          // Следим, когда «доскроллило»
+          var rafId = 0;
+          function tick(){
+            if(!scrolling) return;
+            if(Math.abs(root.scrollTop - targetY) < 2){
+              scrolling = false;
+              return;
+            }
+            rafId = requestAnimationFrame(tick);
+          }
+          root.addEventListener('scroll', function(){
+            if(scrolling && rafId === 0) rafId = requestAnimationFrame(tick);
+          });
+
+          // Колесо: резкие жесты перехватываем, мелкие отдаем браузеру
           root.addEventListener('wheel', function(e){
             var dy = e.deltaY || 0;
-            if(Math.abs(dy) < 30) return;       // мелкие прокрутки оставляем браузеру
-            if(busy) return;
-            busy = true;
+            if(scrolling) { e.preventDefault(); return; }
+            if(Math.abs(dy) < 40) return; // легкие подскроллы — нативно
+
             e.preventDefault();
+            var idx = currentIndex();
+            if(dy > 0) scrollToIndex(idx + 1);
+            else scrollToIndex(idx - 1);
+          }, { passive: false });
 
-            var target = nearestNext(dy);
-            if(target){
-              try { target.scrollIntoView({behavior:'smooth', block:'center'}); }
-              catch(_) { root.scrollTop = target.offsetTop; }
-            }
+          // Стрелки/PageUp/PageDown/Space — поддержим навигацию с клавы
+          root.addEventListener('keydown', function(e){
+            if(scrolling) { e.preventDefault(); return; }
+            var idx = currentIndex();
+            if(e.key === 'PageDown' || e.key === 'ArrowDown' || (e.key === ' ' && !e.shiftKey)){
+              e.preventDefault(); scrollToIndex(idx + 1);
+            } else if(e.key === 'PageUp' || e.key === 'ArrowUp' || (e.key === ' ' && e.shiftKey)){
+              e.preventDefault(); scrollToIndex(idx - 1);
+            } else if(e.key === 'Home'){ e.preventDefault(); scrollToIndex(0); }
+              else if(e.key === 'End'){ e.preventDefault(); scrollToIndex(sections.length - 1); }
+          });
 
-            // подстрахуемся на 600 мс, или используем scrollend где доступен
-            if('onscrollend' in root){
-              var once = function(){ root.removeEventListener('scrollend', once); release(); };
-              root.addEventListener('scrollend', once);
-            } else {
-              setTimeout(release, 600);
-            }
-          }, {passive:false});
+          // На всякий случай, чтоб фокус жил внутри контейнера
+          root.tabIndex = 0;
         })();
       `}</Script>
     </div>
