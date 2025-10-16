@@ -5,6 +5,7 @@ import { DeliverySection } from "@/components/sections/delivery";
 import { PrivacySection } from "@/components/sections/privacy";
 import { StartSection } from "@/components/sections/start";
 import Link from "next/link";
+import type { Route } from "next";
 
 export default function Home() {
   return (
@@ -62,7 +63,7 @@ export default function Home() {
               </li>
               <li className="rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
                 <Link
-                  href="/security"
+                  href={"/security" as Route}
                   className="rounded-lg underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Архитектура безопасности
