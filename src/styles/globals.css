@@ -2,20 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Токены темы */
+/* =========================
+   Токены темы и системные настройки
+   ========================= */
 :root {
-  --bg: #fff;
-  --fg: #0b0e14;
-  --ring: #e5e7eb; /* рамки карточек/деликатные границы */
-  --card: #fff;
+  color-scheme: light dark; /* подсказываем UA палитру */
+  --bg: #ffffff;
+  --fg: #0a0d12;            /* было #0b0e14 — на 10–12% «чёрнее» для контраста */
+  --ring: #d1d5db;          /* было #e5e7eb — границы читаемее (≈ gray-300) */
+  --card: #ffffff;
+
+  /* Доп. оттенки для мелкой UI-полировки */
+  --fg-soft: color-mix(in oklab, var(--fg) 72%, transparent);
+  --fg-muted: color-mix(in oklab, var(--fg) 54%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0b0e14;
-    --fg: #e7eef8;
-    --ring: #1f2937;
-    --card: #0d141f;
+    --fg: #eef4ff;          /* было #e7eef8 — на 8–10% светлее */
+    --ring: #334155;        /* было #1f2937 — на ступень контрастнее */
+    --card: #0a0f1a;
+
+    --fg-soft: color-mix(in oklab, var(--fg) 70%, transparent);
+    --fg-muted: color-mix(in oklab, var(--fg) 50%, transparent);
   }
 }
 
@@ -24,7 +34,7 @@ body {
   height: 100%;
 }
 
-/* Плавная прокрутка (выключим при reduced-motion ниже) */
+/* Плавная прокрутка (снимем ниже при reduced-motion) */
 html {
   scroll-behavior: smooth;
 }
@@ -43,11 +53,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Видимый фокус: чётко, но без кислотности */
+/* =========================
+   Базовая типографика
+   ========================= */
+@layer base {
+  h1 { letter-spacing: -0.02em; line-height: 1.1; }
+  h2 { letter-spacing: -0.01em; line-height: 1.15; }
+  h3 { letter-spacing: -0.005em; line-height: 1.2; }
+  p  { line-height: 1.65; }
+  small, .text-xs { letter-spacing: 0; }
+}
+
+/* Видимый фокус: чётко, без кислотности */
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--fg) 65%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--fg) 78%, transparent);
   outline-offset: 3px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 /* Интерактив: убираем браузерный outline и задаём наш фокус */
@@ -67,9 +88,9 @@ a:hover {
   text-decoration-color: currentColor;
 }
 
-/* Выделение текста: мягкий контраст */
+/* Выделение текста: мягкий, но заметный контраст */
 ::selection {
-  background: color-mix(in srgb, var(--fg) 18%, transparent);
+  background: color-mix(in srgb, var(--fg) 22%, transparent);
   color: var(--fg);
 }
 
@@ -84,7 +105,49 @@ img {
   content-visibility: auto;
 }
 
-/* Уважение к prefers-reduced-motion: убираем «прыжки» и автоплавность скролла */
+/* =========================
+   Утилиты (чтобы не размазывать инлайн-стили)
+   ========================= */
+@layer utilities {
+  /* Лёгкая «аура» для секций — радиальный градиент без картинок */
+  .aura-soft {
+    background-image: radial-gradient(80% 60% at 50% 10%, color-mix(in oklch, var(--fg) 12%, transparent) 0%, transparent 60%);
+  }
+  @media (prefers-color-scheme: dark) {
+    .aura-soft {
+      background-image: radial-gradient(80% 60% at 50% 10%, color-mix(in oklch, var(--fg) 10%, transparent) 0%, transparent 60%);
+    }
+  }
+
+  /* Фокус-обводка для кастомных элементов/карточек */
+  .focus-ring {
+    outline: 3px solid color-mix(in srgb, var(--fg) 78%, transparent);
+    outline-offset: 3px;
+    border-radius: 12px;
+  }
+
+  /* Ховер/фокус для карточек: масса без агрессии */
+  .card-hover {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in oklab, var(--fg) 10%, transparent);
+  }
+  .card-hover:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--ring), 0 8px 24px color-mix(in oklab, var(--fg) 12%, transparent);
+  }
+
+  /* Тонкая граница для «плашек» и списков доверия */
+  .ring-soft {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--fg) 14%, transparent);
+  }
+}
+
+/* =========================
+   Доступность: уважение к reduced-motion
+   ========================= */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001s !important;
