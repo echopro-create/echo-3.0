@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="mx-auto max-w-6xl px-4">
+      <main className="mx-auto max-w-6xl px-4 space-y-24 md:space-y-32">
         {/* HERO с фоновым «пульсом» */}
         <section className="relative flex min-h-[70svh] flex-col items-start justify-center gap-6 overflow-hidden py-16">
           {/* Декор: мягкие радиальные пятна и тонкая сетка, без JS */}
@@ -38,15 +38,43 @@ export default function Home() {
             по дате, событию или вашему «пульсу». Быстро, предсказуемо, без цирка.
           </p>
           <CTA />
+
+          {/* TRUST STRIP */}
+          <section className="py-6 w-full">
+            <ul className="flex flex-wrap gap-3 text-xs opacity-80">
+              <li className="rounded-xl border border-[var(--ring)] px-3 py-2">
+                Шифрование на устройстве
+              </li>
+              <li className="rounded-xl border border-[var(--ring)] px-3 py-2">
+                RLS: доступ только владельцу
+              </li>
+              <li className="rounded-xl border border-[var(--ring)] px-3 py-2">
+                Ключи отдельно от данных
+              </li>
+              <li className="rounded-xl border border-[var(--ring)] px-3 py-2">
+                <a href="/security" className="underline">Архитектура безопасности</a>
+              </li>
+            </ul>
+          </section>
         </section>
 
-        {/* СЕКЦИИ */}
-        <FormatsSection />
-        <DeliverySection />
-        <PrivacySection />
+        {/* СЕКЦИИ с опорными якорями и плавным скроллом */}
+        <section id="formats" className="scroll-mt-20">
+          <FormatsSection />
+        </section>
+
+        <section id="delivery" className="scroll-mt-20">
+          <DeliverySection />
+        </section>
+
+        <section id="privacy" className="scroll-mt-20">
+          <PrivacySection />
+        </section>
 
         {/* Реальный блок «Начать», не заглушка */}
-        <StartSection />
+        <section id="start" className="scroll-mt-20">
+          <StartSection />
+        </section>
       </main>
     </>
   );
