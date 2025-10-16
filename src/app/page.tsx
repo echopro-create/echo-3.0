@@ -12,7 +12,7 @@ export default function Home() {
           aria-label="Echo — единственная сцена"
         >
           <div className="mx-auto max-w-3xl text-left md:text-center">
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[color:var(--fg)] md:text-6xl">
+            <h1 className="text-4xl font-medium leading-[1.15] tracking-[0.01em] text-[color:var(--fg)] md:text-6xl">
               Послания, которые будут доставлены после нас.
             </h1>
 
