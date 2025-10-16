@@ -70,22 +70,40 @@ export function DeliverySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.3, ease, delay: reduce ? 0 : i * 0.06 }}
-              className="rounded-2xl border border-[var(--ring,theme(colors.slate.200))] bg-[var(--card,theme(colors.white))] p-5 shadow-sm"
+              className="rounded-2xl bg-[var(--card,theme(colors.white))] p-5 ring-1 ring-[color:var(--fg)]/10 card-hover
+                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              tabIndex={0}
+              role="article"
+              aria-label={it.title}
             >
               <div className="mb-4 flex items-center gap-3">
                 {/* Иконки декоративные, не читаем экраном */}
-                <it.icon className="size-6 shrink-0" aria-hidden="true" focusable="false" />
+                <span
+                  className="inline-flex size-10 items-center justify-center rounded-xl
+                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                  aria-hidden="true"
+                >
+                  <it.icon className="size-5 shrink-0" aria-hidden="true" focusable="false" />
+                </span>
                 <h3 className="text-xl font-medium">{it.title}</h3>
               </div>
 
               <p className="mb-3 text-sm opacity-80">{it.desc}</p>
-              <p className="text-xs opacity-60">{it.hint}</p>
 
-              <div className="mt-5 h-px w-full bg-[var(--ring,theme(colors.slate.200))]" />
+              <div className="mb-3 inline-flex items-center gap-2 text-xs opacity-70">
+                <span className="rounded-lg bg-[color:var(--fg)]/5 px-2 py-1 ring-1 ring-[color:var(--fg)]/10">
+                  {it.hint}
+                </span>
+              </div>
 
-              <ul className="mt-4 list-disc space-y-1 pl-5 text-sm opacity-80">
+              <div className="mt-3 h-px w-full bg-[var(--ring,theme(colors.slate.200))]" />
+
+              <ul className="mt-4 space-y-1.5 text-sm opacity-80">
                 {it.bullets.map((b) => (
-                  <li key={b}>{b}</li>
+                  <li key={b} className="pl-5 [text-wrap:balance]">
+                    <span className="mr-2 inline-block size-1.5 translate-y-[-2px] rounded-full bg-[color:var(--fg)]/40" />
+                    {b}
+                  </li>
                 ))}
               </ul>
             </motion.article>
