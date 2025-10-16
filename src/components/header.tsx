@@ -10,7 +10,7 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-black/10 bg-[color:var(--bg)]/70 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/60">
+    <header className="sticky top-0 z-40 w-full border-b border-black/10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         {/* ЛОГО */}
         <Link
@@ -82,7 +82,7 @@ export async function Header() {
           )}
         </div>
 
-        {/* Мобильное меню без JS на details/summary */}
+        {/* Мобильное меню без JS */}
         <details className="group relative md:hidden">
           <summary
             aria-label="Открыть меню"
@@ -94,7 +94,7 @@ export async function Header() {
           </summary>
 
           <div
-            className="absolute right-0 mt-2 w-[88vw] max-w-xs rounded-2xl border border-black/10 bg-[color:var(--bg)] p-2 shadow-lg"
+            className="absolute right-0 mt-2 w-[88vw] max-w-xs rounded-2xl border border-black/10 bg-white p-2 shadow-lg"
             role="menu"
             aria-label="Меню"
           >
