@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button"; // shadcn/ui
 
@@ -11,7 +12,7 @@ export function StartSection() {
   ];
 
   return (
-    <section id="start" className="py-24 border-t">
+    <section id="start" className="py-24 border-t scroll-mt-20">
       <div className="mx-auto max-w-6xl px-4">
         <motion.h2
           initial={{ opacity: 0, y: 8 }}
@@ -52,7 +53,7 @@ export function StartSection() {
 
         <div className="mt-10">
           <Button asChild>
-            <a href="/login">Создать послание</a>
+            <Link href="/login">Создать послание</Link>
           </Button>
           <p className="mt-3 text-sm opacity-70">
             Авторизация появится после подключения Supabase Auth. Сейчас это техническая ссылка.
