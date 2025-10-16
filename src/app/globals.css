@@ -2,33 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые токены (тёмная палитра по умолчанию, без свечения) */
+/* Светлая палитра по умолчанию */
 :root {
-  --bg: #161616;      /* светлый графит */
-  --fg: #f2f2f2;      /* основной текст */
-  --muted: #a6aeb6;   /* вторичный текст */
-  color-scheme: dark;
+  --bg: #ffffff;     /* светлый фон */
+  --fg: #0e1420;     /* тёмный текст (читаемый, не чисто чёрный) */
+  --muted: #5a6b7c;  /* вторичный текст */
+  color-scheme: light;
 }
 
 /* Базовая раскладка и сглаживание */
 html, body { height: 100%; }
 body {
-  background-color: var(--bg); /* без градиентов и свечений */
+  background-color: var(--bg); /* никаких градиентов, чистый фон */
   color: var(--fg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Выделение текста под тёмную тему */
+/* Выделение текста под светлую тему */
 ::selection {
-  background: rgba(255,255,255,0.16);
+  background: rgba(0, 0, 0, 0.12);
   color: var(--fg);
 }
 
-/* Доступность: заметные фокусы, но без неона */
+/* Доступность: заметные фокусы без кислотности */
 :focus-visible {
-  outline: 2px solid rgba(255,255,255,0.24);
+  outline: 2px solid rgba(0, 0, 0, 0.5);
   outline-offset: 2px;
 }
 
