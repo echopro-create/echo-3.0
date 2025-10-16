@@ -2,21 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые токены (тёмная палитра по умолчанию) */
+/* Базовые токены (тёмная палитра по умолчанию, без свечения) */
 :root {
-  --bg: #111111;      /* графитовый фон */
-  --bg-soft: #1a1a1a; /* мягкий центр */
+  --bg: #161616;      /* светлый графит */
   --fg: #f2f2f2;      /* основной текст */
-  --muted: #9aa3ad;   /* вторичный текст */
+  --muted: #a6aeb6;   /* вторичный текст */
   color-scheme: dark;
 }
 
 /* Базовая раскладка и сглаживание */
 html, body { height: 100%; }
 body {
-  background-color: var(--bg);
-  /* лёгкое внутреннее свечение без цирка */
-  background-image: radial-gradient(60% 40% at 50% 20%, rgba(255,255,255,0.04), rgba(0,0,0,0) 70%);
+  background-color: var(--bg); /* без градиентов и свечений */
   color: var(--fg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -31,7 +28,7 @@ body {
 
 /* Доступность: заметные фокусы, но без неона */
 :focus-visible {
-  outline: 2px solid rgba(255,255,255,0.28);
+  outline: 2px solid rgba(255,255,255,0.24);
   outline-offset: 2px;
 }
 
