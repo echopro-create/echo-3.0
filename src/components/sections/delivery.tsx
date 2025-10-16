@@ -47,7 +47,7 @@ export function DeliverySection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.35, ease }}
-          className="mb-6 text-2xl font-semibold tracking-tight md:text-3xl"
+          className="mb-6 text-2xl font-semibold leading-tight tracking-tight md:text-3xl"
         >
           Доставка
         </motion.h2>
@@ -57,7 +57,7 @@ export function DeliverySection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, amount: 0.6 }}
           transition={{ duration: 0.35, ease, delay: reduce ? 0 : 0.05 }}
-          className="mb-10 max-w-2xl opacity-80 md:text-lg"
+          className="mb-10 max-w-2xl [text-wrap:balance] opacity-80 md:text-lg"
         >
           Три режима, один результат: послание приходит вовремя и только тем, кому нужно.
         </motion.p>
@@ -85,7 +85,7 @@ export function DeliverySection() {
                 >
                   <it.icon className="size-5 shrink-0" aria-hidden="true" focusable="false" />
                 </span>
-                <h3 className="text-xl font-medium">{it.title}</h3>
+                <h3 className="text-xl font-medium leading-tight">{it.title}</h3>
               </div>
 
               <p className="mb-3 text-sm opacity-80">{it.desc}</p>
