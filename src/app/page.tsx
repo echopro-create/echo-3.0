@@ -10,17 +10,17 @@ import { Lock, ShieldCheck, KeyRound, Shield } from "lucide-react";
 
 export default function Home() {
   return (
-    // Один-единственный скролл-контейнер. Никакого JS, только CSS snap.
-    <div className="h-[100svh] overflow-y-auto overscroll-y-none [scrollbar-gutter:stable] snap-y snap-mandatory">
+    <>
       <Header />
 
-      {/* ================= HERO ================= */}
-      <section
-        className="relative flex min-h-[100svh] snap-start [scroll-snap-stop:always] items-start justify-center overflow-hidden pt-14
-                   bg-[radial-gradient(80%_60%_at_50%_10%,rgba(99,102,241,0.08),transparent_60%)]
-                   dark:bg-[radial-gradient(80%_60%_at_50%_10%,rgba(56,189,248,0.08),transparent_60%)]"
-      >
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8 px-4 py-16 md:py-24">
+      {/* Обычный документный скролл, без снапа и без костылей */}
+      <main className="mx-auto max-w-6xl px-4 space-y-28 md:space-y-36">
+        {/* ================= HERO ================= */}
+        <section
+          className="relative flex min-h-[80svh] flex-col items-start justify-center gap-8 overflow-hidden pt-14 md:pt-20
+                     bg-[radial-gradient(80%_60%_at_50%_10%,rgba(99,102,241,0.08),transparent_60%)]
+                     dark:bg-[radial-gradient(80%_60%_at_50%_10%,rgba(56,189,248,0.08),transparent_60%)]"
+        >
           {/* Декор */}
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
             <div
@@ -51,7 +51,7 @@ export default function Home() {
           </p>
 
           {/* TRUST STRIP */}
-          <div className="w-full pt-4">
+          <div className="w-full pt-2">
             <ul className="flex flex-wrap items-baseline gap-2.5 text-xs opacity-90">
               <li className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
                 <span className="inline-flex size-5 items-center justify-center rounded-md bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15" aria-hidden="true">
@@ -84,30 +84,30 @@ export default function Home() {
               </li>
             </ul>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ================= Formats ================= */}
-      <section className="min-h-[100svh] snap-start [scroll-snap-stop:always] bg-[color:var(--fg)]/3 pt-14">
-        <div className="mx-auto w-full max-w-6xl px-4">
-          <FormatsSection />
-        </div>
-      </section>
+        {/* ================= Formats ================= */}
+        <section id="formats" className="rounded-3xl bg-[color:var(--fg)]/3 p-6 md:p-8">
+          <div className="mx-auto w-full max-w-6xl">
+            <FormatsSection />
+          </div>
+        </section>
 
-      {/* ================= Delivery ================= */}
-      <section className="min-h-[100svh] snap-start [scroll-snap-stop:always] aura-soft pt-14">
-        <DeliverySection />
-      </section>
+        {/* ================= Delivery ================= */}
+        <section id="delivery" className="rounded-3xl bg-transparent aura-soft p-6 md:p-8">
+          <DeliverySection />
+        </section>
 
-      {/* ================= Privacy ================= */}
-      <section className="min-h-[100svh] snap-start [scroll-snap-stop:always] bg-[color:var(--fg)]/3 pt-14">
-        <PrivacySection />
-      </section>
+        {/* ================= Privacy ================= */}
+        <section id="privacy" className="rounded-3xl bg-[color:var(--fg)]/3 p-6 md:p-8">
+          <PrivacySection />
+        </section>
 
-      {/* ================= Start ================= */}
-      <section className="min-h-[100svh] snap-start [scroll-snap-stop:always] bg-[color:var(--fg)]/6 pt-14">
-        <StartSection />
-      </section>
-    </div>
+        {/* ================= Start ================= */}
+        <section id="start" className="rounded-3xl bg-[color:var(--fg)]/6 p-6 md:p-8">
+          <StartSection />
+        </section>
+      </main>
+    </>
   );
 }
