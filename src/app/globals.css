@@ -2,26 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базовые токены темы через CSS-переменные */
-:root{
-  --bg:#ffffff;
-  --fg:#0e1420;
-  --muted:#5A6B7C;
-  color-scheme: light dark;
-}
-.dark:root{
-  --bg:#0b0e14;
-  --fg:#e7eef8;
-  --muted:#9FB3C8;
+/* Базовые токены (тёмная палитра по умолчанию) */
+:root {
+  --bg: #111111;      /* графитовый фон */
+  --bg-soft: #1a1a1a; /* мягкий центр */
+  --fg: #f2f2f2;      /* основной текст */
+  --muted: #9aa3ad;   /* вторичный текст */
+  color-scheme: dark;
 }
 
+/* Базовая раскладка и сглаживание */
 html, body { height: 100%; }
-body{
-  background: var(--bg);
+body {
+  background-color: var(--bg);
+  /* лёгкое внутреннее свечение без цирка */
+  background-image: radial-gradient(60% 40% at 50% 20%, rgba(255,255,255,0.04), rgba(0,0,0,0) 70%);
   color: var(--fg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Выделение текста под тёмную тему */
+::selection {
+  background: rgba(255,255,255,0.16);
+  color: var(--fg);
+}
+
+/* Доступность: заметные фокусы, но без неона */
+:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.28);
+  outline-offset: 2px;
 }
 
 /* Небольшая типографика по умолчанию */
@@ -30,3 +41,13 @@ h2 { @apply text-3xl md:text-4xl font-semibold tracking-tight; }
 h3 { @apply text-2xl md:text-3xl font-semibold tracking-tight; }
 p  { @apply leading-7; }
 small, .text-small { @apply text-sm leading-5; }
+
+/* Плавность без укачивания */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
