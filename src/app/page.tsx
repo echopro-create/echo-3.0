@@ -12,11 +12,11 @@ export default function Home() {
   return (
     <>
       <Header />
-      {/* scroll-snap контейнер страницы; отдельный скролл внутри main, запас под липкий header 56px */}
-      <main className="h-[100svh] overflow-y-auto snap-y snap-mandatory [scroll-padding-top:56px]">
-        {/* ================= HERO: Layer A (аура), фулскрин, snap ================= */}
+      {/* ЕДИНСТВЕННЫЙ скролл-контейнер страницы: высота = экран − 56px (высота шапки) */}
+      <main className="h-[calc(100svh-56px)] overflow-y-auto [overscroll-behavior-y:contain] [scrollbar-gutter:stable] snap-y snap-mandatory">
+        {/* ================= HERO: Layer A (аура), фулскрин внутри main, snap ================= */}
         <section
-          className="relative flex min-h-[100svh] snap-start items-start justify-center overflow-hidden
+          className="relative flex min-h-full snap-start items-start justify-center overflow-hidden
                      bg-[radial-gradient(80%_60%_at_50%_10%,rgba(99,102,241,0.08),transparent_60%)]
                      dark:bg-[radial-gradient(80%_60%_at_50%_10%,rgba(56,189,248,0.08),transparent_60%)]"
         >
@@ -104,26 +104,26 @@ export default function Home() {
         </section>
 
         {/* ================= Formats: Layer B (лёгкий тон), фулскрин, snap ================= */}
-        <div className="min-h-[100svh] snap-start bg-[color:var(--fg)]/3">
+        <div className="min-h-full snap-start bg-[color:var(--fg)]/3">
           <div className="mx-auto w-full max-w-6xl px-4">
             <FormatsSection />
           </div>
         </div>
 
         {/* ================= Delivery: Layer C (аура), фулскрин, snap ================= */}
-        <div className="min-h-[100svh] snap-start aura-soft">
+        <div className="min-h-full snap-start aura-soft">
           {/* Внутри DeliverySection уже свой контейнер */}
           <DeliverySection />
         </div>
 
         {/* ================= Privacy: Layer B (лёгкий тон), фулскрин, snap ================= */}
-        <div className="min-h-[100svh] snap-start bg-[color:var(--fg)]/3">
+        <div className="min-h-full snap-start bg-[color:var(--fg)]/3">
           {/* Внутри PrivacySection уже свой контейнер */}
           <PrivacySection />
         </div>
 
         {/* ================= Start: Layer D (чуть плотнее), фулскрин, snap ================= */}
-        <div className="min-h-[100svh] snap-start bg-[color:var(--fg)]/6">
+        <div className="min-h-full snap-start bg-[color:var(--fg)]/6">
           {/* Внутри StartSection уже свой контейнер */}
           <StartSection />
         </div>
