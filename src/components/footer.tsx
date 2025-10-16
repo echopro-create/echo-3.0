@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -35,7 +36,7 @@ export function Footer() {
             Приватность
           </Link>
           <Link
-            href="/security"
+            href={"/security" as Route}
             className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
           >
             Архитектура безопасности
