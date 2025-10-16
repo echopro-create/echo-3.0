@@ -67,11 +67,21 @@ export function PrivacySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.3, ease, delay: reduce ? 0 : i * 0.05 }}
-              className="rounded-2xl border border-[var(--ring,theme(colors.slate.200))] bg-[var(--card,theme(colors.white))] p-5 shadow-sm"
+              className="rounded-2xl bg-[var(--card,theme(colors.white))] p-5 ring-1 ring-[color:var(--fg)]/10 card-hover
+                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              tabIndex={0}
+              role="article"
+              aria-label={it.title}
             >
               <div className="mb-4 flex items-center gap-3">
-                {/* Иконки декоративные, не читаем экраном */}
-                <it.icon className="size-6 shrink-0" aria-hidden="true" focusable="false" />
+                {/* Иконки декоративные */}
+                <span
+                  className="inline-flex size-10 items-center justify-center rounded-xl
+                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                  aria-hidden="true"
+                >
+                  <it.icon className="size-5 shrink-0" aria-hidden="true" focusable="false" />
+                </span>
                 <h3 className="text-base font-medium">{it.title}</h3>
               </div>
               <p className="text-sm opacity-80">{it.desc}</p>
