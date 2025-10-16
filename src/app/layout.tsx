@@ -42,7 +42,20 @@ export const metadata: Metadata = {
     description: "Доставим в нужное время: по дате, событию или после вашей смерти.",
     images: ["/og/cover-1200x630.png"],
   },
-  robots: { index: true, follow: true },
+  // ВРЕМЕННО закрываем весь сайт от индексации
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      "max-image-preview": "none",
+      "max-video-preview": -1,
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -51,14 +64,12 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    // mask-icon под светлый фон — тёмный оттенок
     other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0e1420" }],
   },
   manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {
-  // фиксируем светлую тему для системных UI-цветов
   themeColor: "#ffffff",
 };
 
