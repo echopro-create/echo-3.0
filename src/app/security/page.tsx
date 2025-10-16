@@ -18,27 +18,29 @@ export const metadata: Metadata = {
 
 export default function SecurityPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16 space-y-10">
+    <main className="mx-auto max-w-3xl space-y-10 px-4 py-16">
       <header className="space-y-3">
-        <p className="text-sm opacity-60">
+        <p className="text-sm text-[color:var(--fg)]/60">
           <Link
             href="/"
-            className="underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+            className="rounded-lg underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             На главную
           </Link>
         </p>
+
         <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
           Архитектура безопасности
         </h1>
-        <p className="opacity-80 md:text-lg">
+
+        <p className="md:text-lg text-[color:var(--fg)]/80">
           Короткий обзор принципов безопасности Echo. Без маркетингового сахарка,
           только то, что влияет на приватность и надёжность.
         </p>
 
         {/* Навигация по странице */}
         <nav aria-label="Навигация по разделам" className="mt-4">
-          <ul className="flex flex-wrap gap-2 text-sm opacity-80">
+          <ul className="flex flex-wrap gap-2 text-sm text-[color:var(--fg)]/80">
             {[
               ["#crypto", "Шифрование"],
               ["#storage", "Хранение"],
@@ -50,7 +52,7 @@ export default function SecurityPage() {
               <li key={href}>
                 <a
                   href={href}
-                  className="inline-flex rounded-lg px-3 py-1 ring-1 ring-[color:var(--fg)]/20 hover:bg-[color:var(--fg)]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="inline-flex rounded-lg px-3 py-1 ring-1 ring-black/15 hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   {label}
                 </a>
@@ -60,12 +62,12 @@ export default function SecurityPage() {
         </nav>
 
         {/* «Диаграмма словами» */}
-        <div className="mt-4 rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-4 text-sm opacity-90">
+        <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4 text-sm text-[color:var(--fg)]/90">
           <p>
             <strong>Клиент</strong> шифрует данные ключом пользователя →{" "}
             <strong>Сервер</strong> хранит зашифрованный контент без ключей →{" "}
-            <strong>БД</strong> ограничивает доступ к строкам по RLS →
-            <strong> Аудит</strong> фиксирует критичные операции.
+            <strong>БД</strong> ограничивает доступ к строкам по RLS →{" "}
+            <strong>Аудит</strong> фиксирует критичные операции.
           </p>
         </div>
       </header>
@@ -73,7 +75,7 @@ export default function SecurityPage() {
       {/* Шифрование */}
       <section id="crypto" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Шифрование</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>На устройстве.</strong> Контент шифруется до загрузки. Сервер видит только шифртекст.
           </li>
@@ -89,7 +91,7 @@ export default function SecurityPage() {
       {/* Хранение */}
       <section id="storage" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Хранение</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>Бакеты с версионированием.</strong> Контент неизменяем, удаление мягкое до финальной очистки.
           </li>
@@ -105,7 +107,7 @@ export default function SecurityPage() {
       {/* Доступ (RLS) */}
       <section id="rls" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Доступ (RLS)</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>Политики на уровне строк.</strong> Каждая запись принадлежит владельцу; гостевого «просмотра таблиц» нет.
           </li>
@@ -121,7 +123,7 @@ export default function SecurityPage() {
       {/* Аудит */}
       <section id="audit" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Аудит</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>Подпись событий.</strong> Ключевые действия фиксируются с отметкой времени и идентификатором субъекта.
           </li>
@@ -137,7 +139,7 @@ export default function SecurityPage() {
       {/* Доставка */}
       <section id="delivery" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Доставка</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>Окна доставки.</strong> Проверка границ времени и дедупликация отправок.
           </li>
@@ -153,7 +155,7 @@ export default function SecurityPage() {
       {/* Права и доступ пользователя */}
       <section id="rights" className="scroll-mt-20 space-y-4">
         <h2 className="text-xl font-medium tracking-tight">Права и доступ</h2>
-        <ul className="list-disc space-y-2 pl-5 opacity-90">
+        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
           <li>
             <strong>Минимизация данных.</strong> Сохраняем только необходимое для работы сервиса.
           </li>
@@ -166,8 +168,8 @@ export default function SecurityPage() {
         </ul>
       </section>
 
-      <footer className="border-t pt-6">
-        <p className="text-sm opacity-70">
+      <footer className="border-t border-black/10 pt-6">
+        <p className="text-sm text-[color:var(--fg)]/70">
           Это краткая выжимка. Подробную спецификацию опубликуем после внутренней ревизии.
         </p>
       </footer>
