@@ -32,7 +32,8 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+          // после подтверждения коллбек может перенаправить на создание послания
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/messages/new`,
         },
       });
       if (error) {
@@ -52,14 +53,14 @@ export default function LoginPage() {
   return (
     <main className="mx-auto max-w-md px-4 py-24">
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">Войти</h1>
-      <p className="mb-6 opacity-80">
+      <p className="mb-6 text-[color:var(--fg)]/80">
         Введите почту — отправим одноразовую ссылку. Пароли здесь не водятся.
       </p>
 
       <form
         onSubmit={onSubmit}
         noValidate
-        className="space-y-4 rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-5 shadow-sm"
+        className="space-y-4 rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
         aria-describedby={`${helpId} ${statusId}`}
       >
         <div className="grid gap-2">
@@ -77,12 +78,12 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             spellCheck={false}
-            className="w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2 outline-none
+            className="w-full rounded-xl border border-black/15 bg-white px-3 py-2 outline-none
                        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             aria-invalid={email.length > 0 && !emailOk ? true : undefined}
             aria-describedby={helpId}
           />
-          <p id={helpId} className="text-xs opacity-70">
+          <p id={helpId} className="text-xs text-[color:var(--fg)]/70">
             Мы отправим ссылку для входа. Срок действия ограничен.
           </p>
         </div>
@@ -91,9 +92,8 @@ export default function LoginPage() {
           type="submit"
           disabled={!emailOk || loading}
           aria-busy={loading}
-          className="w-full inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-medium
-                     bg-[color:var(--fg)] text-[color:var(--bg)]
-                     hover:opacity-90 disabled:opacity-50
+          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[color:var(--fg)] px-4 text-sm font-medium
+                     text-[color:var(--bg)] hover:opacity-90 disabled:opacity-50
                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {loading ? "Отправляем…" : "Получить ссылку"}
@@ -101,19 +101,19 @@ export default function LoginPage() {
 
         <div id={statusId} aria-live="polite" className="min-h-[1.25rem]">
           {sent && !err && (
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-green-700">
               Письмо отправлено. Проверьте почту и перейдите по ссылке.
             </p>
           )}
           {err && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-red-700">
               {err}
             </p>
           )}
         </div>
       </form>
 
-      <p className="mt-4 text-xs opacity-70">
+      <p className="mt-4 text-xs text-[color:var(--fg)]/70">
         Контент шифруется на вашем устройстве, сервер видит только зашифрованные данные.
       </p>
     </main>
