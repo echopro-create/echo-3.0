@@ -1,44 +1,38 @@
-export const metadata = {
-  title: "Войти — Echo",
-};
+import { Header } from "@/components/header";
+import { CTA } from "@/components/cta";
+import { FormatsSection } from "@/components/sections/formats";
+import { DeliverySection } from "@/components/sections/delivery";
+import { PrivacySection } from "@/components/sections/privacy";
 
-export default function LoginPage() {
+export default function Home() {
   return (
-    <main className="mx-auto max-w-md px-4 py-24">
-      <h1 className="mb-2 text-2xl font-semibold tracking-tight">Войти</h1>
-      <p className="mb-6 opacity-80">
-        Введите адрес почты, мы отправим код. Никаких паролей.
-      </p>
+    <>
+      <Header />
+      <main className="mx-auto max-w-6xl px-4">
+        {/* HERO */}
+        <section className="flex min-h-[70svh] flex-col items-start justify-center gap-6 py-16">
+          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
+            Сообщения, которые приходят вовремя.
+          </h1>
+          <p className="max-w-2xl text-base opacity-80 md:text-lg">
+            Echo собирает текст, голос и видео в одно место и доставляет их по расписанию:
+            по дате, событию или вашему «пульсу». Быстро, предсказуемо, без цирка.
+          </p>
+          <CTA />
+        </section>
 
-      <form
-        className="space-y-4 rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-5 shadow-sm"
-        // обработчик добавим при подключении Supabase Auth
-        onSubmit={(e) => {
-          e.preventDefault();
-          alert("Здесь будет отправка magic link / OTP через Supabase Auth.");
-        }}
-      >
-        <label className="block text-sm">
-          Почта
-          <input
-            type="email"
-            required
-            placeholder="you@example.com"
-            className="mt-1 w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--ring)]"
-          />
-        </label>
-        <button
-          type="submit"
-          className="w-full rounded-xl border border-[var(--ring)] px-4 py-2 text-sm hover:opacity-100 opacity-90"
-        >
-          Получить код
-        </button>
-      </form>
+        {/* СЕКЦИИ */}
+        <FormatsSection />
+        <DeliverySection />
+        <PrivacySection />
 
-      <p className="mt-4 text-xs opacity-70">
-        Продолжая, вы соглашаетесь с бережным отношением к вашим данным. Мы не трогаем
-        содержимое посланий — оно зашифровано на вашем устройстве.
-      </p>
-    </main>
+        <section id="start" className="py-24 border-t">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight">Начать</h2>
+          <p className="opacity-80">
+            Здесь будет CTA и шаги запуска. Сейчас это заглушка, чтобы навигация не вела в пустоту.
+          </p>
+        </section>
+      </main>
+    </>
   );
 }
