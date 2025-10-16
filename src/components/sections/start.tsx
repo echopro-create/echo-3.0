@@ -5,9 +5,21 @@ import { motion, useReducedMotion } from "framer-motion";
 
 export function StartSection() {
   const steps = [
-    { title: "Создайте послание", desc: "Текст, голос, видео или файлы. Шифрование на устройстве перед загрузкой." },
-    { title: "Выберите доставку", desc: "По дате, событию или «пульсу». Настройте окно, таймаут и получателей." },
-    { title: "Проверьте и запустите", desc: "Предпросмотр, журнал аудита и подтверждение запуска." },
+    {
+      title: "Создайте послание",
+      desc: "Текст, голос, видео или файлы. Шифрование на устройстве перед загрузкой.",
+      hints: ["Локальное шифрование", "Черновик сохраняется"],
+    },
+    {
+      title: "Выберите доставку",
+      desc: "По дате, событию или «пульсу». Настройте окно, таймаут и получателей.",
+      hints: ["Окно доставки", "Получатели и роли"],
+    },
+    {
+      title: "Проверьте и запустите",
+      desc: "Предпросмотр, журнал аудита и подтверждение запуска.",
+      hints: ["Предпросмотр", "Журнал аудита"],
+    },
   ];
 
   const reduce = useReducedMotion();
@@ -45,13 +57,39 @@ export function StartSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.3, ease, delay: reduce ? 0 : i * 0.06 }}
-              className="rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-5 shadow-sm"
+              className="rounded-2xl bg-[var(--card)] p-5 ring-1 ring-[color:var(--fg)]/10 card-hover
+                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              tabIndex={0}
+              role="article"
+              aria-label={`${i + 1}. ${s.title}`}
             >
-              <div className="mb-3 text-sm opacity-60" aria-hidden="true">
-                Шаг {i + 1}
+              <div className="mb-3 flex items-center gap-3">
+                {/* Индикатор шага (декоративно) */}
+                <span
+                  aria-hidden="true"
+                  className="inline-flex size-7 items-center justify-center rounded-full
+                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15 text-xs"
+                >
+                  {i + 1}
+                </span>
+                <h3 className="text-lg font-medium">{s.title}</h3>
               </div>
-              <h3 className="mb-2 text-lg font-medium">{s.title}</h3>
+
               <p className="text-sm opacity-80">{s.desc}</p>
+
+              {/* Мини-индикаторы статуса */}
+              <div className="mt-4 flex flex-wrap gap-2" aria-hidden="true">
+                {s.hints.map((h) => (
+                  <span
+                    key={h}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--fg)]/5 px-2.5 py-1 text-xs
+                               ring-1 ring-[color:var(--fg)]/15"
+                  >
+                    <span className="inline-block size-1.5 rounded-full bg-[color:var(--fg)]/50" />
+                    {h}
+                  </span>
+                ))}
+              </div>
             </motion.article>
           ))}
         </div>
