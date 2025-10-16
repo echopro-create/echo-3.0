@@ -3,6 +3,7 @@ import { CTA } from "@/components/cta";
 import { FormatsSection } from "@/components/sections/formats";
 import { DeliverySection } from "@/components/sections/delivery";
 import { PrivacySection } from "@/components/sections/privacy";
+import { StartSection } from "@/components/sections/start";
 
 export default function Home() {
   return (
@@ -25,13 +26,7 @@ export default function Home() {
         <FormatsSection />
         <DeliverySection />
         <PrivacySection />
-
-        <section id="start" className="py-24 border-t">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">Начать</h2>
-          <p className="opacity-80">
-            Здесь будет CTA и шаги запуска. Сейчас это заглушка, чтобы навигация не вела в пустоту.
-          </p>
-        </section>
+        <StartSection />
       </main>
     </>
   );
