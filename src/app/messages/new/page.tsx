@@ -4,35 +4,53 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+type DeliveryMode = "date" | "event" | "pulse";
+
+type NewMessagePayload = {
+  title: string;
+  mode: DeliveryMode;
+  status: "draft";
+  content: Record<string, unknown>;
+  deliver_at?: string | null;
+  pulse_interval?: string | null; // будем хранить как строковый interval до серверной валидации
+};
+
 export default function NewMessagePage() {
-  const [title, setTitle] = useState("");
-  const [mode, setMode] = useState<"date"|"event"|"pulse">("date");
+  const [title, setTitle] = useState<string>("");
+  const [mode, setMode] = useState<DeliveryMode>("date");
   const [deliverAt, setDeliverAt] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [err, setErr] = useState<string | null>(null);
   const router = useRouter();
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
     setLoading(true);
     const supabase = createClient();
 
-    const payload: any = {
+    const payload: NewMessagePayload = {
       title,
       mode,
       status: "draft",
-      content: {}, // заполним позже
+      content: {},
     };
-    if (mode === "date" && deliverAt) payload.deliver_at = new Date(deliverAt).toISOString();
 
-    const { data, error } = await supabase.from("messages")
+    if (mode === "date") {
+      payload.deliver_at = deliverAt ? new Date(deliverAt).toISOString() : null;
+    }
+
+    const { data, error } = await supabase
+      .from("messages")
       .insert(payload)
       .select("id")
       .single();
 
     setLoading(false);
-    if (error) { setErr(error.message); return; }
+    if (error) {
+      setErr(error.message);
+      return;
+    }
     router.replace(`/messages/${data.id}`);
   }
 
@@ -48,7 +66,7 @@ export default function NewMessagePage() {
             type="text"
             required
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
             className="mt-1 w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--ring)]"
             placeholder="Письмо детям на 2030"
           />
@@ -58,7 +76,7 @@ export default function NewMessagePage() {
           Способ доставки
           <select
             value={mode}
-            onChange={e => setMode(e.target.value as any)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setMode(e.target.value as DeliveryMode)}
             className="mt-1 w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2"
           >
             <option value="date">По дате</option>
@@ -73,7 +91,7 @@ export default function NewMessagePage() {
             <input
               type="datetime-local"
               value={deliverAt}
-              onChange={e => setDeliverAt(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeliverAt(e.target.value)}
               className="mt-1 w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2"
             />
           </label>
