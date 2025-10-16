@@ -19,16 +19,16 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://echoproject.space"),
-  title: "Echo — послания, которые приходят вовремя",
+  title: "Echo — послания, которые будут доставлены после нас",
   description:
-    "Текст, голос и видео. Доставим по дате, событию или вашему «пульсу». Шифрование на устройстве, ключи отдельно от данных.",
+    "Echo хранит ваши текст, голос, видео или файлы и доставляет их по дате, событию или после вашей смерти. Мы доставим всё в нужное время.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Echo — послания, которые приходят вовремя",
+    title: "Echo — послания, которые будут доставлены после нас",
     description:
-      "Текст, голос и видео. Доставим по дате, событию или вашему «пульсу». Приватность по умолчанию.",
+      "Текст, голос, видео и файлы. Доставка по дате, событию или после вашей смерти. Приватность по умолчанию.",
     url: "/",
     siteName: "Echo",
     type: "website",
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Echo — послания, которые приходят вовремя",
+    title: "Echo — послания, которые будут доставлены после нас",
     description:
-      "Текст, голос и видео. Доставим по дате, событию или вашему «пульсу».",
+      "Доставим в нужное время: по дате, событию или после вашей смерти.",
     images: ["/og/cover-1200x630.png"],
   },
   robots: { index: true, follow: true },
@@ -54,22 +54,20 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0b0e14" }],
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#161616" }],
   },
-  // вот тут меняем путь на твой файл
+  // manifest останется как есть; переименуем файл в public позже
   manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0b0c" },
-  ],
+  // без светлой темы, чтобы статус-бары и вкладки не вспыхивали белым
+  themeColor: "#161616",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${poppins.variable} ${manrope.variable}`}>
+    <html lang="ru" className={`dark ${poppins.variable} ${manrope.variable}`}>
       <body className="bg-[var(--bg)] text-[var(--fg)] font-sans antialiased">
         <div className="min-h-dvh">{children}</div>
         <Footer />
