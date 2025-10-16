@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 
 export default function NotFound() {
   return (
@@ -58,7 +59,7 @@ export default function NotFound() {
             Ключи отдельно от данных
           </li>
           <li className="rounded-xl border border-[var(--ring)] px-3 py-2">
-            <Link href="/security" className="underline">
+            <Link href={"/security" as Route} className="underline">
               Архитектура безопасности
             </Link>
           </li>
