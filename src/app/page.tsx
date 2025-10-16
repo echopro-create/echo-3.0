@@ -1,6 +1,8 @@
 import { Header } from "@/components/header";
 import { CTA } from "@/components/cta";
 import { FormatsSection } from "@/components/sections/formats";
+import { DeliverySection } from "@/components/sections/delivery";
+import { PrivacySection } from "@/components/sections/privacy";
 
 export default function Home() {
   return (
@@ -21,20 +23,8 @@ export default function Home() {
 
         {/* СЕКЦИИ */}
         <FormatsSection />
-
-        <section id="delivery" className="py-20 border-t">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">Доставка</h2>
-          <p className="opacity-80">
-            По дате, событию и вашему «пульсу». Добавим схему-пояснение на следующем шаге.
-          </p>
-        </section>
-
-        <section id="privacy" className="py-20 border-t">
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight">Приватность</h2>
-          <p className="opacity-80">
-            Локальное шифрование, облачное хранение, RLS и аудит. Раскроем детали позже.
-          </p>
-        </section>
+        <DeliverySection />
+        <PrivacySection />
 
         <section id="start" className="py-24 border-t">
           <h2 className="mb-4 text-2xl font-semibold tracking-tight">Начать</h2>
