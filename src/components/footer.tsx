@@ -1,27 +1,65 @@
+import Link from "next/link";
+
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t py-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 md:flex-row md:items-center md:justify-between">
-        <div className="text-sm opacity-70">
-          © {year} Echo · Версия 3.0
+    <footer className="mt-20 border-t">
+      <div className="mx-auto max-w-6xl px-4 py-10 grid gap-6 md:grid-cols-3 items-start">
+        {/* Бренд и слоган */}
+        <div className="space-y-1">
+          <div className="text-sm font-medium">Echo</div>
+          <div className="text-sm opacity-70">Послания, которые приходят вовремя.</div>
         </div>
-        <nav className="flex flex-wrap gap-4 text-sm opacity-80">
-          <a href="#formats" className="hover:opacity-100">Форматы</a>
-          <a href="#delivery" className="hover:opacity-100">Доставка</a>
-          <a href="#privacy" className="hover:opacity-100">Приватность</a>
+
+        {/* Навигация */}
+        <nav
+          aria-label="Навигация по разделам"
+          className="flex flex-wrap gap-x-6 gap-y-2 text-sm justify-start md:justify-center"
+        >
+          <Link
+            href="/#formats"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          >
+            Форматы
+          </Link>
+          <Link
+            href="/#delivery"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          >
+            Доставка
+          </Link>
+          <Link
+            href="/#privacy"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          >
+            Приватность
+          </Link>
+          <Link
+            href="/security"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          >
+            Архитектура безопасности
+          </Link>
+          <a
+            href="mailto:hello@echoproject.space"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          >
+            Контакты
+          </a>
           <a
             href="https://github.com/echopro-create/echo-3.0"
             target="_blank"
-            rel="noreferrer"
-            className="hover:opacity-100"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4 hover:opacity-100 opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
           >
             GitHub
           </a>
-          <a href="mailto:hello@echoproject.space" className="hover:opacity-100">
-            Контакты
-          </a>
         </nav>
+
+        {/* Копирайт/версия */}
+        <div className="text-sm text-right md:text-right opacity-70">
+          © {year} • v3.0
+        </div>
       </div>
     </footer>
   );
