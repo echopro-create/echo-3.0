@@ -25,7 +25,7 @@ export function SignOutButton({ className = "", label = "Выйти" }: Props) {
       // Обновим серверные компоненты и шапку
       router.replace("/");
       router.refresh();
-    } catch (e) {
+    } catch {
       setErr("Не получилось выйти. Попробуйте ещё раз.");
     } finally {
       setLoading(false);
