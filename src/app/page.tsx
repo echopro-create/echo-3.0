@@ -7,15 +7,20 @@ import { StartSection } from "@/components/sections/start";
 import Link from "next/link";
 import type { Route } from "next";
 import { Lock, ShieldCheck, KeyRound, Shield } from "lucide-react";
+import Script from "next/script";
 
 export default function Home() {
   return (
     // ЕДИНСТВЕННЫЙ скролл-контейнер на всю страницу
-    <div className="h-[100svh] overflow-y-auto overscroll-y-none [scrollbar-gutter:stable] snap-y snap-mandatory">
+    <div
+      id="snapper"
+      className="h-[100svh] overflow-y-auto overscroll-y-none [scrollbar-gutter:stable] snap-y snap-mandatory"
+    >
       <Header />
 
       {/* ================= HERO: Layer A ================= */}
       <section
+        data-snap
         className="relative flex h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] items-start justify-center overflow-hidden
                    bg-[radial-gradient(80%_60%_at_50%_10%,rgba(99,102,241,0.08),transparent_60%)]
                    dark:bg-[radial-gradient(80%_60%_at_50%_10%,rgba(56,189,248,0.08),transparent_60%)]"
@@ -86,26 +91,87 @@ export default function Home() {
       </section>
 
       {/* ================= Formats: Layer B ================= */}
-      <section className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/3">
+      <section
+        data-snap
+        className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/3"
+      >
         <div className="mx-auto w-full max-w-6xl px-4">
           <FormatsSection />
         </div>
       </section>
 
       {/* ================= Delivery: Layer C ================= */}
-      <section className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] aura-soft">
+      <section
+        data-snap
+        className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] aura-soft"
+      >
         <DeliverySection />
       </section>
 
       {/* ================= Privacy: Layer B ================= */}
-      <section className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/3">
+      <section
+        data-snap
+        className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/3"
+      >
         <PrivacySection />
       </section>
 
       {/* ================= Start: Layer D ================= */}
-      <section className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/6">
+      <section
+        data-snap
+        className="h-[calc(100svh-56px)] snap-center [scroll-snap-stop:always] bg-[color:var(--fg)]/6"
+      >
         <StartSection />
       </section>
+
+      {/* Мини-пэйджер для резкого колеса. Без зависимостей и без Client Component. */}
+      <Script id="snap-wheel-helper" strategy="afterInteractive">{`
+        (function(){
+          var root = document.getElementById('snapper');
+          if(!root) return;
+          var busy = false;
+          var sections = Array.prototype.slice.call(root.querySelectorAll('section[data-snap]'));
+
+          function nearestNext(dy){
+            var y = root.scrollTop;
+            if(dy > 0){
+              for(var i=0;i<sections.length;i++){
+                if(sections[i].offsetTop > y + 1) return sections[i];
+              }
+              return sections[sections.length-1];
+            } else {
+              var prev = null;
+              for(var j=0;j<sections.length;j++){
+                if(sections[j].offsetTop < y - 1) prev = sections[j]; else break;
+              }
+              return prev || sections[0];
+            }
+          }
+
+          function release(){ busy = false; }
+          root.addEventListener('wheel', function(e){
+            var dy = e.deltaY || 0;
+            if(Math.abs(dy) < 30) return;       // мелкие прокрутки оставляем браузеру
+            if(busy) return;
+            busy = true;
+            e.preventDefault();
+
+            var target = nearestNext(dy);
+            if(target){
+              try { target.scrollIntoView({behavior:'smooth', block:'center'}); }
+              catch(_) { root.scrollTop = target.offsetTop; }
+            }
+
+            // подстрахуемся на 600 мс, или используем scrollend где доступен
+            if('onscrollend' in root){
+              var once = function(){ root.removeEventListener('scrollend', once); release(); };
+              root.addEventListener('scrollend', once);
+            } else {
+              setTimeout(release, 600);
+            }
+          }, {passive:false});
+        })();
+      `}</Script>
     </div>
   );
 }
