@@ -13,7 +13,7 @@ export default function Home() {
     <>
       <Header />
 
-      {/* Обычный документный скролл, без снапа и без костылей */}
+      {/* Обычный документный скролл, без snap и без JS */}
       <main className="mx-auto max-w-6xl px-4 space-y-28 md:space-y-36">
         {/* ================= HERO ================= */}
         <section
