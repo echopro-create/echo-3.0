@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Uploader } from "@/components/uploader";
 
 type DeliveryMode = "date" | "event" | "pulse";
 type Status = "draft" | "scheduled" | "sent";
@@ -64,6 +65,8 @@ export default function MessageEditPage() {
   return (
     <main className="mx-auto max-w-xl px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold tracking-tight">Редактирование</h1>
+
+      {/* ФОРМА — как была */}
       <form onSubmit={onSave} className="space-y-4 rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-5 shadow-sm">
         <label className="block text-sm">
           Заголовок
@@ -100,19 +103,6 @@ export default function MessageEditPage() {
           </label>
         )}
 
-        <label className="block text-sm">
-          Статус
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as Status)}
-            className="mt-1 w-full rounded-xl border border-[var(--ring)] bg-transparent px-3 py-2"
-          >
-            <option value="draft">Черновик</option>
-            <option value="scheduled">Запланировано</option>
-            <option value="sent" disabled>Отправлено (только на бэке)</option>
-          </select>
-        </label>
-
         {err && <p className="text-sm text-red-600">{err}</p>}
 
         <div className="flex gap-3">
@@ -124,6 +114,12 @@ export default function MessageEditPage() {
           </button>
         </div>
       </form>
+
+      {/* ВОТ СЮДА ВСТАВЛЕНО — блок с аплоадером сразу ПОСЛЕ формы */}
+      <div className="mt-8">
+        <div className="mb-2 text-sm opacity-60">Вложения</div>
+        <Uploader messageId={String(id)} />
+      </div>
     </main>
   );
 }
