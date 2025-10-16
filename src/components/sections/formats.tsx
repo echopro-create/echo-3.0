@@ -19,7 +19,9 @@ export function FormatsSection() {
 
   return (
     <section id="formats" className="py-20 border-t">
-      <h2 className="mb-4 text-2xl font-semibold tracking-tight">Форматы</h2>
+      <h2 className="mb-4 text-2xl font-semibold tracking-tight md:text-3xl">
+        Форматы
+      </h2>
       <p className="mb-8 opacity-80">
         Текст, голос, видео и файлы. Всё в одном месте и по расписанию.
       </p>
@@ -33,10 +35,16 @@ export function FormatsSection() {
             transition={{ ...baseTransition, delay: reduce ? 0 : i * 0.04 }}
             viewport={{ once: true, amount: 0.3 }}
           >
-            <Card className="rounded-2xl">
+            <Card
+              role="article"
+              tabIndex={0}
+              className="rounded-2xl ring-1 ring-[color:var(--fg)]/10 card-hover
+                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
               <CardHeader className="flex flex-row items-center gap-3">
                 <span
-                  className="inline-flex size-10 items-center justify-center rounded-xl ring-1 ring-[color:var(--fg)]/15"
+                  className="inline-flex size-10 items-center justify-center rounded-xl
+                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
                   aria-hidden="true"
                 >
                   <Icon className="size-5" aria-hidden="true" />
