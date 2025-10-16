@@ -22,9 +22,7 @@ export const metadata: Metadata = {
   title: "Echo — послания, которые будут доставлены после нас",
   description:
     "Echo хранит ваши текст, голос, видео или файлы и доставляет их по дате, событию или после вашей смерти. Мы доставим всё в нужное время.",
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Echo — послания, которые будут доставлены после нас",
     description:
@@ -41,8 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Echo — послания, которые будут доставлены после нас",
-    description:
-      "Доставим в нужное время: по дате, событию или после вашей смерти.",
+    description: "Доставим в нужное время: по дате, событию или после вашей смерти.",
     images: ["/og/cover-1200x630.png"],
   },
   robots: { index: true, follow: true },
@@ -54,20 +51,20 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#161616" }],
+    // mask-icon под светлый фон — тёмный оттенок
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0e1420" }],
   },
-  // manifest останется как есть; переименуем файл в public позже
   manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {
-  // без светлой темы, чтобы статус-бары и вкладки не вспыхивали белым
-  themeColor: "#161616",
+  // фиксируем светлую тему для системных UI-цветов
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`dark ${poppins.variable} ${manrope.variable}`}>
+    <html lang="ru" className={`${poppins.variable} ${manrope.variable}`}>
       <body className="bg-[var(--bg)] text-[var(--fg)] font-sans antialiased">
         <div className="min-h-dvh">{children}</div>
         <Footer />
