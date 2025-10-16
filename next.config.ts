@@ -12,7 +12,7 @@ const securityHeaders = [
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 
-  // Запрещаем FLoC и подобные «прелести»
+  // Запрещаем FLoC и прочее
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
 
   // CSP: аккуратная, без внешних скриптов
@@ -37,13 +37,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  typedRoutes: true, // ← сюда переехало из experimental
   async headers() {
     return [
       {
         source: "/:path*",
         headers: securityHeaders,
       },
-      // Картинки OG и манифест — те же заголовки
       {
         source: "/og/:path*",
         headers: securityHeaders,
@@ -54,9 +54,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  experimental: {
-    typedRoutes: true,
-  },
+  // experimental больше не нужен
 };
 
 export default nextConfig;
