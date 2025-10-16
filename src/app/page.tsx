@@ -6,6 +6,7 @@ import { PrivacySection } from "@/components/sections/privacy";
 import { StartSection } from "@/components/sections/start";
 import Link from "next/link";
 import type { Route } from "next";
+import { Lock, ShieldCheck, KeyRound, Shield } from "lucide-react";
 
 export default function Home() {
   return (
@@ -51,22 +52,47 @@ export default function Home() {
 
           {/* TRUST STRIP */}
           <div className="w-full pt-4">
-            <ul className="flex flex-wrap gap-2.5 text-xs opacity-90">
-              <li className="rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
-                Шифрование на устройстве
+            <ul className="flex flex-wrap items-baseline gap-2.5 text-xs opacity-90">
+              <li className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
+                <span
+                  className="inline-flex size-5 items-center justify-center rounded-md bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                  aria-hidden="true"
+                >
+                  <Lock className="size-3" aria-hidden="true" />
+                </span>
+                <span>Шифрование на устройстве</span>
               </li>
-              <li className="rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
-                RLS: доступ только владельцу
+              <li className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
+                <span
+                  className="inline-flex size-5 items-center justify-center rounded-md bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                  aria-hidden="true"
+                >
+                  <ShieldCheck className="size-3" aria-hidden="true" />
+                </span>
+                <span>RLS: доступ только владельцу</span>
               </li>
-              <li className="rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
-                Ключи отдельно от данных
+              <li className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
+                <span
+                  className="inline-flex size-5 items-center justify-center rounded-md bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                  aria-hidden="true"
+                >
+                  <KeyRound className="size-3" aria-hidden="true" />
+                </span>
+                <span>Ключи отдельно от данных</span>
               </li>
-              <li className="rounded-xl bg-[color:var(--fg)]/5 px-3 py-2 ring-1 ring-[color:var(--fg)]/10">
+              <li className="inline-flex items-center gap-2 rounded-xl px-0 py-0">
                 <Link
                   href={"/security" as Route}
-                  className="rounded-lg underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="inline-flex items-center gap-2 rounded-xl px-3 py-2 ring-1 ring-[color:var(--fg)]/15 hover:bg-[color:var(--fg)]/5
+                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
-                  Архитектура безопасности
+                  <span
+                    className="inline-flex size-5 items-center justify-center rounded-md bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
+                    aria-hidden="true"
+                  >
+                    <Shield className="size-3" aria-hidden="true" />
+                  </span>
+                  <span className="underline underline-offset-4">Архитектура безопасности</span>
                 </Link>
               </li>
             </ul>
