@@ -13,7 +13,7 @@ export default function Home() {
     <>
       <Header />
       {/* scroll-snap контейнер страницы; запас сверху под липкий header 56px */}
-      <main className="snap-y snap-proximity [scroll-padding-top:56px]">
+      <main className="snap-y snap-mandatory [scroll-padding-top:56px]">
         {/* ================= HERO: Layer A (аура), фулскрин, snap ================= */}
         <section
           className="relative flex min-h-[100svh] snap-start items-start justify-center overflow-hidden
