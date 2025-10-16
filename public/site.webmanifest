@@ -1,0 +1,14 @@
+{
+  "name": "Echo — послания, которые будут доставлены после нас",
+  "short_name": "Echo",
+  "description": "Echo хранит ваши текст, голос, видео или файлы и доставляет их по дате, событию или после вашей смерти. Мы доставим всё в нужное время.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
