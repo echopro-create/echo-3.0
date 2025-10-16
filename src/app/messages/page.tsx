@@ -43,7 +43,8 @@ export default async function MessagesPage() {
     );
   }
 
-  const list = data || [];
+  // Без расширения до any[]
+  const list: Row[] = data ?? [];
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-16">
@@ -86,7 +87,7 @@ export default async function MessagesPage() {
         </section>
       ) : (
         <div role="list" className="grid gap-4 md:grid-cols-3">
-          {list.map((m) => (
+          {list.map((m: Row) => (
             <article
               role="listitem"
               key={m.id}
@@ -104,20 +105,20 @@ export default async function MessagesPage() {
                 </span>
               </div>
 
-              <h2 className="mb-1 text-lg font-medium break-words">{m.title || "Без названия"}</h2>
+              <h2 className="mb-1 break-words text-lg font-medium">{m.title || "Без названия"}</h2>
 
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link
                   href={`/messages/${m.id}`}
-                  className="text-sm underline opacity-90 hover:opacity-100
-                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg px-1"
+                  className="rounded-lg px-1 text-sm underline opacity-90 hover:opacity-100
+                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Открыть
                 </Link>
                 <Link
                   href={`/messages/${m.id}/edit`}
-                  className="text-sm underline opacity-90 hover:opacity-100
-                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg px-1"
+                  className="rounded-lg px-1 text-sm underline opacity-90 hover:opacity-100
+                             focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Редактировать
                 </Link>

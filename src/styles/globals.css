@@ -6,7 +6,7 @@
 :root {
   --bg: #fff;
   --fg: #0b0e14;
-  --ring: #e5e7eb; /* рамки карточек */
+  --ring: #e5e7eb; /* рамки карточек/деликатные границы */
   --card: #fff;
 }
 
@@ -50,8 +50,11 @@ body {
   border-radius: 8px;
 }
 
-/* Для кликабельных элементов фокус немного жирнее */
-:where(a, button, input, select, textarea):focus-visible {
+/* Интерактив: убираем браузерный outline и задаём наш фокус */
+:where(a, button, [role="button"], input, select, textarea) {
+  outline: none;
+}
+:where(a, button, [role="button"], input, select, textarea):focus-visible {
   outline-width: 3px;
 }
 

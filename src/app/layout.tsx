@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: "Echo — послания, которые приходят вовремя",
   description:
     "Текст, голос и видео. Доставим по дате, событию или вашему «пульсу». Шифрование на устройстве, ключи отдельно от данных.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Echo — послания, которые приходят вовремя",
     description:
@@ -46,11 +49,15 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0b0e14" }],
   },
+  // вот тут меняем путь на твой файл
+  manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {

@@ -1,16 +1,20 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const host = "https://echoproject.space";
+  const base = "https://echoproject.space";
+
   return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: ["/"],
-        disallow: ["/api/", "/account", "/messages"],
-      },
-    ],
-    sitemap: `${host}/sitemap.xml`,
-    host,
+    rules: {
+      userAgent: "*",
+      allow: ["/"],
+      disallow: [
+        "/account",
+        "/messages",
+        "/login",
+        "/api/",
+      ],
+    },
+    sitemap: `${base}/sitemap.xml`,
+    host: base,
   };
 }
