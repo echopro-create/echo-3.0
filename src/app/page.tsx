@@ -1,6 +1,5 @@
 import { Header } from "@/components/header";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { CTA } from "@/components/cta";
 
 export default function Home() {
   return (
@@ -22,10 +21,8 @@ export default function Home() {
               смерти. Мы доставим всё в нужное время.
             </p>
 
-            <div className="mt-10 flex gap-4 md:justify-center">
-              <Button asChild size="lg" className="px-6">
-                <Link href="/messages/new">Создать послание</Link>
-              </Button>
+            <div className="mt-10 md:justify-center">
+              <CTA />
             </div>
           </div>
         </section>
