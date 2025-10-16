@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/signout-button";
+import type { Route } from "next";
 
 export async function Header() {
   const supabase = await createClient();
@@ -28,7 +29,7 @@ export async function Header() {
           <Link href="/#privacy" className="opacity-80 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg px-1">
             Приватность
           </Link>
-          <Link href="/security" className="opacity-80 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg px-1">
+          <Link href={"/security" as Route} className="opacity-80 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg px-1">
             Безопасность
           </Link>
         </nav>
@@ -82,7 +83,7 @@ export async function Header() {
               <Link href="/#privacy" role="menuitem" className="rounded-xl px-3 py-2 text-sm opacity-90 hover:bg-[color:var(--fg)]/5">
                 Приватность
               </Link>
-              <Link href="/security" role="menuitem" className="rounded-xl px-3 py-2 text-sm opacity-90 hover:bg-[color:var(--fg)]/5">
+              <Link href={"/security" as Route} role="menuitem" className="rounded-xl px-3 py-2 text-sm opacity-90 hover:bg-[color:var(--fg)]/5">
                 Безопасность
               </Link>
 
