@@ -13,8 +13,65 @@ export async function Header() {
     <header className="sticky top-0 z-40 w-full border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-[color:var(--bg)]/70">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         {/* ЛОГО */}
-        <Link href="/" className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg">
-          <span className="inline-block h-6 w-6 rounded-xl bg-[color:var(--fg)]/10 dark:bg-white/10" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+          aria-label="Echo — главная"
+        >
+          {/* Логомарк: «эхо/волны» + «семя/капсула» */}
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="shrink-0"
+          >
+            {/* капсула/семя */}
+            <path
+              d="M12 6.5c2.2 0 3.5 1.76 3.5 3.5 0 2.92-2.17 5.5-3.5 7-1.33-1.5-3.5-4.08-3.5-7 0-1.74 1.3-3.5 3.5-3.5Z"
+              fill="currentColor"
+              opacity="0.15"
+            />
+            {/* внутреннее эхо */}
+            <path
+              d="M12 9.5c.97 0 1.75.78 1.75 1.75 0 1.38-1.06 2.6-1.75 3.38-.69-.78-1.75-2-1.75-3.38 0-.97.78-1.75 1.75-1.75Z"
+              fill="currentColor"
+              opacity="0.35"
+            />
+            {/* волны эхо */}
+            <path
+              d="M16.5 8.5c1.45 1.37 1.45 3.63 0 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.9"
+            />
+            <path
+              d="M18.75 6.75c2.53 2.4 2.53 6.1 0 8.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.55"
+            />
+            <path
+              d="M7.5 8.5c-1.45 1.37-1.45 3.63 0 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.9"
+            />
+            <path
+              d="M5.25 6.75c-2.53 2.4-2.53 6.1 0 8.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.55"
+            />
+          </svg>
           <span className="text-sm font-medium tracking-wide">ECHO 3.0</span>
         </Link>
 
