@@ -21,7 +21,8 @@ export default function Home() {
               смерти. Мы доставим всё в нужное время.
             </p>
 
-            <div className="mt-10 md:justify-center">
+            {/* Центрируем CTA */}
+            <div className="mt-10 flex justify-center">
               <CTA />
             </div>
           </div>
