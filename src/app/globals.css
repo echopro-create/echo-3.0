@@ -20,6 +20,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Базовые шрифты: Manrope — основной, Poppins — для заголовков */
+@layer base {
+  html {
+    font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans",
+      sans-serif;
+    font-feature-settings: "liga" 1, "kern" 1, "ss01" 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-poppins), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
 /* Выделение текста под светлую тему */
 ::selection {
   background: rgba(0, 0, 0, 0.12);
