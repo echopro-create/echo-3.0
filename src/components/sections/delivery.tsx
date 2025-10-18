@@ -1,114 +1,90 @@
-"use client";
-
-import { motion, useReducedMotion } from "framer-motion";
-import { CalendarClock, Zap, HeartPulse } from "lucide-react";
-
-type Item = {
-  icon: React.ElementType;
-  title: string;
-  desc: string;
-  hint: string;
-  bullets: string[];
-};
-
-const items: Item[] = [
-  {
-    icon: CalendarClock,
-    title: "По дате",
-    desc: "Фиксированная дата и время с учётом часового пояса. Никаких напоминаний и ручных запусков.",
-    hint: "Пример: 12.12.2030, 09:00",
-    bullets: ["ISO-время, защита от задвоений", "Проверка окна доставки"],
-  },
-  {
-    icon: Zap,
-    title: "По событию",
-    desc: "Запуск по внешнему триггеру: токен-ссылка, webhook, кодовое слово.",
-    hint: "Пример: подтверждение юристом",
-    bullets: ["Подписанные запросы, анти-replay", "Журнал аудита"],
-  },
-  {
-    icon: HeartPulse,
-    title: "По «пульсу»",
-    desc: "Dead-man-switch: если не отмечаешься в срок — послание уходит получателям.",
-    hint: "Пример: отметка раз в 30 дней",
-    bullets: ["Гибкий интервал «я в порядке»", "Мягкая задержка и отложенная отправка"],
-  },
-];
+import { Reveal } from "@/components/reveal";
+import { CTA } from "@/components/cta";
 
 export function DeliverySection() {
-  const reduce = useReducedMotion();
-  const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
-
   return (
-    <section id="delivery" className="py-20">
-      <div className="mx-auto max-w-6xl px-4">
-        <motion.h2
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.35, ease }}
-          className="mb-6 text-2xl font-semibold leading-tight tracking-tight md:text-3xl"
-        >
-          Доставка
-        </motion.h2>
+    <section
+      className="relative w-full border-t border-black/10 py-16 md:py-20"
+      role="region"
+      aria-labelledby="delivery-title"
+    >
+      <div className="mx-auto max-w-5xl">
+        <Reveal as="h2" delay={60}>
+          <h2
+            id="delivery-title"
+            className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
+          >
+            Доставка посланий
+          </h2>
+        </Reveal>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.35, ease, delay: reduce ? 0 : 0.05 }}
-          className="mb-10 max-w-2xl [text-wrap:balance] opacity-80 md:text-lg"
-        >
-          Три режима, один результат: послание приходит вовремя и только тем, кому нужно.
-        </motion.p>
+        <Reveal as="p" delay={120}>
+          <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
+            Вы выбираете условие. Мы доставляем вовремя. Всегда можно изменить или отменить.
+          </p>
+        </Reveal>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {items.map((it, i) => (
-            <motion.article
-              key={it.title}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.5 }}
-              transition={{ duration: 0.3, ease, delay: reduce ? 0 : i * 0.06 }}
-              className="rounded-2xl bg-[var(--card,theme(colors.white))] p-5 ring-1 ring-[color:var(--fg)]/10 card-hover
-                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              tabIndex={0}
-              role="article"
-              aria-label={it.title}
-            >
-              <div className="mb-4 flex items-center gap-3">
-                {/* Иконки декоративные, не читаем экраном */}
-                <span
-                  className="inline-flex size-10 items-center justify-center rounded-xl
-                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
-                  aria-hidden="true"
-                >
-                  <it.icon className="size-5 shrink-0" aria-hidden="true" focusable="false" />
-                </span>
-                <h3 className="text-xl font-medium leading-tight">{it.title}</h3>
-              </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-12">
+          {/* По дате/времени */}
+          <Reveal
+            as="article"
+            delay={160}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
+                <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <h3 className="text-base font-semibold">По времени</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Конкретная дата и час. Часовой пояс учитывается, получатели не теряются.
+            </p>
+          </Reveal>
 
-              <p className="mb-3 text-sm opacity-80">{it.desc}</p>
+          {/* По событию */}
+          <Reveal
+            as="article"
+            delay={200}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" opacity="0.06" />
+              </svg>
+              <h3 className="text-base font-semibold">По событию</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Нужен сигнал: подтверждение, кодовое слово, внешний триггер. Гибкая логика.
+            </p>
+          </Reveal>
 
-              <div className="mb-3 inline-flex items-center gap-2 text-xs opacity-70">
-                <span className="rounded-lg bg-[color:var(--fg)]/5 px-2 py-1 ring-1 ring-[color:var(--fg)]/10">
-                  {it.hint}
-                </span>
-              </div>
-
-              <div className="mt-3 h-px w-full bg-[var(--ring,theme(colors.slate.200))]" />
-
-              <ul className="mt-4 space-y-1.5 text-sm opacity-80">
-                {it.bullets.map((b) => (
-                  <li key={b} className="pl-5 [text-wrap:balance]">
-                    <span className="mr-2 inline-block size-1.5 translate-y-[-2px] rounded-full bg-[color:var(--fg)]/40" />
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
-          ))}
+          {/* «После моей смерти» */}
+          <Reveal
+            as="article"
+            delay={240}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 19h12M8 11a4 4 0 118 0v3a4 4 0 11-8 0v-3z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                <rect x="4" y="6" width="16" height="12" rx="3" fill="currentColor" opacity="0.06" />
+              </svg>
+              <h3 className="text-base font-semibold">После моей смерти</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Отложенная доставка с проверками и периодическим «пульсом». Устойчиво к сбоям.
+            </p>
+          </Reveal>
         </div>
+
+        <Reveal as="div" delay={300}>
+          <div className="mt-10 flex justify-center">
+            <CTA />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

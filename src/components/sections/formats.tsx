@@ -1,62 +1,84 @@
-"use client";
-
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileText, Mic, Video, Paperclip } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
-
-const items = [
-  { icon: FileText, title: "Текст",  desc: "Заметки, письма, напоминания. Быстро и читабельно." },
-  { icon: Mic,      title: "Голос",  desc: "Короткие голосовые и длинные размышления — всё в одном." },
-  { icon: Video,    title: "Видео",  desc: "Когда важны лицо и интонация. Доставка без задержек." },
-  { icon: Paperclip,title: "Файлы",  desc: "Приложения, сканы и всё, что должно приехать вовремя." },
-];
+import { Reveal } from "@/components/reveal";
 
 export function FormatsSection() {
-  const reduce = useReducedMotion();
-
-  // Короткая, приличная анимация. Безье вместо строки, чтобы TS не капризничал.
-  const baseTransition = { duration: 0.25, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] };
-
   return (
-    <section id="formats" className="py-20 border-t">
-      <h2 className="mb-4 text-2xl font-semibold tracking-tight md:text-3xl">
-        Форматы
-      </h2>
-      <p className="mb-8 opacity-80">
-        Текст, голос, видео и файлы. Всё в одном месте и по расписанию.
-      </p>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map(({ icon: Icon, title, desc }, i) => (
-          <motion.div
-            key={title}
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ ...baseTransition, delay: reduce ? 0 : i * 0.04 }}
-            viewport={{ once: true, amount: 0.3 }}
+    <section
+      className="relative w-full border-t border-black/10 py-16 md:py-20"
+      role="region"
+      aria-labelledby="formats-title"
+    >
+      <div className="mx-auto max-w-5xl">
+        <Reveal as="h2" delay={60}>
+          <h2
+            id="formats-title"
+            className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
           >
-            <Card
-              role="article"
-              tabIndex={0}
-              className="rounded-2xl ring-1 ring-[color:var(--fg)]/10 card-hover
-                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              <CardHeader className="flex flex-row items-center gap-3">
-                <span
-                  className="inline-flex size-10 items-center justify-center rounded-xl
-                             bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
-                  aria-hidden="true"
-                >
-                  <Icon className="size-5" aria-hidden="true" />
-                </span>
-                <CardTitle className="text-base">{title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-sm opacity-80">{desc}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+            Форматы посланий
+          </h2>
+        </Reveal>
+
+        <Reveal as="p" delay={120}>
+          <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
+            Всё, что нужно, в одном месте. Текстовые письма, голосовые и видео, файлы и вложения.
+            Черновики сохраняются автоматически.
+          </p>
+        </Reveal>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-12">
+          {/* Текст */}
+          <Reveal
+            as="article"
+            delay={160}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor" opacity="0.08" />
+                <path d="M7 9h10M7 13h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <h3 className="text-base font-semibold">Текст</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Форматированный текст без лишнего визуального мусора. Поддержка ссылок и параграфов.
+            </p>
+          </Reveal>
+
+          {/* Голос */}
+          <Reveal
+            as="article"
+            delay={200}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="9" y="4" width="6" height="16" rx="3" fill="currentColor" opacity="0.08" />
+                <path d="M12 5v10M7 12a5 5 0 0010 0M12 17v3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <h3 className="text-base font-semibold">Голос</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Запишите голосовое послание. Мы бережно храним оригинал без «улучшателей».
+            </p>
+          </Reveal>
+
+          {/* Видео и файлы */}
+          <Reveal
+            as="article"
+            delay={240}
+            className="col-span-12 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
+          >
+            <header className="flex items-center gap-3 text-[color:var(--fg)]">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h11a2 2 0 012 2v6a2 2 0 01-2 2H4z" fill="currentColor" opacity="0.08" />
+                <path d="M4 7h11a2 2 0 012 2v6a2 2 0 01-2 2H4zM17 10l3-2v8l-3-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <h3 className="text-base font-semibold">Видео и файлы</h3>
+            </header>
+            <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+              Передавайте видео и документы. Контроль доступа и срок хранения на вашей стороне.
+            </p>
+          </Reveal>
+        </div>
       </div>
     </section>
   );
