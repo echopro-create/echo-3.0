@@ -4,8 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 
+/** Берём точный тип href из Link, чтобы не спорить с Next 15 */
+type Href = Parameters<typeof Link>[0]["href"];
+
 type Props = {
-  href: string;
+  href: Href;
   children: ReactNode;
   className?: string;
   exact?: boolean;                // если true — строгое совпадение пути
@@ -27,10 +30,18 @@ export function NavLink({
 }: Props) {
   const pathname = usePathname();
 
+  // Вычисляем строковый путь из href (строка или UrlObject)
+  const targetPath = useMemo(() => {
+    if (typeof href === "string") return href;
+    // UrlObject. pathname может быть строкой или undefined
+    const p = (href && (href as any).pathname) as string | undefined;
+    return p ?? "/";
+  }, [href]);
+
   const isActive = useMemo(() => {
-    if (exact) return pathname === href;
-    return pathname === href || pathname.startsWith(href + "/");
-  }, [pathname, href, exact]);
+    if (exact) return pathname === targetPath;
+    return pathname === targetPath || pathname.startsWith(targetPath + "/");
+  }, [pathname, targetPath, exact]);
 
   const stateClass = isActive ? activeClassName : inactiveClassName;
 
