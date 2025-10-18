@@ -3,6 +3,9 @@ import { CTA } from "@/components/cta";
 import { TestimonialsSection } from "@/components/sections/testimonials";
 import { FAQSection } from "@/components/sections/faq";
 import { Reveal } from "@/components/reveal";
+import type { CSSProperties } from "react";
+
+type StyleWithVars = CSSProperties & { ["--parallax-y"]?: string };
 
 export default function Home() {
   return (
@@ -42,8 +45,7 @@ export default function Home() {
                   "conic-gradient(from 0deg at 50% 50%, currentColor, transparent 35%, transparent 65%, currentColor)",
                 filter: "blur(18px)",
                 color: "var(--fg)",
-                animation:
-                  "spin-slow 24s linear infinite",
+                animation: "spin-slow 24s linear infinite",
               }}
             />
             {/* Внутренняя орбита */}
@@ -53,8 +55,7 @@ export default function Home() {
                 background:
                   "radial-gradient(closest-side, currentColor 0.5px, transparent 40%)",
                 color: "var(--fg)",
-                animation:
-                  "pulse-soft 8s ease-in-out infinite",
+                animation: "pulse-soft 8s ease-in-out infinite",
                 filter: "blur(6px)",
               }}
             />
@@ -66,8 +67,7 @@ export default function Home() {
           {/* Контейнер HERO */}
           <div
             className="mx-auto max-w-3xl text-left md:text-center"
-            /* CSS-переменная для параллакса (прогрессивное улучшение) */
-            style={{ ["--parallax-y" as any]: "0px" }}
+            style={{ ["--parallax-y"]: "0px" } as StyleWithVars}
           >
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
@@ -82,7 +82,6 @@ export default function Home() {
                 id="hero-title"
                 className="mt-6 text-[clamp(40px,7vw,76px)] leading-[1.02] tracking-tight text-[color:var(--fg)]"
                 style={{
-                  // Манропа/Попис — variable. Управляем осями плавно.
                   fontVariationSettings: "'wght' 650, 'wdth' 92",
                 }}
               >
@@ -135,9 +134,8 @@ export default function Home() {
             }
           `}</style>
 
-          {/* Небольшой прогрессивный параллакс без фреймворков (отключается при reduce) */}
+          {/* Прогрессивный параллакс без фреймворков (отключается при reduce) */}
           <script
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: `
               try{
@@ -298,7 +296,7 @@ export default function Home() {
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10В8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                   </svg>
                   <h3 className="text-base font-semibold">Приватность по умолчанию</h3>
                 </header>
@@ -327,10 +325,17 @@ export default function Home() {
         </Reveal>
 
         {/* Заключительный CTA */}
-        <section className="relative w-full border-t border-black/10 py-16 md:py-20" role="region" aria-labelledby="cta-end">
+        <section
+          className="relative w-full border-t border-black/10 py-16 md:py-20"
+          role="region"
+          aria-labelledby="cta-end"
+        >
           <div className="mx-auto max-w-3xl text-center">
             <Reveal as="h2" delay={60}>
-              <h2 id="cta-end" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+              <h2
+                id="cta-end"
+                className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
+              >
                 Готовы подготовить послание
               </h2>
             </Reveal>
