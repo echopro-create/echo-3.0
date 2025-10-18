@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
@@ -15,7 +16,6 @@ export async function POST(req: NextRequest) {
   const res1 = await supabase.rpc("queue_due_messages");
   const queuedDatetime = res1.data ?? 0;
 
-  // может не существовать, если не накатили миграцию — не валимся
   let queuedAfterlife = 0;
   try {
     const res2 = await supabase.rpc("queue_afterlife_messages");
@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
     queuedAfterlife = 0;
   }
 
-  // запускаем флашер
-  const url = new URL("/api/outbox/flush", process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3000");
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3000";
+  const url = new URL("/api/outbox/flush", base);
   const flush = await fetch(url.toString(), {
     method: "POST",
     headers: { "x-cron-key": key },
@@ -38,9 +38,5 @@ export async function POST(req: NextRequest) {
     flushResult = { ok: false };
   }
 
-  return NextResponse.json({
-    queuedDatetime,
-    queuedAfterlife,
-    flush: flushResult,
-  });
+  return NextResponse.json({ queuedDatetime, queuedAfterlife, flush: flushResult });
 }
