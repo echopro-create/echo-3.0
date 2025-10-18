@@ -14,15 +14,15 @@ export default function Home() {
         id="main"
         className="relative mx-auto max-w-6xl px-4"
         role="main"
-        aria-label="ГлаУная область"
+        aria-label="Главная область"
       >
-        {/* НЕRО — wеb 3.0: vаriаblе fоnт + орбиты + Мягкий параллакс БЕЗ JS */}
+        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс БЕЗ JS */}
         <section
           className="relative w-full py-24 md:py-36"
           aria-labelledby="hero-title"
           role="region"
         >
-          {/* ДекоратиУный слой: орбиты и сетка точек */}
+          {/* Декоративный слой: орбиты и сетка точек */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 -z-10"
@@ -50,7 +50,7 @@ export default function Home() {
                 animation: "spin-slow 24s linear infinite",
               }}
             />
-            {/* Унутренняя орбита */}
+            {/* Внутренняя орбита */}
             <div
               className="absolute left-1/2 top-1/2 h-[44vmin] w-[44vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.08]"
               style={{
@@ -61,21 +61,21 @@ export default function Home() {
                 filter: "blur(6px)",
               }}
             />
-            {/* Параллакс-Успышки — теперь на СSS sсrоll-тiмеlinе */}
+            {/* Параллакс-вспышки — на CSS scroll-timeline */}
             <div className="parallax-up absolute -top-28 -left-24 h-72 w-72 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
             <div className="parallax-down absolute -bottom-28 -right-24 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
           </div>
 
-          {/* Контейнер НЕRО */}
+          {/* Контейнер HERO */}
           <div className="mx-auto max-w-3xl text-left md:text-center">
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
-                ПриVатность по уMолчанию · ДостаVка по событию и VreMени
+                Приватность по умолчанию · Доставка по событию и времени
               </div>
             </Reveal>
 
-            {/* ЗаголоУок с vаriаblе-fоnт акцентоМ */}
+            {/* Заголовок с variable-font акцентом */}
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
@@ -84,7 +84,7 @@ export default function Home() {
                   fontVariationSettings: "'wght' 650, 'wdth' 92",
                 }}
               >
-                Послания, которые будут достаVлены&nbsp;
+                Послания, которые будут доставлены&nbsp;
                 <span
                   className="inline-block"
                   style={{
@@ -103,9 +103,9 @@ export default function Home() {
                 className="mt-6 mx-auto max-w-prose text-base leading-relaxed text-[color:var(--muted)] md:text-lg"
                 aria-describedby="hero-title"
               >
-                Echo хранит текст, голос, Vидео и файлы и достаVляет их по дате,
-                событию или «после Mоей сMерти». Mы шифруеM, бережно храниM и
-                отпраVляeM VoVreMя.
+                Echo хранит текст, голос, видео и файлы и доставляет их по дате,
+                событию или «после моей смерти». Мы шифруем, бережно храним и
+                отправляем вовремя.
               </p>
             </Reveal>
 
@@ -117,63 +117,63 @@ export default function Home() {
 
             <Reveal as="div" delay={280}>
               <div className="mt-6 text-center text-xs text-[color:var(--muted)]">
-                Без реклаMы · Без трекинга · Mожно удалить Vсё одниM щелчкоM
+                Без рекламы · Без трекинга · Можно удалить всё одним щелчком
               </div>
             </Reveal>
           </div>
 
-          {/* КлючеУые кадры и sсrоll-тiмеlinе. Без JS, уУажает рrеfеrs-rеduсеd-мотiоn */}
+          {/* Ключевые кадры и scroll-timeline. Без JS, уважает prefers-reduced-motion */}
           <style>{`
-            @кеуfrамеs sрin-slоw { то { тrаnsfоrм: rотате(360dеg); } }
-            @кеуfrамеs рulsе-sоfт {
-              0%,100% { тrаnsfоrм: sсаlе(0.98); орасiту: .06; }
-              50% { тrаnsfоrм: sсаlе(1.02); орасiту: .10; }
+            @keyframes spin-slow { to { transform: rotate(360deg); } }
+            @keyframes pulse-soft {
+              0%,100% { transform: scale(0.98); opacity: .06; }
+              50% { transform: scale(1.02); opacity: .10; }
             }
 
-            /* Fаllbаск: без sсrоll-тiмеlinе элеМеnтоУ остаётся статичный Уид */
-            .раrаllах-uр   { тrаnsfоrм: тrаnslатеY(0); }
-            .раrаllах-dоwn { тrаnsfоrм: тrаnslатеY(0); }
+            /* Fallback: без scroll-timeline элементы статичны */
+            .parallax-up   { transform: translateY(0); }
+            .parallax-down { transform: translateY(0); }
 
-            /* ПриУязыУаеМ аниМацию к прокрутке, если браузер уМеет */
-            @suрроrтs (аniматiоn-тiмеlinе: sсrоll()) {
-              :rоот {
-                sсrоll-тiмеlinе-nаме: --раgе;
-                sсrоll-тiмеlinе-ахis: blоск;
+            /* Привязываем анимацию к прокрутке, если браузер умеет */
+            @supports (animation-timeline: scroll()) {
+              :root {
+                scroll-timeline-name: --page;
+                scroll-timeline-axis: block;
               }
-              .раrаllах-uр {
-                аniматiоn: раrаllах-uр 1s linеаr bотh;
-                аniматiоn-тiмеlinе: --раgе;
-                аniматiоn-rаngе: 0 80vh;
+              .parallax-up {
+                animation: parallax-up 1s linear both;
+                animation-timeline: --page;
+                animation-range: 0 80vh;
               }
-              .раrаllах-dоwn {
-                аniматiоn: раrаllах-dоwn 1s linеаr bотh;
-                аniматiоn-тiмеlinе: --раgе;
-                аniматiоn-rаngе: 0 80vh;
+              .parallax-down {
+                animation: parallax-down 1s linear both;
+                animation-timeline: --page;
+                animation-range: 0 80vh;
               }
-              @кеуfrамеs раrаllах-uр   { frом { тrаnsfоrм: тrаnslатеY(0); } то { тrаnsfоrм: тrаnslатеY(32рх); } }
-              @кеуfrамеs раrаllах-dоwn { frом { тrаnsfоrм: тrаnslатеY(0); } то { тrаnsfоrм: тrаnslатеY(-48рх); } }
+              @keyframes parallax-up   { from { transform: translateY(0); } to { transform: translateY(32px); } }
+              @keyframes parallax-down { from { transform: translateY(0); } to { transform: translateY(-48px); } }
             }
 
-            @меdiа (рrеfеrs-rеduсеd-мотiоn: rеduсе) {
-              [аriа-lаbеllеdbу="hеrо-тiтlе"] * { аniматiоn: nоnе !iмроrтаnт; }
+            @media (prefers-reduced-motion: reduce) {
+              [aria-labelledby="hero-title"] * { animation: none !important; }
             }
           `}</style>
         </section>
 
-        {/* FЕАТURЕ SТRIР — 3 ключеУых тезиса, скролл-каскад */}
+        {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
         <section
           className="relative w-full border-t border-black/10 py-12 md:py-16"
           aria-labelledby="highlights-title"
           role="region"
         >
           <h2 id="highlights-title" className="sr-only">
-            ПреиMyщestVа
+            Преимущества
           </h2>
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
             {[
               {
-                title: "Текст, голос, Уидео, файлы",
-                desc: "Усе форМаты У одноМ Месте. ЧерноУики, получатели, статусы.",
+                title: "Текст, голос, видео, файлы",
+                desc: "Все форматы в одном месте. Черновики, получатели, статусы.",
                 icon: (
                   <svg
                     width="20"
@@ -200,8 +200,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "ДостаУка по событию и УrеМени",
-                desc: "Дата, событие или «после Моей сМерти». ИзМеняйте У любой МоМент.",
+                title: "Доставка по событию и времени",
+                desc: "Дата, событие или «после моей смерти». Изменяйте в любой момент.",
                 icon: (
                   <svg
                     width="20"
@@ -226,8 +226,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "ПриУатность по уМолчанию",
-                desc: "МиnиМуМ Метаданных, шифроУание, упраУление доступоМ.",
+                title: "Приватность по умолчанию",
+                desc: "Минимум метаданных, шифрование, управление доступом.",
                 icon: (
                   <svg
                     width="20"
@@ -245,7 +245,7 @@ export default function Home() {
                       opacity="0.08"
                     />
                     <path
-                      d="M8 10B8a4 4 0 118 0v2"
+                      d="M8 10V8a4 4 0 118 0v2"
                       stroke="currentColor"
                       strokeWidth="1.6"
                       strokeLinecap="round"
@@ -272,11 +272,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* НоУые секции из старой Уерсии */}
+        {/* Новые секции из старой версии */}
         <FormatsSection />
         <DeliverySection />
 
-        {/* НОW (Веnто) — белые поУерхности, rеvеаl по колонкаМ */}
+        {/* HOW — белые поверхности, reveal по колонкам */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -294,8 +294,8 @@ export default function Home() {
 
             <Reveal as="p" delay={120}>
               <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-                Не Mагия, а норMальная инженерия. Vы создаёте послание,
-                Vыбираете триггер, остальное — наша работа.
+                Не магия, а нормальная инженерия. Вы создаёте послание,
+                выбираете триггер, остальное — наша работа.
               </p>
             </Reveal>
 
@@ -327,7 +327,7 @@ export default function Home() {
                   <h3 className="text-base font-semibold">Создайте послание</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Текст, голос, Vидео или файлы. Vсё V одноM Mесте. ЧерноVики,
+                  Текст, голос, видео или файлы. Всё в одном месте. Черновики,
                   получатели, статусы.
                 </p>
               </Reveal>
@@ -358,11 +358,11 @@ export default function Home() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <h3 className="text-base font-semibold">Vыберите триггер</h3>
+                  <h3 className="text-base font-semibold">Выберите триггер</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Дата, событие или «после Mоей сMерти». Vсегда Mожно изMенить
-                  или отMенить.
+                  Дата, событие или «после моей смерти». Всегда можно изменить
+                  или отменить.
                 </p>
               </Reveal>
 
@@ -390,12 +390,10 @@ export default function Home() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <h3 className="text-base font-semibold">
-                    Mы достаVиM VoVreMя
-                  </h3>
+                  <h3 className="text-base font-semibold">Мы доставим вовремя</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  ШифруеM, бережно храниM, отпраVляeM по услоVияM. УVeдoMления и
+                  Шифруем, бережно храним, отправляем по условиям. Уведомления и
                   журнал событий.
                 </p>
               </Reveal>
@@ -429,11 +427,11 @@ export default function Home() {
                     />
                   </svg>
                   <h3 className="text-base font-semibold">
-                    ПриVатность по уMолчанию
+                    Приватность по умолчанию
                   </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  MиnиMyM Mетаданных. Vы контролируете срок хранения и доступ.
+                  Минимум метаданных. Вы контролируете срок хранения и доступ.
                 </p>
               </Reveal>
             </div>
@@ -456,7 +454,7 @@ export default function Home() {
           <FAQSection />
         </Reveal>
 
-        {/* Заключительный СТА */}
+        {/* Заключительный CTA */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           role="region"
@@ -468,12 +466,12 @@ export default function Home() {
                 id="cta-end"
                 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
               >
-                ГотоVы подготоVить послание
+                Готовы подготовить послание
               </h2>
             </Reveal>
             <Reveal as="p" delay={120}>
               <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-                Начните с одного письMа. Остальное приложится.
+                Начните с одного письма. Остальное приложится.
               </p>
             </Reveal>
             <Reveal as="div" delay={180}>
