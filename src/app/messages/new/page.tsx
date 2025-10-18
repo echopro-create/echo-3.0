@@ -18,13 +18,15 @@ export default async function NewMessagePage() {
   return (
     <>
       <Header />
-      <main id="main" className="mx-auto max-w-3xl px-4 py-12">
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
-          Новое послание
-        </h1>
-        <p className="mt-3 text-[color:var(--muted)]">
-          Заполните содержимое, укажите получателей и выберите триггер доставки.
-        </p>
+      <main id="main" className="mx-auto max-w-3xl px-4 py-12" role="main" aria-label="Создание послания">
+        <header className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+            Новое послание
+          </h1>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Текст, голос, видео или файлы. Выберите триггер и получателей. Всё по-честному и по расписанию.
+          </p>
+        </header>
 
         <NewMessageForm />
       </main>
