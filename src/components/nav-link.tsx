@@ -1,16 +1,18 @@
 "use client";
 
-import Link, { LinkProps } from "next/link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 
-type Props = LinkProps & {
+type Props = {
+  href: string;
   children: ReactNode;
   className?: string;
   exact?: boolean;                // если true — строгое совпадение пути
   activeClassName?: string;       // классы для активной ссылки
   inactiveClassName?: string;     // классы для неактивной
   ariaLabel?: string;
+  role?: string;
 };
 
 export function NavLink({
@@ -21,18 +23,13 @@ export function NavLink({
   inactiveClassName = "text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]",
   ariaLabel,
   href,
-  ...rest
+  role,
 }: Props) {
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
-    const target =
-      typeof href === "string"
-        ? href
-        : (href?.pathname as string) || "/";
-
-    if (exact) return pathname === target;
-    return pathname === target || pathname.startsWith(target + "/");
+    if (exact) return pathname === href;
+    return pathname === href || pathname.startsWith(href + "/");
   }, [pathname, href, exact]);
 
   const stateClass = isActive ? activeClassName : inactiveClassName;
@@ -42,13 +39,13 @@ export function NavLink({
       href={href}
       aria-current={isActive ? "page" : undefined}
       aria-label={ariaLabel}
+      role={role}
       className={[
         "rounded-lg px-1 text-sm transition",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         stateClass,
         className,
       ].join(" ")}
-      {...rest}
     >
       {children}
     </Link>
