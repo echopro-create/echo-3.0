@@ -14,19 +14,61 @@ export default function Home() {
         role="main"
         aria-label="Главная область"
       >
-        {/* HERO — белая тема + мягкий scroll-reveal */}
+        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс без JS */}
         <section
-          className="relative w-full py-20 md:py-28"
+          className="relative w-full py-24 md:py-36"
           aria-labelledby="hero-title"
           role="region"
         >
-          {/* деликатный фон без радуги */}
+          {/* Декоративный слой: орбиты и сетка точек. Никаких радуг. */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute -top-24 -left-28 h-80 w-80 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl" />
-            <div className="absolute -bottom-24 -right-28 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl" />
+            {/* Сетка точек */}
+            <div
+              className="absolute inset-0 opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(currentColor 1px, transparent 1px)",
+                backgroundSize: "18px 18px",
+                color: "var(--fg)",
+                maskImage:
+                  "linear-gradient(to bottom, black, black, transparent)",
+              }}
+            />
+            {/* Большая орбита */}
+            <div
+              className="absolute left-1/2 top-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.06]"
+              style={{
+                background:
+                  "conic-gradient(from 0deg at 50% 50%, currentColor, transparent 35%, transparent 65%, currentColor)",
+                filter: "blur(18px)",
+                color: "var(--fg)",
+                animation:
+                  "spin-slow 24s linear infinite",
+              }}
+            />
+            {/* Внутренняя орбита */}
+            <div
+              className="absolute left-1/2 top-1/2 h-[44vmin] w-[44vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.08]"
+              style={{
+                background:
+                  "radial-gradient(closest-side, currentColor 0.5px, transparent 40%)",
+                color: "var(--fg)",
+                animation:
+                  "pulse-soft 8s ease-in-out infinite",
+                filter: "blur(6px)",
+              }}
+            />
+            {/* Параллакс-вспышки */}
+            <div className="absolute -top-28 -left-24 h-72 w-72 translate-y-[var(--parallax-y,0px)] rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
+            <div className="absolute -bottom-28 -right-24 h-96 w-96 translate-y-[calc(var(--parallax-y,0px)*-1)] rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
           </div>
 
-          <div className="mx-auto max-w-3xl text-left md:text-center">
+          {/* Контейнер HERO */}
+          <div
+            className="mx-auto max-w-3xl text-left md:text-center"
+            /* CSS-переменная для параллакса (прогрессивное улучшение) */
+            style={{ ["--parallax-y" as any]: "0px" }}
+          >
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
@@ -34,12 +76,27 @@ export default function Home() {
               </div>
             </Reveal>
 
+            {/* Заголовок с variable-font эффектом ширины и веса */}
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
-                className="mt-5 text-5xl font-medium leading-[1.05] tracking-tight text-[color:var(--fg)] md:text-7xl"
+                className="mt-6 text-[clamp(40px,7vw,76px)] leading-[1.02] tracking-tight text-[color:var(--fg)]"
+                style={{
+                  // Манропа/Попис — variable. Управляем осями плавно.
+                  fontVariationSettings: "'wght' 650, 'wdth' 92",
+                }}
               >
-                Послания, которые будут доставлены&nbsp;после нас.
+                Послания, которые будут доставлены&nbsp;
+                <span
+                  className="inline-block"
+                  style={{
+                    fontVariationSettings: "'wght' 720, 'wdth' 85",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  после нас
+                </span>
+                .
               </h1>
             </Reveal>
 
@@ -48,7 +105,7 @@ export default function Home() {
                 className="mt-6 mx-auto max-w-prose text-base leading-relaxed text-[color:var(--muted)] md:text-lg"
                 aria-describedby="hero-title"
               >
-                Echo хранит ваш текст, голос, видео и файлы и доставляет их по дате, событию
+                Echo хранит текст, голос, видео и файлы и доставляет их по дате, событию
                 или «после моей смерти». Мы шифруем, бережно храним и отправляем вовремя.
               </p>
             </Reveal>
@@ -65,6 +122,40 @@ export default function Home() {
               </div>
             </Reveal>
           </div>
+
+          {/* Встроенные ключевые кадры и предпочтения по анимациям */}
+          <style>{`
+            @keyframes spin-slow { to { transform: rotate(360deg); } }
+            @keyframes pulse-soft {
+              0%,100% { transform: scale(0.98); opacity: .06; }
+              50% { transform: scale(1.02); opacity: .10; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              [aria-labelledby="hero-title"] div[aria-hidden="true"] * { animation: none !important; }
+            }
+          `}</style>
+
+          {/* Небольшой прогрессивный параллакс без фреймворков (отключается при reduce) */}
+          <script
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: `
+              try{
+                const sec=document.currentScript?.parentElement;
+                const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if(sec && !prefersReduced){
+                  const cont=sec.querySelector('[style*="--parallax-y"]');
+                  const onScroll=()=>{
+                    const r=sec.getBoundingClientRect();
+                    const y=Math.max(-40, Math.min(40, (window.innerHeight/2 - (r.top + r.height/2))*0.06));
+                    if(cont) cont.style.setProperty('--parallax-y', y.toFixed(2)+'px');
+                  };
+                  onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+                }
+              }catch(e){}
+            `,
+            }}
+          />
         </section>
 
         {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
@@ -207,7 +298,7 @@ export default function Home() {
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M8 10В8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                   </svg>
                   <h3 className="text-base font-semibold">Приватность по умолчанию</h3>
                 </header>
