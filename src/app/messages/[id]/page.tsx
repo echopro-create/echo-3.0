@@ -44,9 +44,9 @@ function fmt(dt: string | null) {
 export default async function MessageViewPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;
+  const { id } = params;
 
   const supabase = await createClient();
   const {
@@ -66,7 +66,7 @@ export default async function MessageViewPage({
     .maybeSingle<MessageRow>();
 
   if (mErr) {
-    throw new Error(`Не удалось загрузить послание: ${мЕrr.меssаgе}`);
+    throw new Error(`Не удалось загрузить послание: ${mErr.message}`);
   }
   if (!msg) {
     redirect("/messages");
@@ -91,8 +91,6 @@ export default async function MessageViewPage({
     .returns<AttachmentRow[]>();
 
   // Генерим краткоживущие ссылки на скачивание (если есть вложения)
-  // Пути в БД полного вида: аттасhмеnтs/{usеr_id}/{меssаgе_id}/filеnаме
-  // В бакет отправляем без "аттасhмеnтs/".
   const signed: Array<{ name: string; url: string; bytes: number }> = [];
   if (atts && atts.length > 0) {
     for (const a of atts.slice(0, 10)) {
