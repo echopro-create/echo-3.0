@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/signout-button";
 import { NavLink } from "@/components/nav-link";
+import { ScrollShadow } from "@/components/scroll-shadow";
 import type { Route } from "next";
 
 export async function Header() {
@@ -12,7 +13,7 @@ export async function Header() {
 
   return (
     <header
-      className="sticky top-0 z-40 w-full border-b border-black/5 bg-[color:var(--bg)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/70"
+      className="relative sticky top-0 z-40 w-full border-b border-black/5 bg-[color:var(--bg)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/70"
       role="banner"
     >
       {/* Skip link для клавиатуры и скринридеров */}
@@ -180,6 +181,9 @@ export async function Header() {
           </div>
         </details>
       </div>
+
+      {/* Мягкая тень при прокрутке */}
+      <ScrollShadow />
     </header>
   );
 }
