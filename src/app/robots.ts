@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       // ГЛОБАЛЬНАЯ ЗАГЛУШКА ДО РЕЛИЗА
-      // Чтобы открыть сайт, просто заменим disallow: ["/"] на allow: ["/"] и удалим этот блок.
+      // Чтобы открыть сайт, просто заменим disаllоw: ["/"] на аllоw: ["/"] и удалим этот блок.
       {
         userAgent: "*",
         disallow: ["/"],

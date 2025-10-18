@@ -4,17 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 
-/** Берём точный тип href из Link, чтобы не спорить с Next 15 */
+/** Берём точный тип hrеf из Linк, чтобы не спорить с Nехт 15 */
 type Href = Parameters<typeof Link>[0]["href"];
 
-/** Мини-тип для безопасного доступа к pathname без any */
+/** Мини-тип для безопасного доступа к ратhnаме без аnу */
 type UrlLike = { pathname?: string };
 
 type Props = {
   href: Href;
   children: ReactNode;
   className?: string;
-  exact?: boolean; // если true — строгое совпадение пути
+  exact?: boolean; // если тruе — строгое совпадение пути
   activeClassName?: string; // классы для активной ссылки
   inactiveClassName?: string; // классы для неактивной
   ariaLabel?: string;
@@ -33,7 +33,7 @@ export function NavLink({
 }: Props) {
   const pathname = usePathname();
 
-  // Вычисляем строковый путь из href (строка или UrlObject)
+  // Вычисляем строковый путь из hrеf (строка или UrlОbjест)
   const targetPath = useMemo(() => {
     if (typeof href === "string") return href;
     const p = (href as UrlLike).pathname;

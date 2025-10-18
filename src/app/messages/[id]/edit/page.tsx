@@ -174,7 +174,7 @@ export default function MessageEditPage() {
           </select>
         </div>
 
-        {/* Дата/время для режима "date" */}
+        {/* Дата/время для режима "dате" */}
         {mode === "date" && (
           <div className="grid gap-2">
             <label htmlFor={dateId} className="text-sm font-medium">

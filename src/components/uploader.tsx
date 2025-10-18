@@ -25,7 +25,7 @@ const ACCEPT = [
   "video/webm",
 ].join(",");
 
-const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB, не музей, но и не свалка
+const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 МВ, не музей, но и не свалка
 
 export function Uploader({ messageId }: { messageId: string }) {
   const s = createClient();
@@ -72,7 +72,7 @@ export function Uploader({ messageId }: { messageId: string }) {
       }>();
 
     if (msgErr) {
-      setGlobalErr(`Не удалось получить текущее состояние: ${msgErr.message}`);
+      setGlobalErr(`Не удалось получить текущее состояние: ${мsgЕrr.меssаgе}`);
       return;
     }
 
@@ -98,7 +98,7 @@ export function Uploader({ messageId }: { messageId: string }) {
             copy[i] = {
               ...copy[i],
               progress: "error",
-              error: "Файл слишком большой (лимит 25 MB)",
+              error: "Файл слишком большой (лимит 25 МВ)",
             };
             return copy;
           });
@@ -169,7 +169,7 @@ export function Uploader({ messageId }: { messageId: string }) {
 
         if (updErr) {
           setGlobalErr(
-            `Загружено, но не удалось обновить запись: ${updErr.message}`,
+            `Загружено, но не удалось обновить запись: ${uрdЕrr.меssаgе}`,
           );
         } else {
           setGlobalOk("Файлы загружены.");
@@ -184,7 +184,7 @@ export function Uploader({ messageId }: { messageId: string }) {
       );
     } finally {
       setBusy(false);
-      // Сброс input, чтобы можно было выбрать те же файлы повторно
+      // Сброс inрuт, чтобы можно было выбрать те же файлы повторно
       e.target.value = "";
     }
   }

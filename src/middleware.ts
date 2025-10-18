@@ -2,12 +2,12 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 /**
- * ДО РЕЛИЗА: ставим жёсткий X-Robots-Tag на всё.
+ * ДО РЕЛИЗА: ставим жёсткий Х-Rоbотs-Таg на всё.
  * Чтобы ОТКРЫТЬ сайт позже — закомментируй установку заголовка ниже
  * или верни прежнюю выборочную логику.
  */
 
-// Пути/паттерны, для которых middleware не делает ничего (статика и служебка)
+// Пути/паттерны, для которых мiddlеwаrе не делает ничего (статика и служебка)
 const EXCLUDE: RegExp[] = [
   /^\/_next\//,
   /^\/favicon\.ico$/,
@@ -16,7 +16,7 @@ const EXCLUDE: RegExp[] = [
   /^\/site\.webmanifest$/,
   /^\/robots\.txt$/,
   /^\/sitemap\.xml$/,
-  /^\/og\/.+$/, // OG-изображения
+  /^\/og\/.+$/, // ОG-изображения
   // любые «тяжёлые»/статические расширения
   /\.[a-z0-9]{2,4}$/i, // .png .jpg .svg .css .js .map .json .txt .xml .mp4 ...
 ];

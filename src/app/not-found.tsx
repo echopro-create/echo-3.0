@@ -4,7 +4,7 @@ import type { Route } from "next";
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-[70svh] max-w-3xl flex-col items-start justify-center gap-6 px-4 py-16">
-      {/* Декор как на HERO — лёгкая сетка, чтобы не было пустоты */}
+      {/* Декор как на НЕRО — лёгкая сетка, чтобы не было пустоты */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"

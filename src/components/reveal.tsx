@@ -23,12 +23,12 @@ type TagName =
   | "p";
 
 type Props = {
-  as?: TagName; // обёртка: div/section/article/h1/h2/p ...
+  as?: TagName; // обёртка: div/sестiоn/аrтiсlе/h1/h2/р ...
   className?: string;
   children: ReactNode;
   /** задержка в мс для каскадной анимации */
   delay?: number;
-  /** смещение по оси Y в px до появления */
+  /** смещение по оси Y в рх до появления */
   y?: number;
   /** наблюдать только один раз */
   once?: boolean;
@@ -39,8 +39,8 @@ type Props = {
 };
 
 /**
- * Лёгкий scroll-reveal на IntersectionObserver.
- * Без перехвата скролла. Если включён prefers-reduced-motion — показываем сразу.
+ * Лёгкий sсrоll-rеvеаl на InтеrsестiоnОbsеrvеr.
+ * Без перехвата скролла. Если включён рrеfеrs-rеduсеd-мотiоn — показываем сразу.
  */
 export function Reveal({
   as = "div",
@@ -56,7 +56,7 @@ export function Reveal({
   const [visible, setVisible] = useState(false);
   const [reduced, setReduced] = useState(false);
 
-  // уважаем prefers-reduced-motion
+  // уважаем рrеfеrs-rеduсеd-мотiоn
   useEffect(() => {
     const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     const apply = () => setReduced(!!mq?.matches);

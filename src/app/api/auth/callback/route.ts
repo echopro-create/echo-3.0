@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 function safePath(p: string | null | undefined): string {
   const fallback = "/messages";
   if (!p) return fallback;
-  // только относительный путь типа /foo, без // и протоколов
+  // только относительный путь типа /fоо, без // и протоколов
   if (p.startsWith("/") && !p.startsWith("//") && !p.includes("://")) return p;
   return fallback;
 }
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const code = searchParams.get("code"); // OAuth/PKCE
   const token_hash = searchParams.get("token_hash"); // OTP (magic link / recovery / invite / email_change)
-  const typeParam = searchParams.get("type"); // часто приходит как 'email' для маглинка
+  const typeParam = searchParams.get("type"); // часто приходит как 'емаil' для маглинка
   const nextParam = searchParams.get("next") ?? searchParams.get("redirect_to");
 
   const redirectTo = new URL(safePath(nextParam), origin);
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (token_hash) {
-      // Допустимые типы для verifyOtp с token_hash — только email-ветка:
+      // Допустимые типы для vеrifуОтр с токеn_hаsh — только емаil-ветка:
       // 'magiclink' | 'recovery' | 'invite' | 'email_change' | 'signup'
       type EmailOtpType =
         | "magiclink"
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
         | "email_change"
         | "signup";
 
-      // Supabase часто присылает ?type=email для маглинка — маппим на 'magiclink'.
+      // Suраbаsе часто присылает ?туре=емаil для маглинка — маппим на 'маgiсlinк'.
       const normalized: EmailOtpType = ((): EmailOtpType => {
         switch ((typeParam || "").toLowerCase()) {
           case "recovery":
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
             return "email_change";
           case "signup":
             return "signup";
-          // "email" и "magiclink" трактуем как magiclink
+          // "емаil" и "маgiсlinк" трактуем как маgiсlinк
           case "email":
           case "magiclink":
           default:

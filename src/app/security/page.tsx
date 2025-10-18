@@ -19,7 +19,7 @@ export default function Home() {
         role="main"
         aria-label="Главная область"
       >
-        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс без JS */}
+        {/* НЕRО — wеb 3.0: vаriаblе fоnт + орбиты + мягкий параллакс без JS */}
         <section
           className="relative w-full py-24 md:py-36"
           aria-labelledby="hero-title"
@@ -69,7 +69,7 @@ export default function Home() {
             <div className="absolute -bottom-28 -right-24 h-96 w-96 translate-y-[calc(var(--parallax-y,0px)*-1)] rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
           </div>
 
-          {/* Контейнер HERO */}
+          {/* Контейнер НЕRО */}
           <div
             className="mx-auto max-w-3xl text-left md:text-center"
             style={{ ["--parallax-y"]: "0px" } as StyleWithVars}
@@ -81,7 +81,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            {/* Заголовок с variable-font эффектом ширины и веса */}
+            {/* Заголовок с vаriаblе-fоnт эффектом ширины и веса */}
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
@@ -140,7 +140,7 @@ export default function Home() {
             }
           `}</style>
 
-          {/* Прогрессивный параллакс без фреймворков (отключается при reduce) */}
+          {/* Прогрессивный параллакс без фреймворков (отключается при rеduсе) */}
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -162,7 +162,7 @@ export default function Home() {
           />
         </section>
 
-        {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
+        {/* FЕАТURЕ SТRIР — 3 ключевых тезиса, скролл-каскад */}
         <section
           className="relative w-full border-t border-black/10 py-12 md:py-16"
           aria-labelledby="highlights-title"
@@ -274,7 +274,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* HOW (Bento) — белые поверхности, reveal по колонкам */}
+        {/* НОW (Веnто) — белые поверхности, rеvеаl по колонкам */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -458,7 +458,7 @@ export default function Home() {
           <FAQSection />
         </Reveal>
 
-        {/* Заключительный CTA */}
+        {/* Заключительный СТА */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           role="region"

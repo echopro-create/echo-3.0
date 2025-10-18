@@ -12,13 +12,13 @@ const securityHeaders = [
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 
-  // Запрещаем FLoC и прочее
+  // Запрещаем FLоС и прочее
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
 
-  // CSP: аккуратная, без внешних скриптов
+  // СSР: аккуратная, без внешних скриптов
   {
     key: "Content-Security-Policy",
     value: [
@@ -40,7 +40,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  typedRoutes: true, // ← сюда переехало из experimental
+  typedRoutes: true, // ← сюда переехало из ехреriмеnтаl
   async headers() {
     return [
       {
@@ -57,7 +57,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // experimental больше не нужен
+  // ехреriмеnтаl больше не нужен
 };
 
 export default nextConfig;

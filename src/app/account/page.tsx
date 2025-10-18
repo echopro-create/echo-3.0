@@ -64,7 +64,7 @@ export default async function AccountPage() {
           </div>
         </section>
 
-        {/* Пульс и TTL */}
+        {/* Пульс и ТТL */}
         <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
           <h2 className="text-base font-semibold text-[color:var(--fg)]">
             Жизненный пульс

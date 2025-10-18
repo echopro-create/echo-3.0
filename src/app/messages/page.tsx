@@ -51,7 +51,7 @@ export default async function MessagesPage() {
     .returns<Row[]>();
 
   if (error) {
-    throw new Error(`Не удалось загрузить послания: ${error.message}`);
+    throw new Error(`Не удалось загрузить послания: ${еrrоr.меssаgе}`);
   }
 
   return (

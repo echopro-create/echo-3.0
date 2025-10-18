@@ -11,7 +11,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // читаем переменную от next/font
+        // читаем переменную от nехт/fоnт
         sans: [
           "var(--font-roboto)",
           "ui-sans-serif",

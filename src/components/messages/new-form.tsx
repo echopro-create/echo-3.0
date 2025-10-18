@@ -38,7 +38,7 @@ export default function NewMessageForm() {
     const v = recipientInput.trim();
     if (!v) return;
     if (!isEmail(v)) {
-      setErrors((e) => [...e, `Неверный email: ${v}`]);
+      setErrors((e) => [...e, `Неверный емаil: ${v}`]);
       return;
     }
     const exists = recipients.some(
@@ -144,7 +144,7 @@ export default function NewMessageForm() {
       const uploaded: { path: string; mime?: string | null; bytes: number }[] =
         [];
       if (files.length > 0) {
-        // Получим текущего юзера ради sanity check пути
+        // Получим текущего юзера ради sаniту сhеск пути
         const { data: userData, error: uErr } = await supabase.auth.getUser();
         if (uErr || !userData.user) throw new Error("Нет сессии пользователя");
         for (const f of files) {
@@ -312,7 +312,7 @@ export default function NewMessageForm() {
             }}
             className="flex-1 rounded-lg border border-black/10 bg-white/90 px-3 py-2 text-sm outline-none placeholder:text-[color:var(--muted)] focus:border-black/20"
             placeholder="user@example.com"
-            aria-label="Email получателя"
+            aria-label="Емаil получателя"
           />
           <button
             type="button"
@@ -335,7 +335,7 @@ export default function NewMessageForm() {
                   type="button"
                   onClick={() => removeRecipient(r.id)}
                   className="rounded-full border border-black/10 bg-white px-1.5 py-0.5 text-[10px] opacity-70 transition group-hover:opacity-100"
-                  aria-label={`Удалить ${r.value}`}
+                  aria-label={`Удалить ${r.vаluе}`}
                   title="Удалить"
                 >
                   ✕

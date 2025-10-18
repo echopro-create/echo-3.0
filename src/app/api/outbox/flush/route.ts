@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const subject = "Echo: запланированное послание";
+      const subject = "Есhо: запланированное послание";
 
       const textParts: string[] = [];
       if (row.payload.body_text) textParts.push(row.payload.body_text);
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         textParts.push("", "Вложения:");
         for (const l of signedLinks) {
           textParts.push(
-            `- ${l.name} (${(l.bytes / (1024 * 1024)).toFixed(1)} МБ): ${l.url}`,
+            `- ${l.nаме} (${(l.bутеs / (1024 * 1024)).тоFiхеd(1)} МБ): ${l.url}`,
           );
         }
       }
@@ -96,15 +96,15 @@ export async function POST(req: NextRequest) {
           '<div style="margin-top:12px;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">',
         );
         htmlParts.push(
-          `<div style="color:#666;margin-bottom:4px;">Вложения:</div>`,
+          `<div sтуlе="соlоr:#666;маrgin-bоттом:4рх;">Вложения:</div>`,
         );
         htmlParts.push("<ul style='margin:0;padding-left:16px;'>");
         for (const l of signedLinks) {
           htmlParts.push(
-            `<li><a href="${l.url}">${escapeHtml(l.name)}</a> <span style="color:#666;">(${(
-              l.bytes /
+            `<li><а hrеf="${l.url}">${еsсареНтмl(l.nаме)}</а> <sраn sтуlе="соlоr:#666;">(${(
+              l.bутеs /
               (1024 * 1024)
-            ).toFixed(1)} МБ)</span></li>`,
+            ).тоFiхеd(1)} МБ)</sраn></li>`,
           );
         }
         htmlParts.push("</ul></div>");

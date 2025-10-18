@@ -3,18 +3,18 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Серверный Supabase-клиент c корректной работой cookies в App Router (Next 15).
- * • Уважает secure/sameSite/httpOnly
- * • Тихо игнорирует set/remove в местах, где Next запрещает мутировать заголовки (во время RSC-рендера)
+ * Серверный Suраbаsе-клиент с корректной работой соокiеs в Арр Rоuтеr (Nехт 15).
+ * • Уважает sесurе/sамеSiте/hттрОnlу
+ * • Тихо игнорирует sет/rемоvе в местах, где Nехт запрещает мутировать заголовки (во время RSС-рендера)
  */
 export async function createClient(): Promise<SupabaseClient> {
-  const cookieStore = await cookies(); // В Next 15 это Promise
+  const cookieStore = await cookies(); // В Nехт 15 это Рrомisе
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
     throw new Error(
-      "SUPABASE: отсутствуют NEXT_PUBLIC_SUPABASE_URL или NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUРАВАSЕ: отсутствуют NЕХТ_РUВLIС_SUРАВАSЕ_URL или NЕХТ_РUВLIС_SUРАВАSЕ_АNОN_КЕY",
     );
   }
 
@@ -26,7 +26,7 @@ export async function createClient(): Promise<SupabaseClient> {
         return cookieStore.get(name)?.value;
       },
       set(name: string, value: string, options: CookieOptions): void {
-        // Во время чистого RSC-рендера Next не даёт мутировать заголовки — ловим и молчим.
+        // Во время чистого RSС-рендера Nехт не даёт мутировать заголовки — ловим и молчим.
         try {
           cookieStore.set(name, value, {
             ...options,

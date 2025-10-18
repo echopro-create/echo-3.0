@@ -7,21 +7,47 @@ const args = new Set(process.argv.slice(2));
 const WRITE = args.has("--write");
 
 // Cyrillic confusables → ASCII Latin
-const MAP = new Map(Object.entries({
-  // Uppercase
-  "А":"A","В":"B","С":"C","Е":"E","Н":"H","К":"K","М":"M","О":"O","Р":"R","Т":"T","Х":"X","У":"Y",
-  // Lowercase
-  "а":"a","в":"v","с":"s","е":"e","к":"k","м":"m","о":"o","р":"r","т":"t","х":"x","у":"y","н":"n",
-  // Extras seen in the wild (Ukr/Bel)
-  "І":"I","і":"i"
-}));
+const MAP = new Map(
+  Object.entries({
+    // Uppercase
+    А: "A",
+    В: "B",
+    С: "C",
+    Е: "E",
+    Н: "H",
+    К: "K",
+    М: "M",
+    О: "O",
+    Р: "R",
+    Т: "T",
+    Х: "X",
+    У: "Y",
+    // Lowercase
+    а: "a",
+    в: "v",
+    с: "s",
+    е: "e",
+    к: "k",
+    м: "m",
+    о: "o",
+    р: "r",
+    т: "t",
+    х: "x",
+    у: "y",
+    н: "n",
+    // Extras seen in the wild (Ukr/Bel)
+    І: "I",
+    і: "i",
+  }),
+);
 
 // Matches a "word" that contains at least one Cyrillic AND at least one ASCII letter
-const MIXED_WORD_RE = /\b(?=[\p{Script=Latin}\p{Script=Cyrillic}]*\p{Script=Cyrillic})(?=[\p{Script=Latin}\p{Script=Cyrillic}]*[A-Za-z])[\p{Script=Latin}\p{Script=Cyrillic}]{2,}\b/gu;
+const MIXED_WORD_RE =
+  /\b(?=[\p{Script=Latin}\p{Script=Cyrillic}]*\p{Script=Cyrillic})(?=[\p{Script=Latin}\p{Script=Cyrillic}]*[A-Za-z])[\p{Script=Latin}\p{Script=Cyrillic}]{2,}\b/gu;
 
 function fixToken(token) {
   // Replace only Cyrillic letters that have a Latin twin
-  return Array.from(token, ch => MAP.get(ch) ?? ch).join("");
+  return Array.from(token, (ch) => MAP.get(ch) ?? ch).join("");
 }
 
 function processFile(file) {
@@ -44,7 +70,9 @@ function run() {
   function walk(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        const skip = /(^|\\)(node_modules|\.next|dist|build|\.git)(\\|$)/i.test(path.join(dir, entry.name));
+        const skip = /(^|\\)(node_modules|\.next|dist|build|\.git)(\\|$)/i.test(
+          path.join(dir, entry.name),
+        );
         if (!skip) walk(path.join(dir, entry.name));
       } else if (/\.(ts|tsx|md|css)$/i.test(entry.name)) {
         targets.push(path.join(dir, entry.name));
@@ -83,7 +111,9 @@ function run() {
   }
 
   const tag = WRITE ? "APPLIED" : "DRY-RUN";
-  console.log(`${tag}: files changed=${filesChanged}, tokens touched=${touchedTokens}`);
+  console.log(
+    `${tag}: files changed=${filesChanged}, tokens touched=${touchedTokens}`,
+  );
 }
 
 run();

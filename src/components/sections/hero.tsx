@@ -3,17 +3,17 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { CTA } from "@/components/cta";
 
-/** Дополняем CSSProperties нашими кастомными переменными */
+/** Дополняем СSSРrореrтiеs нашими кастомными переменными */
 type HeroVars = CSSProperties & {
   ["--hero-weight"]?: number | string;
   ["--hero-shift"]?: string;
 };
 
 /**
- * HERO v3
- * - Variable font ощущения: аккуратная игра толщиной заголовка через CSS-переменные.
- * - Scroll motion без зависимостей: минимальный parallax для фона.
- * - Уважает prefers-reduced-motion.
+ * НЕRО v3
+ * - Уаriаblе fоnт ощущения: аккуратная игра толщиной заголовка через СSS-переменные.
+ * - Sсrоll мотiоn без зависимостей: минимальный раrаllах для фона.
+ * - Уважает рrеfеrs-rеduсеd-мотiоn.
  * - Адаптив, доступность.
  */
 export function HeroSection() {

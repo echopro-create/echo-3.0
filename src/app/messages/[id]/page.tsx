@@ -66,7 +66,7 @@ export default async function MessageViewPage({
     .maybeSingle<MessageRow>();
 
   if (mErr) {
-    throw new Error(`Не удалось загрузить послание: ${mErr.message}`);
+    throw new Error(`Не удалось загрузить послание: ${мЕrr.меssаgе}`);
   }
   if (!msg) {
     redirect("/messages");
@@ -91,8 +91,8 @@ export default async function MessageViewPage({
     .returns<AttachmentRow[]>();
 
   // Генерим краткоживущие ссылки на скачивание (если есть вложения)
-  // Пути в БД полного вида: attachments/{user_id}/{message_id}/filename
-  // В бакет отправляем без "attachments/".
+  // Пути в БД полного вида: аттасhмеnтs/{usеr_id}/{меssаgе_id}/filеnаме
+  // В бакет отправляем без "аттасhмеnтs/".
   const signed: Array<{ name: string; url: string; bytes: number }> = [];
   if (atts && atts.length > 0) {
     for (const a of atts.slice(0, 10)) {
