@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/header";
 import Link from "next/link";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
 import { deleteMessage } from "./actions";
 import { StatusBadge } from "@/components/messages/status-badge";
 
@@ -19,10 +17,18 @@ type Row = {
   updated_at: string;
 };
 
+const fmtRu = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 function fmt(dt: string | null) {
   if (!dt) return "—";
   try {
-    return format(new Date(dt), "d MMM yyyy, HH:mm", { locale: ru });
+    return fmtRu.format(new Date(dt));
   } catch {
     return dt;
   }
@@ -38,7 +44,6 @@ export default async function MessagesPage() {
     redirect("/login");
   }
 
-  // Подтягиваем сообщения владельца, свежие — сверху
   const { data: rows, error } = await supabase
     .from("messages")
     .select("id, kind, trigger_kind, send_at, status, created_at, updated_at")
@@ -46,7 +51,6 @@ export default async function MessagesPage() {
     .returns<Row[]>();
 
   if (error) {
-    // Не драматизируем, показываем внятное сообщение
     throw new Error(`Не удалось загрузить послания: ${error.message}`);
   }
 
@@ -129,7 +133,6 @@ export default async function MessagesPage() {
                             Открыть
                           </Link>
 
-                          {/* Удаление через server action */}
                           <form action={deleteMessage}>
                             <input type="hidden" name="id" value={r.id} />
                             <button
