@@ -38,7 +38,7 @@ export default function NewMessageForm() {
     const v = recipientInput.trim();
     if (!v) return;
     if (!isEmail(v)) {
-      setErrors((e) => [...e, `Неверный емаil: ${v}`]);
+      setErrors((e) => [...e, `Неверный email: ${v}`]);
       return;
     }
     const exists = recipients.some(
@@ -138,13 +138,13 @@ export default function NewMessageForm() {
       });
       if (!resp.ok) throw new Error(`API /messages: ${resp.status}`);
       const { id, storagePrefix, status } = await resp.json();
-      console.log("message created", { id, status }); // ← та самая строка
+      console.log("message created", { id, status });
 
       // 2) Если есть файлы — грузим в приватный бакет
       const uploaded: { path: string; mime?: string | null; bytes: number }[] =
         [];
       if (files.length > 0) {
-        // Получим текущего юзера ради sаniту сhеск пути
+        // Получим текущего юзера ради sanity check пути
         const { data: userData, error: uErr } = await supabase.auth.getUser();
         if (uErr || !userData.user) throw new Error("Нет сессии пользователя");
         for (const f of files) {
@@ -246,7 +246,7 @@ export default function NewMessageForm() {
 
         <div className="mt-4">
           {contentKind === "text" && (
-            <label className="block text स्म">
+            <label className="block text-sm">
               <span className="text-[color:var(--fg)]">Текст сообщения</span>
               <textarea
                 value={text}
@@ -312,7 +312,7 @@ export default function NewMessageForm() {
             }}
             className="flex-1 rounded-lg border border-black/10 bg-white/90 px-3 py-2 text-sm outline-none placeholder:text-[color:var(--muted)] focus:border-black/20"
             placeholder="user@example.com"
-            aria-label="Емаil получателя"
+            aria-label="Email получателя"
           />
           <button
             type="button"
@@ -335,7 +335,7 @@ export default function NewMessageForm() {
                   type="button"
                   onClick={() => removeRecipient(r.id)}
                   className="rounded-full border border-black/10 bg-white px-1.5 py-0.5 text-[10px] opacity-70 transition group-hover:opacity-100"
-                  aria-label={`Удалить ${r.vаluе}`}
+                  aria-label={`Удалить ${r.value}`}
                   title="Удалить"
                 >
                   ✕
