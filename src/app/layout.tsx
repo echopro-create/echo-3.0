@@ -19,10 +19,13 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://echoproject.space"),
+  applicationName: "Echo",
   title: "Echo — послания, которые будут доставлены после нас",
   description:
-    "Echo хранит ваши текст, голос, видео или файлы и доставляет их по дате, событию или после вашей смерти. Мы доставим всё в нужное время.",
-  alternates: { canonical: "/" },
+    "Echo хранит текст, голос, видео и файлы и доставляет их по дате, событию или после вашей смерти. Мы доставим всё в нужное время.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Echo — послания, которые будут доставлены после нас",
     description:
@@ -39,10 +42,17 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Echo — послания, которые будут доставлены после нас",
-    description: "Доставим в нужное время: по дате, событию или после вашей смерти.",
+    description:
+      "Текст, голос, видео и файлы. Доставка по дате, событию или после вашей смерти.",
     images: ["/og/cover-1200x630.png"],
   },
-  // ВРЕМЕННО закрываем весь сайт от индексации
+  referrer: "no-referrer",
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  // сайт закрыт от индексации до релиза
   robots: {
     index: false,
     follow: false,
