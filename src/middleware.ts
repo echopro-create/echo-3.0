@@ -1,30 +1,45 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-// Пути, которые точно не должны попадать в поисковики
-const NOINDEX = [
-  "/login",
-  "/account",
-  "/messages",
-  "/api",
+/**
+ * ДО РЕЛИЗА: ставим жёсткий X-Robots-Tag на всё.
+ * Чтобы ОТКРЫТЬ сайт позже — закомментируй установку заголовка ниже
+ * или верни прежнюю выборочную логику.
+ */
+
+// Пути/паттерны, для которых middleware не делает ничего (статика и служебка)
+const EXCLUDE: RegExp[] = [
+  /^\/_next\//,
+  /^\/favicon\.ico$/,
+  /^\/(icon-192|icon-512|apple-touch-icon)\.png$/,
+  /^\/safari-pinned-tab\.svg$/,
+  /^\/site\.webmanifest$/,
+  /^\/robots\.txt$/,
+  /^\/sitemap\.xml$/,
+  /^\/og\/.+$/, // OG-изображения
+  // любые «тяжёлые»/статические расширения
+  /\.[a-z0-9]{2,4}$/i, // .png .jpg .svg .css .js .map .json .txt .xml .mp4 ...
 ];
 
 export function middleware(req: NextRequest) {
-  const url = new URL(req.url);
+  const { pathname } = new URL(req.url);
 
-  // если запрошен один из защищаемых маршрутов — ставим заголовок
-  const shouldNoindex = NOINDEX.some(prefix => url.pathname === prefix || url.pathname.startsWith(prefix + "/"));
-
-  if (shouldNoindex) {
-    const res = NextResponse.next();
-    res.headers.set("X-Robots-Tag", "noindex, nofollow");
-    return res;
+  // если путь совпадает с любым исключением — пропускаем без заголовков
+  if (EXCLUDE.some(rx => rx.test(pathname))) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // тотальный запрет индексации
+  const res = NextResponse.next();
+  res.headers.set(
+    "X-Robots-Tag",
+    "noindex, nofollow, noimageindex, noarchive, nosnippet"
+  );
+  return res;
 }
 
-// Срабатываем только там, где надо, без лишних тормозов
+// Обрабатываем всё, чтобы не плодить список матчеров.
+// Исключения выше перекроют статику.
 export const config = {
-  matcher: ["/login", "/account", "/messages/:path*", "/api/:path*"],
+  matcher: ["/:path*"],
 };
