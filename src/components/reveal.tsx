@@ -34,11 +34,13 @@ type Props = {
   once?: boolean;
   /** порог видимости (0..1), по умолчанию 0.2 */
   threshold?: number;
+  /** полностью отключить анимацию для конкретного узла */
+  disabled?: boolean;
 };
 
 /**
  * Лёгкий scroll-reveal на IntersectionObserver.
- * Никаких перехватов скролла. Мягкая трансформация и прозрачность.
+ * Без перехвата скролла. Если включён prefers-reduced-motion — показываем сразу.
  */
 export function Reveal({
   as = "div",
@@ -48,11 +50,27 @@ export function Reveal({
   y = 16,
   once = true,
   threshold = 0.2,
+  disabled = false,
 }: Props) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
+  const [reduced, setReduced] = useState(false);
 
+  // уважаем prefers-reduced-motion
   useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const apply = () => setReduced(!!mq?.matches);
+    apply();
+    mq?.addEventListener?.("change", apply);
+    return () => mq?.removeEventListener?.("change", apply);
+  }, []);
+
+  // наблюдатель появления
+  useEffect(() => {
+    if (disabled || reduced) {
+      setVisible(true);
+      return;
+    }
     const el = ref.current;
     if (!el) return;
 
@@ -72,17 +90,23 @@ export function Reveal({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [once, threshold]);
+  }, [once, threshold, disabled, reduced]);
 
-  const style: CSSProperties = {
-    transform: visible ? "translateY(0px)" : `translateY(${y}px)`,
-    opacity: visible ? 1 : 0,
-    transitionProperty: "transform, opacity",
-    transitionDuration: "600ms",
-    transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-    transitionDelay: `${delay}ms`,
-    willChange: "transform, opacity",
-  };
+  const noAnim = disabled || reduced;
+  const style: CSSProperties = noAnim
+    ? {
+        transform: "none",
+        opacity: 1,
+      }
+    : {
+        transform: visible ? "translateY(0px)" : `translateY(${y}px)`,
+        opacity: visible ? 1 : 0,
+        transitionProperty: "transform, opacity",
+        transitionDuration: "600ms",
+        transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+        transitionDelay: `${delay}ms`,
+        willChange: "transform, opacity",
+      };
 
   return createElement(
     as,
