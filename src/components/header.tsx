@@ -24,13 +24,12 @@ export async function Header() {
         Перейти к содержимому
       </a>
 
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-6">
         {/* ЛОГО */}
         <Link
           href="/"
-          rel="home"
           className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
-          aria-label="Echo — главная"
+          aria-label="Echo — на главную"
         >
           {/* логомарк */}
           <svg
@@ -88,23 +87,24 @@ export async function Header() {
           </span>
         </Link>
 
-        {/* Мини-навигация */}
+        {/* Центр: статичные ссылки (десктоп) */}
         <nav
           className="hidden items-center gap-6 text-sm md:flex"
           aria-label="Основная навигация"
+          role="navigation"
         >
           <NavLink
             href={"/security" as Route}
             ariaLabel="Безопасность"
+            exact
             activeClassName="text-[color:var(--fg)]"
             inactiveClassName="text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]"
-            exact
           >
             Безопасность
           </NavLink>
         </nav>
 
-        {/* Правый блок */}
+        {/* Правый блок (десктоп): auth / аккаунт */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
@@ -130,21 +130,21 @@ export async function Header() {
             <NavLink
               href="/login"
               ariaLabel="Войти"
+              exact
+              className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium transition ring-1 ring-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
               activeClassName="text-[color:var(--fg)]"
               inactiveClassName="text-[color:var(--fg)]"
-              className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium ring-1 ring-black/10 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
-              exact
             >
               Войти
             </NavLink>
           )}
         </div>
 
-        {/* Мобильное меню без JS */}
+        {/* Мобильное меню без JS (summary/details) */}
         <details className="group relative md:hidden">
           <summary
             aria-label="Открыть меню"
-            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-xl ring-1 ring-black/10 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
+            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-xl transition ring-1 ring-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -165,11 +165,11 @@ export async function Header() {
               <NavLink
                 href={"/security" as Route}
                 ariaLabel="Безопасность"
+                exact
+                role="menuitem"
                 className="rounded-xl px-3 py-2 text-sm transition"
                 activeClassName="text-[color:var(--fg)] bg-black/5"
                 inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
-                exact
-                role="menuitem"
               >
                 Безопасность
               </NavLink>
@@ -181,20 +181,20 @@ export async function Header() {
                   <NavLink
                     href="/messages"
                     ariaLabel="Послания"
+                    role="menuitem"
                     className="rounded-xl px-3 py-2 text-sm transition"
                     activeClassName="text-[color:var(--fg)] bg-black/5"
                     inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
-                    role="menuitem"
                   >
                     Послания
                   </NavLink>
                   <NavLink
                     href="/account"
                     ariaLabel="Аккаунт"
+                    role="menuitem"
                     className="rounded-xl px-3 py-2 text-sm transition"
                     activeClassName="text-[color:var(--fg)] bg-black/5"
                     inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
-                    role="menuitem"
                   >
                     Аккаунт
                   </NavLink>
@@ -206,11 +206,11 @@ export async function Header() {
                 <NavLink
                   href="/login"
                   ariaLabel="Войти"
-                  className="rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-black/10 transition hover:bg-black/5"
-                  activeClassName="text-[color:var(--fg)] bg-black/5"
-                  inactiveClassName="text-[color:var(--fg)]"
-                  role="menuitem"
                   exact
+                  role="menuitem"
+                  className="rounded-xl px-3 py-2 text-sm font-medium transition ring-1 ring-black/10 hover:bg-black/5"
+                  activeClassName="text-[color:var(--fg)]"
+                  inactiveClassName="text-[color:var(--fg)]"
                 >
                   Войти
                 </NavLink>
