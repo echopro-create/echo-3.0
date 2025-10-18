@@ -28,10 +28,16 @@ export async function POST(req: NextRequest) {
   }
 
   const isDatetime = body.trigger_kind === "datetime";
-  const sendAtISO = isDatetime && body.send_at ? new Date(body.send_at).toISOString() : null;
+  const isAfterlife = body.trigger_kind === "afterlife";
+  const sendAtISO =
+    isDatetime && body.send_at ? new Date(body.send_at).toISOString() : null;
 
   const initialStatus =
-    body.trigger_kind === "datetime" && sendAtISO ? "scheduled" : "draft";
+    isDatetime && sendAtISO
+      ? "scheduled"
+      : isAfterlife && body.afterlife_ack
+      ? "scheduled"
+      : "draft";
 
   const { data: msg, error: insErr } = await supabase
     .from("messages")
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest) {
       trigger_kind: body.trigger_kind,
       send_at: sendAtISO,
       event_code: body.trigger_kind === "event" ? body.event_code : null,
-      afterlife_ack: body.trigger_kind === "afterlife" ? !!body.afterlife_ack : false,
+      afterlife_ack: isAfterlife ? !!body.afterlife_ack : false,
       status: initialStatus,
     })
     .select("*")
