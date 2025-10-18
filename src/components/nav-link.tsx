@@ -14,9 +14,9 @@ type Props = {
   href: Href;
   children: ReactNode;
   className?: string;
-  exact?: boolean;                // если true — строгое совпадение пути
-  activeClassName?: string;       // классы для активной ссылки
-  inactiveClassName?: string;     // классы для неактивной
+  exact?: boolean; // если true — строгое совпадение пути
+  activeClassName?: string; // классы для активной ссылки
+  inactiveClassName?: string; // классы для неактивной
   ariaLabel?: string;
   role?: string;
 };

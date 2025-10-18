@@ -4,23 +4,26 @@
 
 /* Светлая палитра и токены */
 :root {
-  --bg: #ffffff;        /* фон */
-  --fg: #0e1420;        /* основной текст (не абсолютный чёрный) */
-  --muted: #3f4a59;     /* вторичный текст (достаточный контраст) */
+  --bg: #ffffff; /* фон */
+  --fg: #0e1420; /* основной текст (не абсолютный чёрный) */
+  --muted: #3f4a59; /* вторичный текст (достаточный контраст) */
 
-  --surface: #ffffff;   /* базовая поверхность карточек/секций */
-  --ring: rgba(14, 20, 32, 0.08);      /* цвет обводки/ring */
+  --surface: #ffffff; /* базовая поверхность карточек/секций */
+  --ring: rgba(14, 20, 32, 0.08); /* цвет обводки/ring */
   --ring-strong: rgba(14, 20, 32, 0.12); /* усиленный ring для hover */
 
   /* Типографский модуль */
-  --measure: 68ch;   /* целевая длина строки для основного текста */
-  --leading: 1.6;    /* базовый межстрочный интервал для параграфов */
+  --measure: 68ch; /* целевая длина строки для основного текста */
+  --leading: 1.6; /* базовый межстрочный интервал для параграфов */
 
   color-scheme: light;
 }
 
 /* Базовая раскладка и сглаживание */
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 body {
   background-color: var(--bg);
   color: var(--fg);
@@ -32,36 +35,85 @@ body {
 /* Базовые шрифты: Manrope — основной, Poppins — для заголовков */
 @layer base {
   html {
-    font-family: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
-      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans",
+    font-family:
+      var(--font-manrope),
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      "Noto Sans",
+      "Liberation Sans",
       sans-serif;
-    font-feature-settings: "liga" 1, "kern" 1;
+    font-feature-settings:
+      "liga" 1,
+      "kern" 1;
     font-variation-settings: normal;
   }
 
   @supports (font-variation-settings: normal) {
-    html { font-optical-sizing: auto; }
+    html {
+      font-optical-sizing: auto;
+    }
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-poppins), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-poppins), var(--font-manrope), ui-sans-serif, system-ui,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   /* Типографская мерка и вертикальный ритм */
-  p, ul, ol, blockquote { max-width: var(--measure); }
-  p { line-height: var(--leading); }
+  p,
+  ul,
+  ol,
+  blockquote {
+    max-width: var(--measure);
+  }
+  p {
+    line-height: var(--leading);
+  }
 
   /* Единые вертикальные отступы между блоками текста */
-  h1, h2, h3, h4, h5, h6 { margin-block: 0.8rem 0.4rem; }
-  p { margin-block: 0.75rem; }
-  ul, ol { margin-block: 0.75rem; padding-left: 1.25rem; }
-  li { margin-block: 0.25rem; }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-block: 0.8rem 0.4rem;
+  }
+  p {
+    margin-block: 0.75rem;
+  }
+  ul,
+  ol {
+    margin-block: 0.75rem;
+    padding-left: 1.25rem;
+  }
+  li {
+    margin-block: 0.25rem;
+  }
 
   /* Снимем двойные отступы у подряд идущих элементов */
-  h1 + p, h2 + p, h3 + p,
-  p + p, p + ul, p + ol,
-  ul + p, ol + p { margin-top: 0.5rem; }
+  h1 + p,
+  h2 + p,
+  h3 + p,
+  p + p,
+  p + ul,
+  p + ol,
+  ul + p,
+  ol + p {
+    margin-top: 0.5rem;
+  }
 }
 
 /* Выделение текста */
@@ -77,11 +129,22 @@ body {
 }
 
 /* Базовая шкала заголовков */
-h1 { @apply text-4xl md:text-6xl font-semibold tracking-tight; }
-h2 { @apply text-3xl md:text-4xl font-semibold tracking-tight; }
-h3 { @apply text-2xl md:text-3xl font-semibold tracking-tight; }
-p  { @apply leading-7; }
-small, .text-small { @apply text-sm leading-5; }
+h1 {
+  @apply text-4xl md:text-6xl font-semibold tracking-tight;
+}
+h2 {
+  @apply text-3xl md:text-4xl font-semibold tracking-tight;
+}
+h3 {
+  @apply text-2xl md:text-3xl font-semibold tracking-tight;
+}
+p {
+  @apply leading-7;
+}
+small,
+.text-small {
+  @apply text-sm leading-5;
+}
 
 /* Мягкие поверхности по умолчанию (вспомогательные утилиты) */
 @layer components {

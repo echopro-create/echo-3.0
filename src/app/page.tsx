@@ -14,16 +14,19 @@ export default function Home() {
         id="main"
         className="relative mx-auto max-w-6xl px-4"
         role="main"
-        aria-label="Главная область"
+        aria-label="ГлаVная область"
       >
-        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс БЕЗ JS */}
+        {/* HERO — web 3.0: variable font + орбиты + Mягкий параллакс БЕЗ JS */}
         <section
           className="relative w-full py-24 md:py-36"
           aria-labelledby="hero-title"
           role="region"
         >
-          {/* Декоративный слой: орбиты и сетка точек */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          {/* ДекоратиVный слой: орбиты и сетка точек */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10"
+          >
             {/* Сетка точек */}
             <div
               className="absolute inset-0 opacity-[0.08]"
@@ -47,7 +50,7 @@ export default function Home() {
                 animation: "spin-slow 24s linear infinite",
               }}
             />
-            {/* Внутренняя орбита */}
+            {/* Vнутренняя орбита */}
             <div
               className="absolute left-1/2 top-1/2 h-[44vmin] w-[44vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.08]"
               style={{
@@ -58,7 +61,7 @@ export default function Home() {
                 filter: "blur(6px)",
               }}
             />
-            {/* Параллакс-вспышки — теперь на CSS scroll-timeline */}
+            {/* Параллакс-Vспышки — теперь на CSS scroll-timeline */}
             <div className="parallax-up absolute -top-28 -left-24 h-72 w-72 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
             <div className="parallax-down absolute -bottom-28 -right-24 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
           </div>
@@ -68,11 +71,11 @@ export default function Home() {
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
-                Приватность по умолчанию · Доставка по событию и времени
+                ПриVатность по уMолчанию · ДостаVка по событию и VреMени
               </div>
             </Reveal>
 
-            {/* Заголовок с variable-font акцентом */}
+            {/* ЗаголоVок с variable-font акцентоM */}
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
@@ -81,7 +84,7 @@ export default function Home() {
                   fontVariationSettings: "'wght' 650, 'wdth' 92",
                 }}
               >
-                Послания, которые будут доставлены&nbsp;
+                Послания, которые будут достаVлены&nbsp;
                 <span
                   className="inline-block"
                   style={{
@@ -100,8 +103,9 @@ export default function Home() {
                 className="mt-6 mx-auto max-w-prose text-base leading-relaxed text-[color:var(--muted)] md:text-lg"
                 aria-describedby="hero-title"
               >
-                Echo хранит текст, голос, видео и файлы и доставляет их по дате, событию
-                или «после моей смерти». Мы шифруем, бережно храним и отправляем вовремя.
+                Echo хранит текст, голос, Vидео и файлы и достаVляет их по дате,
+                событию или «после Mоей сMерти». Mы шифруеM, бережно храниM и
+                отпраVляеM VоVреMя.
               </p>
             </Reveal>
 
@@ -113,12 +117,12 @@ export default function Home() {
 
             <Reveal as="div" delay={280}>
               <div className="mt-6 text-center text-xs text-[color:var(--muted)]">
-                Без рекламы · Без трекинга · Можно удалить всё одним щелчком
+                Без реклаMы · Без трекинга · Mожно удалить Vсё одниM щелчкоM
               </div>
             </Reveal>
           </div>
 
-          {/* Ключевые кадры и scroll-timeline. Без JS, уважает prefers-reduced-motion */}
+          {/* КлючеVые кадры и scroll-timeline. Без JS, уVажает prefers-reduced-motion */}
           <style>{`
             @keyframes spin-slow { to { transform: rotate(360deg); } }
             @keyframes pulse-soft {
@@ -126,11 +130,11 @@ export default function Home() {
               50% { transform: scale(1.02); opacity: .10; }
             }
 
-            /* Fallback: без scroll-timeline элементов остаётся статичный вид */
+            /* Fallback: без scroll-timeline элеMентоV остаётся статичный Vид */
             .parallax-up   { transform: translateY(0); }
             .parallax-down { transform: translateY(0); }
 
-            /* Привязываем анимацию к прокрутке, если браузер умеет */
+            /* ПриVязыVаеM аниMацию к прокрутке, если браузер уMеет */
             @supports (animation-timeline: scroll()) {
               :root {
                 scroll-timeline-name: --page;
@@ -156,44 +160,96 @@ export default function Home() {
           `}</style>
         </section>
 
-        {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
+        {/* FEATURE STRIP — 3 ключеVых тезиса, скролл-каскад */}
         <section
           className="relative w-full border-t border-black/10 py-12 md:py-16"
           aria-labelledby="highlights-title"
           role="region"
         >
           <h2 id="highlights-title" className="sr-only">
-            Преимущества
+            ПреиMущестVа
           </h2>
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
             {[
               {
-                title: "Текст, голос, видео, файлы",
-                desc: "Все форматы в одном месте. Черновики, получатели, статусы.",
+                title: "Текст, голос, Vидео, файлы",
+                desc: "Vсе форMаты V одноM Mесте. ЧерноVики, получатели, статусы.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M7 9h10M7 13h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="4"
+                      y="5"
+                      width="16"
+                      height="14"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M7 9h10M7 13h6"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
               {
-                title: "Доставка по событию и времени",
-                desc: "Дата, событие или «после моей смерти». Изменяйте в любой момент.",
+                title: "ДостаVка по событию и VреMени",
+                desc: "Дата, событие или «после Mоей сMерти». ИзMеняйте V любой MоMент.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
-                    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="8"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M12 7v5l3 2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
               {
-                title: "Приватность по умолчанию",
-                desc: "Минимум метаданных, шифрование, управление доступом.",
+                title: "ПриVатность по уMолчанию",
+                desc: "MиниMуM Mетаданных, шифроVание, упраVление доступоM.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10В8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="5"
+                      y="10"
+                      width="14"
+                      height="9"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M8 10B8a4 4 0 118 0v2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
@@ -208,17 +264,19 @@ export default function Home() {
                   <span className="text-[color:var(--fg)]">{item.icon}</span>
                   <h3 className="text-base font-semibold">{item.title}</h3>
                 </header>
-                <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">{item.desc}</p>
+                <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                  {item.desc}
+                </p>
               </Reveal>
             ))}
           </div>
         </section>
 
-        {/* Новые секции из старой версии */}
+        {/* НоVые секции из старой Vерсии */}
         <FormatsSection />
         <DeliverySection />
 
-        {/* HOW (Bento) — белые поверхности, reveal по колонкам */}
+        {/* HOW (Bento) — белые поVерхности, reveal по колонкаM */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -236,7 +294,8 @@ export default function Home() {
 
             <Reveal as="p" delay={120}>
               <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-                Не магия, а нормальная инженерия. Вы создаёте послание, выбираете триггер, остальное — наша работа.
+                Не Mагия, а норMальная инженерия. Vы создаёте послание,
+                Vыбираете триггер, остальное — наша работа.
               </p>
             </Reveal>
 
@@ -247,14 +306,29 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z" fill="currentColor" opacity="0.12" />
-                    <path d="М4 20c5-1 9-5 13-9l3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z"
+                      fill="currentColor"
+                      opacity="0.12"
+                    />
+                    <path
+                      d="M4 20c5-1 9-5 13-9l3-3"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <h3 className="text-base font-semibold">Создайте послание</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Текст, голос, видео или файлы. Всё в одном месте. Черновики, получатели, статусы.
+                  Текст, голос, Vидео или файлы. Vсё V одноM Mесте. ЧерноVики,
+                  получатели, статусы.
                 </p>
               </Reveal>
 
@@ -264,14 +338,31 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
-                    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="8"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M12 7v5l3 2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <h3 className="text-base font-semibold">Выберите триггер</h3>
+                  <h3 className="text-base font-semibold">Vыберите триггер</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Дата, событие или «после моей смерти». Всегда можно изменить или отменить.
+                  Дата, событие или «после Mоей сMерти». Vсегда Mожно изMенить
+                  или отMенить.
                 </p>
               </Reveal>
 
@@ -281,14 +372,31 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 7h16v10H4z" fill="currentColor" opacity="0.08" />
-                    <path d="M4 7l8 6 8-6M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 7h16v10H4z"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M4 7l8 6 8-6M4 17h16"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <h3 className="text-base font-semibold">Мы доставим вовремя</h3>
+                  <h3 className="text-base font-semibold">
+                    Mы достаVиM VоVреMя
+                  </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Шифруем, бережно храним, отправляем по условиям. Уведомления и журнал событий.
+                  ШифруеM, бережно храниM, отпраVляеM по услоVияM. УVедоMления и
+                  журнал событий.
                 </p>
               </Reveal>
 
@@ -298,14 +406,34 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="5"
+                      y="10"
+                      width="14"
+                      height="9"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M8 10V8a4 4 0 118 0v2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <h3 className="text-base font-semibold">Приватность по умолчанию</h3>
+                  <h3 className="text-base font-semibold">
+                    ПриVатность по уMолчанию
+                  </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Минимум метаданных. Вы контролируете срок хранения и доступ.
+                  MиниMуM Mетаданных. Vы контролируете срок хранения и доступ.
                 </p>
               </Reveal>
             </div>
@@ -340,12 +468,12 @@ export default function Home() {
                 id="cta-end"
                 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
               >
-                Готовы подготовить послание
+                ГотоVы подготоVить послание
               </h2>
             </Reveal>
             <Reveal as="p" delay={120}>
               <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-                Начните с одного письма. Остальное приложится.
+                Начните с одного письMа. Остальное приложится.
               </p>
             </Reveal>
             <Reveal as="div" delay={180}>

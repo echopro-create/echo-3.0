@@ -1,8 +1,5 @@
 import { cookies } from "next/headers";
-import {
-  createServerClient,
-  type CookieOptions,
-} from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -16,7 +13,9 @@ export async function createClient(): Promise<SupabaseClient> {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    throw new Error("SUPABASE: отсутствуют NEXT_PUBLIC_SUPABASE_URL или NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    throw new Error(
+      "SUPABASE: отсутствуют NEXT_PUBLIC_SUPABASE_URL или NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
   }
 
   const isProd = process.env.NODE_ENV === "production";

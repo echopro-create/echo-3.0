@@ -2,10 +2,9 @@ packages:
   - .
 
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - 'lightningcss'
-  - 'sharp'
-  - 'unrs-resolver'
-
+  - "@tailwindcss/oxide"
+  - "lightningcss"
+  - "sharp"
+  - "unrs-resolver"
 # если вдруг что-то всё ещё рубится на CI, можно добить:
 # neverBuiltDependencies: []

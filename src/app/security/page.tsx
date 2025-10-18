@@ -26,7 +26,10 @@ export default function Home() {
           role="region"
         >
           {/* Декоративный слой: орбиты и сетка точек. Никаких радуг. */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10"
+          >
             {/* Сетка точек */}
             <div
               className="absolute inset-0 opacity-[0.08]"
@@ -106,8 +109,9 @@ export default function Home() {
                 className="mt-6 mx-auto max-w-prose text-base leading-relaxed text-[color:var(--muted)] md:text-lg"
                 aria-describedby="hero-title"
               >
-                Echo хранит текст, голос, видео и файлы и доставляет их по дате, событию
-                или «после моей смерти». Мы шифруем, бережно храним и отправляем вовремя.
+                Echo хранит текст, голос, видео и файлы и доставляет их по дате,
+                событию или «после моей смерти». Мы шифруем, бережно храним и
+                отправляем вовремя.
               </p>
             </Reveal>
 
@@ -173,9 +177,27 @@ export default function Home() {
                 title: "Текст, голос, видео, файлы",
                 desc: "Все форматы в одном месте. Черновики, получатели, статусы.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M7 9h10M7 13h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="4"
+                      y="5"
+                      width="16"
+                      height="14"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M7 9h10M7 13h6"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
@@ -183,9 +205,25 @@ export default function Home() {
                 title: "Доставка по событию и времени",
                 desc: "Дата, событие или «после моей смерти». Изменяйте в любой момент.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
-                    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="8"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M12 7v5l3 2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
@@ -193,9 +231,27 @@ export default function Home() {
                 title: "Приватность по умолчанию",
                 desc: "Минимум метаданных, шифрование, управление доступом.",
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="5"
+                      y="10"
+                      width="14"
+                      height="9"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M8 10V8a4 4 0 118 0v2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 ),
               },
@@ -210,7 +266,9 @@ export default function Home() {
                   <span className="text-[color:var(--fg)]">{item.icon}</span>
                   <h3 className="text-base font-semibold">{item.title}</h3>
                 </header>
-                <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">{item.desc}</p>
+                <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                  {item.desc}
+                </p>
               </Reveal>
             ))}
           </div>
@@ -234,7 +292,8 @@ export default function Home() {
 
             <Reveal as="p" delay={120}>
               <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-                Не магия, а нормальная инженерия. Вы создаёте послание, выбираете триггер, остальное — наша работа.
+                Не магия, а нормальная инженерия. Вы создаёте послание,
+                выбираете триггер, остальное — наша работа.
               </p>
             </Reveal>
 
@@ -245,14 +304,29 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z" fill="currentColor" opacity="0.12" />
-                    <path d="M4 20c5-1 9-5 13-9l3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z"
+                      fill="currentColor"
+                      opacity="0.12"
+                    />
+                    <path
+                      d="M4 20c5-1 9-5 13-9l3-3"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <h3 className="text-base font-semibold">Создайте послание</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Текст, голос, видео или файлы. Всё в одном месте. Черновики, получатели, статусы.
+                  Текст, голос, видео или файлы. Всё в одном месте. Черновики,
+                  получатели, статусы.
                 </p>
               </Reveal>
 
@@ -262,14 +336,31 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
-                    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="8"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M12 7v5l3 2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   <h3 className="text-base font-semibold">Выберите триггер</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Дата, событие или «после моей смерти». Всегда можно изменить или отменить.
+                  Дата, событие или «после моей смерти». Всегда можно изменить
+                  или отменить.
                 </p>
               </Reveal>
 
@@ -279,14 +370,31 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 7h16v10H4z" fill="currentColor" opacity="0.08" />
-                    <path d="M4 7l8 6 8-6M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4 7h16v10H4z"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M4 7l8 6 8-6M4 17h16"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <h3 className="text-base font-semibold">Мы доставим вовремя</h3>
+                  <h3 className="text-base font-semibold">
+                    Мы доставим вовремя
+                  </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Шифруем, бережно храним, отправляем по условиям. Уведомления и журнал событий.
+                  Шифруем, бережно храним, отправляем по условиям. Уведомления и
+                  журнал событий.
                 </p>
               </Reveal>
 
@@ -296,11 +404,31 @@ export default function Home() {
                 className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="5"
+                      y="10"
+                      width="14"
+                      height="9"
+                      rx="2"
+                      fill="currentColor"
+                      opacity="0.08"
+                    />
+                    <path
+                      d="M8 10V8a4 4 0 118 0v2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
                   </svg>
-                  <h3 className="text-base font-semibold">Приватность по умолчанию</h3>
+                  <h3 className="text-base font-semibold">
+                    Приватность по умолчанию
+                  </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
                   Минимум метаданных. Вы контролируете срок хранения и доступ.

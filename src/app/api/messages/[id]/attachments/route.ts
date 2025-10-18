@@ -5,19 +5,23 @@ type Body = {
   files: { path: string; mime?: string | null; bytes: number }[];
 };
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: NextRequest,
+  ctx: { params: Promise<{ id: string }> },
+) {
   const { id: messageId } = await ctx.params;
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await req.json()) as Body;
   if (!Array.isArray(body.files) || body.files.length === 0) {
     return NextResponse.json({ error: "no_files" }, { status: 400 });
-    }
+  }
 
   // Проверяем владение сообщением
   const { data: m, error: mErr } = await supabase

@@ -13,7 +13,7 @@ export default function robots(): MetadataRoute.Robots {
       },
       // Дублируем для популярных ботов, хотя звёздочка и так всё накрывает.
       { userAgent: "Googlebot", disallow: ["/"] },
-      { userAgent: "bingbot", disallow: ["/"] }
+      { userAgent: "bingbot", disallow: ["/"] },
     ],
     host: base,
     sitemap: `${base}/sitemap.xml`,

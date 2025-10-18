@@ -26,7 +26,11 @@ export function StartSection() {
   const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
   return (
-    <section id="start" className="py-24 border-t scroll-mt-20" aria-labelledby="start-title">
+    <section
+      id="start"
+      className="py-24 border-t scroll-mt-20"
+      aria-labelledby="start-title"
+    >
       <div className="mx-auto max-w-6xl px-4">
         <motion.h2
           id="start-title"
@@ -46,7 +50,8 @@ export function StartSection() {
           transition={{ duration: 0.3, ease, delay: reduce ? 0 : 0.05 }}
           className="mb-10 max-w-2xl opacity-80 md:text-lg"
         >
-          Три шага без квестов: создайте послание, выберите способ доставки, запустите.
+          Три шага без квестов: создайте послание, выберите способ доставки,
+          запустите.
         </motion.p>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -105,7 +110,8 @@ export function StartSection() {
             Создать послание
           </Link>
           <p className="mt-3 text-sm opacity-70">
-            Войдите и начните: редактор послания, выбор доставки и журнал действий уже на месте.
+            Войдите и начните: редактор послания, выбор доставки и журнал
+            действий уже на месте.
           </p>
         </div>
       </div>

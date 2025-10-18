@@ -13,7 +13,10 @@ const securityHeaders = [
   { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 
   // Запрещаем FLoC и прочее
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  },
 
   // CSP: аккуратная, без внешних скриптов
   {

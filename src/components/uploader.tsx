@@ -60,7 +60,16 @@ export function Uploader({ messageId }: { messageId: string }) {
       .from("messages")
       .select("content")
       .eq("id", messageId)
-      .single<{ content: { attachments?: Array<{ path: string; name: string; size: number; type: string }> } }>();
+      .single<{
+        content: {
+          attachments?: Array<{
+            path: string;
+            name: string;
+            size: number;
+            type: string;
+          }>;
+        };
+      }>();
 
     if (msgErr) {
       setGlobalErr(`Не удалось получить текущее состояние: ${msgErr.message}`);
@@ -71,7 +80,12 @@ export function Uploader({ messageId }: { messageId: string }) {
 
     setBusy(true);
     try {
-      const uploaded: Array<{ path: string; name: string; size: number; type: string }> = [];
+      const uploaded: Array<{
+        path: string;
+        name: string;
+        size: number;
+        type: string;
+      }> = [];
 
       // Последовательная загрузка, чтобы не упереться в лимиты
       for (let i = 0; i < fileList.length; i++) {
@@ -81,7 +95,11 @@ export function Uploader({ messageId }: { messageId: string }) {
         if (file.size > MAX_SIZE_BYTES) {
           setItems((prev) => {
             const copy = [...prev];
-            copy[i] = { ...copy[i], progress: "error", error: "Файл слишком большой (лимит 25 MB)" };
+            copy[i] = {
+              ...copy[i],
+              progress: "error",
+              error: "Файл слишком большой (лимит 25 MB)",
+            };
             return copy;
           });
           continue;
@@ -89,7 +107,11 @@ export function Uploader({ messageId }: { messageId: string }) {
         if (ACCEPT && !ACCEPT.split(",").includes(file.type)) {
           setItems((prev) => {
             const copy = [...prev];
-            copy[i] = { ...copy[i], progress: "error", error: "Неподдерживаемый тип файла" };
+            copy[i] = {
+              ...copy[i],
+              progress: "error",
+              error: "Неподдерживаемый тип файла",
+            };
             return copy;
           });
           continue;
@@ -109,9 +131,11 @@ export function Uploader({ messageId }: { messageId: string }) {
         const safeExt = ext && /^[a-zA-Z0-9]+$/.test(ext) ? ext : "bin";
         const path = `${messageId}/${crypto.randomUUID()}.${safeExt}`;
 
-        const { error: upErr } = await s.storage.from("attachments").upload(path, file, {
-          upsert: false,
-        });
+        const { error: upErr } = await s.storage
+          .from("attachments")
+          .upload(path, file, {
+            upsert: false,
+          });
 
         if (upErr) {
           setItems((prev) => {
@@ -122,7 +146,12 @@ export function Uploader({ messageId }: { messageId: string }) {
           continue;
         }
 
-        uploaded.push({ path, name: file.name, size: file.size, type: file.type });
+        uploaded.push({
+          path,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
 
         setItems((prev) => {
           const copy = [...prev];
@@ -139,7 +168,9 @@ export function Uploader({ messageId }: { messageId: string }) {
           .eq("id", messageId);
 
         if (updErr) {
-          setGlobalErr(`Загружено, но не удалось обновить запись: ${updErr.message}`);
+          setGlobalErr(
+            `Загружено, но не удалось обновить запись: ${updErr.message}`,
+          );
         } else {
           setGlobalOk("Файлы загружены.");
         }
@@ -148,7 +179,9 @@ export function Uploader({ messageId }: { messageId: string }) {
         setGlobalErr("Ни один файл не был загружен.");
       }
     } catch {
-      setGlobalErr("Не удалось загрузить файлы. Проверьте соединение и попробуйте ещё раз.");
+      setGlobalErr(
+        "Не удалось загрузить файлы. Проверьте соединение и попробуйте ещё раз.",
+      );
     } finally {
       setBusy(false);
       // Сброс input, чтобы можно было выбрать те же файлы повторно
@@ -186,21 +219,31 @@ export function Uploader({ messageId }: { messageId: string }) {
       {items.length > 0 && (
         <ul className="mt-4 space-y-2">
           {items.map((it) => (
-            <li key={`${it.name}-${it.path ?? it.progress}`} className="rounded-xl border border-[var(--ring)] p-3 text-sm">
+            <li
+              key={`${it.name}-${it.path ?? it.progress}`}
+              className="rounded-xl border border-[var(--ring)] p-3 text-sm"
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="truncate">{it.name}</div>
                   <div className="text-xs opacity-60">
-                    {(it.size / (1024 * 1024)).toFixed(1)} MB · {it.type || "application/octet-stream"}
+                    {(it.size / (1024 * 1024)).toFixed(1)} MB ·{" "}
+                    {it.type || "application/octet-stream"}
                   </div>
                 </div>
                 <div className="text-xs">
                   {it.progress === "uploading" && <span>Загрузка…</span>}
-                  {it.progress === "done" && <span className="text-green-600">Готово</span>}
-                  {it.progress === "error" && <span className="text-red-600">Ошибка</span>}
+                  {it.progress === "done" && (
+                    <span className="text-green-600">Готово</span>
+                  )}
+                  {it.progress === "error" && (
+                    <span className="text-red-600">Ошибка</span>
+                  )}
                 </div>
               </div>
-              {it.error && <div className="mt-1 text-xs text-red-600">{it.error}</div>}
+              {it.error && (
+                <div className="mt-1 text-xs text-red-600">{it.error}</div>
+              )}
             </li>
           ))}
         </ul>
@@ -208,7 +251,13 @@ export function Uploader({ messageId }: { messageId: string }) {
 
       {/* Глобальные статусы для скринридеров */}
       <p id={statusId} aria-live="polite" className="sr-only">
-        {busy ? "Идёт загрузка…" : globalOk ? "Файлы загружены" : globalErr ? "Ошибка загрузки" : ""}
+        {busy
+          ? "Идёт загрузка…"
+          : globalOk
+            ? "Файлы загружены"
+            : globalErr
+              ? "Ошибка загрузки"
+              : ""}
       </p>
 
       {globalOk && <p className="mt-3 text-sm text-green-600">{globalOk}</p>}

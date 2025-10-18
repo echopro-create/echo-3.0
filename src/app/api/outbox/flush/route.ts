@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (!isMailConfigured()) {
-    return NextResponse.json({ ok: true, sent: 0, note: "SMTP is not configured" });
+    return NextResponse.json({
+      ok: true,
+      sent: 0,
+      note: "SMTP is not configured",
+    });
   }
 
   const sb = createAdminClient();
@@ -52,10 +56,16 @@ export async function POST(req: NextRequest) {
 
       for (const a of row.payload.attachments ?? []) {
         const rel = a.path.replace(/^attachments\//, "");
-        const signed = await sb.storage.from("attachments").createSignedUrl(rel, 60 * 60);
+        const signed = await sb.storage
+          .from("attachments")
+          .createSignedUrl(rel, 60 * 60);
         if (signed.data?.signedUrl) {
           const name = rel.split("/").pop() || "file";
-          signedLinks.push({ name, url: signed.data.signedUrl, bytes: Number(a.bytes || 0) });
+          signedLinks.push({
+            name,
+            url: signed.data.signedUrl,
+            bytes: Number(a.bytes || 0),
+          });
         }
       }
 
@@ -66,7 +76,9 @@ export async function POST(req: NextRequest) {
       if (signedLinks.length > 0) {
         textParts.push("", "Вложения:");
         for (const l of signedLinks) {
-          textParts.push(`- ${l.name} (${(l.bytes / (1024 * 1024)).toFixed(1)} МБ): ${l.url}`);
+          textParts.push(
+            `- ${l.name} (${(l.bytes / (1024 * 1024)).toFixed(1)} МБ): ${l.url}`,
+          );
         }
       }
       const text = textParts.join("\n");
@@ -75,19 +87,24 @@ export async function POST(req: NextRequest) {
       if (row.payload.body_text) {
         htmlParts.push(
           `<div style="white-space:pre-wrap;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">${escapeHtml(
-            row.payload.body_text
-          )}</div>`
+            row.payload.body_text,
+          )}</div>`,
         );
       }
       if (signedLinks.length > 0) {
-        htmlParts.push('<div style="margin-top:12px;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">');
-        htmlParts.push(`<div style="color:#666;margin-bottom:4px;">Вложения:</div>`);
+        htmlParts.push(
+          '<div style="margin-top:12px;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;">',
+        );
+        htmlParts.push(
+          `<div style="color:#666;margin-bottom:4px;">Вложения:</div>`,
+        );
         htmlParts.push("<ul style='margin:0;padding-left:16px;'>");
         for (const l of signedLinks) {
           htmlParts.push(
             `<li><a href="${l.url}">${escapeHtml(l.name)}</a> <span style="color:#666;">(${(
-              l.bytes / (1024 * 1024)
-            ).toFixed(1)} МБ)</span></li>`
+              l.bytes /
+              (1024 * 1024)
+            ).toFixed(1)} МБ)</span></li>`,
           );
         }
         htmlParts.push("</ul></div>");
@@ -96,13 +113,19 @@ export async function POST(req: NextRequest) {
 
       await sendMail({ to: row.recipient_email, subject, text, html });
 
-      await sb.from("outbox").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", row.id);
+      await sb
+        .from("outbox")
+        .update({ status: "sent", sent_at: new Date().toISOString() })
+        .eq("id", row.id);
       sent += 1;
     } catch {
       const nextTry = row.try_count + 1;
       await sb
         .from("outbox")
-        .update({ try_count: nextTry, status: nextTry >= 5 ? "failed" : "pending" })
+        .update({
+          try_count: nextTry,
+          status: nextTry >= 5 ? "failed" : "pending",
+        })
         .eq("id", row.id);
     }
   }

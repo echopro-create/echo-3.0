@@ -31,7 +31,7 @@ export default function NewMessageForm() {
 
   const totalBytes = useMemo(
     () => files.reduce((sum, f) => sum + f.size, 0),
-    [files]
+    [files],
   );
 
   function addRecipientFromInput() {
@@ -41,7 +41,9 @@ export default function NewMessageForm() {
       setErrors((e) => [...e, `Неверный email: ${v}`]);
       return;
     }
-    const exists = recipients.some((r) => r.value.toLowerCase() === v.toLowerCase());
+    const exists = recipients.some(
+      (r) => r.value.toLowerCase() === v.toLowerCase(),
+    );
     if (exists) {
       setErrors((e) => [...e, `Уже есть получатель: ${v}`]);
       return;
@@ -74,7 +76,8 @@ export default function NewMessageForm() {
 
   function validate(): string[] {
     const errs: string[] = [];
-    if (recipients.length === 0) errs.push("Добавьте хотя бы одного получателя.");
+    if (recipients.length === 0)
+      errs.push("Добавьте хотя бы одного получателя.");
     switch (contentKind) {
       case "text":
         if (!text.trim()) errs.push("Текст сообщения пустой.");
@@ -90,13 +93,17 @@ export default function NewMessageForm() {
       else {
         const t = new Date(whenISO);
         if (Number.isNaN(t.getTime())) errs.push("Некорректная дата/время.");
-        else if (t.getTime() < Date.now() + 60_000) errs.push("Время должно быть в будущем.");
+        else if (t.getTime() < Date.now() + 60_000)
+          errs.push("Время должно быть в будущем.");
       }
     }
-    if (trigger === "event" && !eventCode.trim()) errs.push("Укажите кодовое слово или внешний сигнал.");
-    if (trigger === "afterlife" && !afterlifeAck) errs.push("Подтвердите понимание механики «после моей смерти».");
+    if (trigger === "event" && !eventCode.trim())
+      errs.push("Укажите кодовое слово или внешний сигнал.");
+    if (trigger === "afterlife" && !afterlifeAck)
+      errs.push("Подтвердите понимание механики «после моей смерти».");
     const maxBytes = 500 * 1024 * 1024; // 500 MB
-    if (totalBytes > maxBytes) errs.push("Суммарный размер файлов превышает 500 МБ.");
+    if (totalBytes > maxBytes)
+      errs.push("Суммарный размер файлов превышает 500 МБ.");
     return errs;
   }
 
@@ -122,7 +129,8 @@ export default function NewMessageForm() {
           kind: contentKind,
           body_text: contentKind === "text" ? text : undefined,
           trigger_kind: trigger,
-          send_at: trigger === "datetime" ? new Date(whenISO).toISOString() : null,
+          send_at:
+            trigger === "datetime" ? new Date(whenISO).toISOString() : null,
           event_code: trigger === "event" ? eventCode : null,
           afterlife_ack: trigger === "afterlife" ? afterlifeAck : false,
           recipients: recipients.map((r) => r.value),
@@ -133,17 +141,20 @@ export default function NewMessageForm() {
       console.log("message created", { id, status }); // ← та самая строка
 
       // 2) Если есть файлы — грузим в приватный бакет
-      const uploaded: { path: string; mime?: string | null; bytes: number }[] = [];
+      const uploaded: { path: string; mime?: string | null; bytes: number }[] =
+        [];
       if (files.length > 0) {
         // Получим текущего юзера ради sanity check пути
         const { data: userData, error: uErr } = await supabase.auth.getUser();
         if (uErr || !userData.user) throw new Error("Нет сессии пользователя");
         for (const f of files) {
           const path = `${storagePrefix}${f.name}`;
-          const up = await supabase.storage.from("attachments").upload(path.replace(/^attachments\//, ""), f, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+          const up = await supabase.storage
+            .from("attachments")
+            .upload(path.replace(/^attachments\//, ""), f, {
+              cacheControl: "3600",
+              upsert: false,
+            });
           if (up.error) throw up.error;
           uploaded.push({ path, mime: f.type || null, bytes: f.size });
         }
@@ -164,7 +175,9 @@ export default function NewMessageForm() {
       setRecipients([]);
       setRecipientInput("");
     } catch (err) {
-      setErrors([err instanceof Error ? err.message : "Не удалось сохранить черновик."]);
+      setErrors([
+        err instanceof Error ? err.message : "Не удалось сохранить черновик.",
+      ]);
     } finally {
       setSaving(false);
     }
@@ -174,12 +187,22 @@ export default function NewMessageForm() {
     <form onSubmit={onSubmit} className="mt-6 space-y-8">
       {/* Ошибки */}
       {errors.length > 0 && (
-        <div role="alert" className="rounded-xl border border-black/10 bg-red-50/70 p-4 text-sm text-red-700">
-          <ul className="list-disc pl-5">{errors.map((er, i) => <li key={i}>{er}</li>)}</ul>
+        <div
+          role="alert"
+          className="rounded-xl border border-black/10 bg-red-50/70 p-4 text-sm text-red-700"
+        >
+          <ul className="list-disc pl-5">
+            {errors.map((er, i) => (
+              <li key={i}>{er}</li>
+            ))}
+          </ul>
         </div>
       )}
       {doneId && (
-        <div role="status" className="rounded-xl border border-black/10 bg-green-50/70 p-4 text-sm text-green-800">
+        <div
+          role="status"
+          className="rounded-xl border border-black/10 bg-green-50/70 p-4 text-sm text-green-800"
+        >
           Черновик сохранён. ID: <code>{doneId}</code>
         </div>
       )}
@@ -187,8 +210,12 @@ export default function NewMessageForm() {
       {/* Содержимое */}
       <section className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
         <header className="mb-4">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Содержимое</h2>
-          <p className="mt-1 text-sm text-[color:var(--muted)]">Выберите формат сообщения и добавьте контент.</p>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Содержимое
+          </h2>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Выберите формат сообщения и добавьте контент.
+          </p>
         </header>
 
         <div className="flex flex-wrap gap-2">
@@ -206,7 +233,9 @@ export default function NewMessageForm() {
               onClick={() => setContentKind(key)}
               className={[
                 "rounded-lg border px-3 py-1.5 text-sm transition",
-                contentKind === key ? "border-black bg-black text-white" : "border-black/10 bg-white hover:bg-black/[0.03]",
+                contentKind === key
+                  ? "border-black bg-black text-white"
+                  : "border-black/10 bg-white hover:bg-black/[0.03]",
               ].join(" ")}
               aria-pressed={contentKind === key}
             >
@@ -237,14 +266,21 @@ export default function NewMessageForm() {
                   ref={fileInputRef}
                   type="file"
                   multiple
-                  accept={contentKind === "voice" ? "audio/*" : contentKind === "video" ? "video/*" : undefined}
+                  accept={
+                    contentKind === "voice"
+                      ? "audio/*"
+                      : contentKind === "video"
+                        ? "video/*"
+                        : undefined
+                  }
                   onChange={(e) => onFilesPicked(e.target.files)}
                   className="mt-1 w-full rounded-lg border border-black/10 bg-white/90 px-3 py-2 text-[color:var(--fg)] file:mr-3 file:rounded-md file:border-0 file:bg-black file:px-3 file:py-2 file:text-white"
                 />
               </label>
               {files.length > 0 && (
                 <div className="mt-3 rounded-lg border border-black/10 bg-black/[0.03] p-3 text-xs text-[color:var(--muted)]">
-                  {files.length} файл(ов), всего {(totalBytes / (1024 * 1024)).toFixed(1)} МБ
+                  {files.length} файл(ов), всего{" "}
+                  {(totalBytes / (1024 * 1024)).toFixed(1)} МБ
                 </div>
               )}
             </div>
@@ -255,8 +291,12 @@ export default function NewMessageForm() {
       {/* Получатели */}
       <section className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
         <header className="mb-4">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Получатели</h2>
-          <p className="mt-1 text-sm text-[color:var(--muted)]">Введите email и нажмите Enter. Можно перечислять через запятую.</p>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Получатели
+          </h2>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Введите email и нажмите Enter. Можно перечислять через запятую.
+          </p>
         </header>
 
         <div className="flex items-center gap-2">
@@ -286,7 +326,10 @@ export default function NewMessageForm() {
         {recipients.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-2">
             {recipients.map((r) => (
-              <li key={r.id} className="group inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.04] px-3 py-1.5 text-xs text-[color:var(--fg)]">
+              <li
+                key={r.id}
+                className="group inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.04] px-3 py-1.5 text-xs text-[color:var(--fg)]"
+              >
                 {r.value}
                 <button
                   type="button"
@@ -306,8 +349,12 @@ export default function NewMessageForm() {
       {/* Триггер */}
       <section className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
         <header className="mb-4">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Триггер доставки</h2>
-          <p className="mt-1 text-sm text-[color:var(--muted)]">Когда именно послание должно уйти.</p>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Триггер доставки
+          </h2>
+          <p className="mt-1 text-sm text-[color:var(--muted)]">
+            Когда именно послание должно уйти.
+          </p>
         </header>
 
         <div className="flex flex-wrap gap-2">
@@ -324,7 +371,9 @@ export default function NewMessageForm() {
               onClick={() => setTrigger(key)}
               className={[
                 "rounded-lg border px-3 py-1.5 text-sm transition",
-                trigger === key ? "border-black bg-black text-white" : "border-black/10 bg-white hover:bg-black/[0.03]",
+                trigger === key
+                  ? "border-black bg-black text-white"
+                  : "border-black/10 bg-white hover:bg-black/[0.03]",
               ].join(" ")}
               aria-pressed={trigger === key}
             >
@@ -368,7 +417,8 @@ export default function NewMessageForm() {
                 className="mt-1"
               />
               <span className="text-[color:var(--muted)]">
-                Понимаю, что доставка потребует периодического подтверждения «пульсом» и проверок.
+                Понимаю, что доставка потребует периодического подтверждения
+                «пульсом» и проверок.
               </span>
             </label>
           )}

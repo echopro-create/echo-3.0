@@ -1,0 +1,30 @@
+{
+  "skipMissing": true,
+  "ignores": [
+    "@eslint/eslintrc",
+    "@typescript-eslint/eslint-plugin",
+    "@typescript-eslint/parser",
+    "@types/node",
+    "eslint",
+    "eslint-config-next",
+    "postcss",
+    "autoprefixer",
+    "tw-animate-css"
+  ],
+  "ignoreMatches": [
+    "@eslint/eslintrc",
+    "@typescript-eslint/eslint-plugin",
+    "@typescript-eslint/parser",
+    "@types/node",
+    "eslint",
+    "eslint-config-next",
+    "postcss",
+    "autoprefixer",
+    "tw-animate-css"
+  ],
+  "parsers": {
+    "**/*.ts": ["typescript"],
+    "**/*.tsx": ["typescript"]
+  },
+  "specials": ["bin", "eslint", "postcss", "tailwindcss"]
+}

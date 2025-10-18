@@ -8,8 +8,8 @@
 :root {
   color-scheme: light dark; /* подсказываем UA палитру */
   --bg: #ffffff;
-  --fg: #0a0d12;            /* было #0b0e14 — на 10–12% «чёрнее» для контраста */
-  --ring: #d1d5db;          /* было #e5e7eb — границы читаемее (≈ gray-300) */
+  --fg: #0a0d12; /* было #0b0e14 — на 10–12% «чёрнее» для контраста */
+  --ring: #d1d5db; /* было #e5e7eb — границы читаемее (≈ gray-300) */
   --card: #ffffff;
 
   /* Доп. оттенки для мелкой UI-полировки */
@@ -20,8 +20,8 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0b0e14;
-    --fg: #eef4ff;          /* было #e7eef8 — на 8–10% светлее */
-    --ring: #334155;        /* было #1f2937 — на ступень контрастнее */
+    --fg: #eef4ff; /* было #e7eef8 — на 8–10% светлее */
+    --ring: #334155; /* было #1f2937 — на ступень контрастнее */
     --card: #0a0f1a;
 
     --fg-soft: color-mix(in oklab, var(--fg) 70%, transparent);
@@ -41,8 +41,17 @@ html {
 
 body {
   /* Poppins для латиницы, Manrope закрывает кириллицу */
-  font-family: var(--font-poppins), var(--font-manrope), system-ui, -apple-system,
-    Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  font-family:
+    var(--font-poppins),
+    var(--font-manrope),
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    "Noto Sans",
+    "Liberation Sans",
+    sans-serif;
   background: var(--bg);
   color: var(--fg);
 }
@@ -57,11 +66,25 @@ body {
    Базовая типографика
    ========================= */
 @layer base {
-  h1 { letter-spacing: -0.02em; line-height: 1.1; }
-  h2 { letter-spacing: -0.01em; line-height: 1.15; }
-  h3 { letter-spacing: -0.005em; line-height: 1.2; }
-  p  { line-height: 1.65; }
-  small, .text-xs { letter-spacing: 0; }
+  h1 {
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  h2 {
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  h3 {
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+  }
+  p {
+    line-height: 1.65;
+  }
+  small,
+  .text-xs {
+    letter-spacing: 0;
+  }
 }
 
 /* Видимый фокус: чётко, без кислотности */
@@ -111,11 +134,19 @@ img {
 @layer utilities {
   /* Лёгкая «аура» для секций — радиальный градиент без картинок */
   .aura-soft {
-    background-image: radial-gradient(80% 60% at 50% 10%, color-mix(in oklch, var(--fg) 12%, transparent) 0%, transparent 60%);
+    background-image: radial-gradient(
+      80% 60% at 50% 10%,
+      color-mix(in oklch, var(--fg) 12%, transparent) 0%,
+      transparent 60%
+    );
   }
   @media (prefers-color-scheme: dark) {
     .aura-soft {
-      background-image: radial-gradient(80% 60% at 50% 10%, color-mix(in oklch, var(--fg) 10%, transparent) 0%, transparent 60%);
+      background-image: radial-gradient(
+        80% 60% at 50% 10%,
+        color-mix(in oklch, var(--fg) 10%, transparent) 0%,
+        transparent 60%
+      );
     }
   }
 
@@ -128,7 +159,9 @@ img {
 
   /* Ховер/фокус для карточек: масса без агрессии */
   .card-hover {
-    transition: transform 200ms ease, box-shadow 200ms ease;
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease;
   }
   .card-hover:hover {
     transform: translateY(-2px);
@@ -136,7 +169,9 @@ img {
   }
   .card-hover:focus-visible {
     transform: translateY(-1px);
-    box-shadow: 0 0 0 1px var(--ring), 0 8px 24px color-mix(in oklab, var(--fg) 12%, transparent);
+    box-shadow:
+      0 0 0 1px var(--ring),
+      0 8px 24px color-mix(in oklab, var(--fg) 12%, transparent);
   }
 
   /* Тонкая граница для «плашек» и списков доверия */
@@ -149,7 +184,9 @@ img {
    Доступность: уважение к reduced-motion
    ========================= */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001s !important;

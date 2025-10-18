@@ -12,7 +12,14 @@ export default {
     extend: {
       fontFamily: {
         // читаем переменную от next/font
-        sans: ["var(--font-roboto)", "ui-sans-serif", "system-ui", "Segoe UI", "Arial", "sans-serif"],
+        sans: [
+          "var(--font-roboto)",
+          "ui-sans-serif",
+          "system-ui",
+          "Segoe UI",
+          "Arial",
+          "sans-serif",
+        ],
       },
       colors: {
         bg: { DEFAULT: "#0b0e14", light: "#ffffff" },

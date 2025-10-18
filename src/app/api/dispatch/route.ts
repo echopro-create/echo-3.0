@@ -38,5 +38,9 @@ export async function POST(req: NextRequest) {
     flushResult = { ok: false };
   }
 
-  return NextResponse.json({ queuedDatetime, queuedAfterlife, flush: flushResult });
+  return NextResponse.json({
+    queuedDatetime,
+    queuedAfterlife,
+    flush: flushResult,
+  });
 }

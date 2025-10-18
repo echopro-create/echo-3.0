@@ -23,7 +23,7 @@ type TagName =
   | "p";
 
 type Props = {
-  as?: TagName;            // обёртка: div/section/article/h1/h2/p ...
+  as?: TagName; // обёртка: div/section/article/h1/h2/p ...
   className?: string;
   children: ReactNode;
   /** задержка в мс для каскадной анимации */
@@ -75,7 +75,7 @@ export function Reveal({
     if (!el) return;
 
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setVisible(true);
@@ -85,7 +85,7 @@ export function Reveal({
           }
         }
       },
-      { threshold }
+      { threshold },
     );
 
     observer.observe(el);
@@ -117,6 +117,6 @@ export function Reveal({
       className,
       style,
     },
-    children
+    children,
   );
 }

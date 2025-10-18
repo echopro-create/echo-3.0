@@ -16,7 +16,8 @@ export function makeTransport() {
   const port = Number(process.env.SMTP_PORT ?? 587);
   const user = process.env.SMTP_USER as string | undefined;
   const pass = process.env.SMTP_PASS as string | undefined;
-  const secure = String(process.env.SMTP_SECURE ?? "false").toLowerCase() === "true";
+  const secure =
+    String(process.env.SMTP_SECURE ?? "false").toLowerCase() === "true";
 
   if (!host) {
     throw new Error("SMTP_HOST is not set");

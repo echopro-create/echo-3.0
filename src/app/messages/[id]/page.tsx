@@ -59,7 +59,7 @@ export default async function MessageViewPage({
   const { data: msg, error: mErr } = await supabase
     .from("messages")
     .select(
-      "id, user_id, kind, body_text, trigger_kind, send_at, event_code, afterlife_ack, status, created_at, updated_at"
+      "id, user_id, kind, body_text, trigger_kind, send_at, event_code, afterlife_ack, status, created_at, updated_at",
     )
     .eq("id", id)
     .limit(1)
@@ -102,7 +102,11 @@ export default async function MessageViewPage({
         .createSignedUrl(relPath, 600); // 10 минут
       if (signedRes.data?.signedUrl) {
         const name = relPath.split("/").slice(-1)[0] || "file";
-        signed.push({ name, url: signedRes.data.signedUrl, bytes: Number(a.bytes || 0) });
+        signed.push({
+          name,
+          url: signedRes.data.signedUrl,
+          bytes: Number(a.bytes || 0),
+        });
       }
     }
   }
@@ -135,7 +139,9 @@ export default async function MessageViewPage({
           <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
             <div>
               <dt className="text-[color:var(--muted)]">ID</dt>
-              <dd className="mt-1 font-mono text-xs text-[color:var(--muted)]">{msg.id}</dd>
+              <dd className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+                {msg.id}
+              </dd>
             </div>
             <div>
               <dt className="text-[color:var(--muted)]">Статус</dt>
@@ -149,10 +155,10 @@ export default async function MessageViewPage({
                 {msg.kind === "text"
                   ? "Текст"
                   : msg.kind === "voice"
-                  ? "Голос"
-                  : msg.kind === "video"
-                  ? "Видео"
-                  : "Файл"}
+                    ? "Голос"
+                    : msg.kind === "video"
+                      ? "Видео"
+                      : "Файл"}
               </dd>
             </div>
             <div>
@@ -161,20 +167,24 @@ export default async function MessageViewPage({
                 {msg.trigger_kind === "datetime"
                   ? "По времени"
                   : msg.trigger_kind === "event"
-                  ? "По событию"
-                  : "После моей смерти"}
+                    ? "По событию"
+                    : "После моей смерти"}
               </dd>
             </div>
 
             <div>
               <dt className="text-[color:var(--muted)]">Отправка</dt>
-              <dd className="mt-1 text-[color:var(--fg)]">{fmt(msg.send_at)}</dd>
+              <dd className="mt-1 text-[color:var(--fg)]">
+                {fmt(msg.send_at)}
+              </dd>
             </div>
 
             {msg.trigger_kind === "event" && (
               <div>
                 <dt className="text-[color:var(--muted)]">Событие/код</dt>
-                <dd className="mt-1 text-[color:var(--fg)]">{msg.event_code || "—"}</dd>
+                <dd className="mt-1 text-[color:var(--fg)]">
+                  {msg.event_code || "—"}
+                </dd>
               </div>
             )}
 
@@ -200,7 +210,9 @@ export default async function MessageViewPage({
 
         {/* Контент */}
         <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Содержимое</h2>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Содержимое
+          </h2>
           {msg.kind === "text" ? (
             <div className="mt-3 whitespace-pre-wrap rounded-lg border border-black/10 bg-black/[0.03] p-3 text-sm">
               {msg.body_text || "—"}
@@ -227,20 +239,26 @@ export default async function MessageViewPage({
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-sm text-[color:var(--muted)]">Вложений нет.</p>
+            <p className="mt-3 text-sm text-[color:var(--muted)]">
+              Вложений нет.
+            </p>
           )}
         </section>
 
         {/* Действия: перепланировать / отменить */}
         <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Действия</h2>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Действия
+          </h2>
 
           <div className="mt-4 flex flex-wrap items-end gap-3">
             {canReschedule && (
               <form action={rescheduleMessage} className="flex items-end gap-2">
                 <input type="hidden" name="id" value={msg.id} />
                 <label className="text-sm">
-                  <span className="block text-[color:var(--muted)]">Новая дата и время</span>
+                  <span className="block text-[color:var(--muted)]">
+                    Новая дата и время
+                  </span>
                   <input
                     type="datetime-local"
                     name="send_at"
@@ -273,7 +291,8 @@ export default async function MessageViewPage({
 
           {!canReschedule && !canCancel && (
             <p className="text-sm text-[color:var(--muted)] mt-2">
-              Для «черновиков» и «отправленных» действий нет. Что сделано, то сделано.
+              Для «черновиков» и «отправленных» действий нет. Что сделано, то
+              сделано.
             </p>
           )}
         </section>

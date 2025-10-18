@@ -1,0 +1,17 @@
+C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\getPropertyByPath.js:14
+  if (typeof path === 'string' && Object.prototype.hasOwnProperty.call(source, path)) {
+                                                                  ^
+
+TypeError: Cannot convert undefined or null to object
+    at hasOwnProperty (<anonymous>)
+    at getPropertyByPath (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\getPropertyByPath.js:14:67)
+    at ExplorerSync.loadPackageProp (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerBase.js:84:71)
+    at ExplorerSync.loadFileContentSync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:84:26)
+    at ExplorerSync.createCosmiconfigResultSync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:89:30)
+    at ExplorerSync.loadSearchPlaceSync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:70:25)
+    at ExplorerSync.searchDirectorySync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:55:32)
+    at run (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:35:27)
+    at cacheWrapperSync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\cacheWrapper.js:28:18)
+    at ExplorerSync.searchFromDirectorySync (C:\Users\illia Kolesnikov\AppData\Local\pnpm-cache\dlx\ce9f4da1b0996d8f720513ac8fae51b7d9c75d61e950f5ff5a5662340a491a5f\199f6850563-1af0\node_modules\.pnpm\cosmiconfig@7.1.0\node_modules\cosmiconfig\dist\ExplorerSync.js:47:49)
+
+Node.js v22.20.0

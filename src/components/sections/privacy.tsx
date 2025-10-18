@@ -56,7 +56,8 @@ export function PrivacySection() {
           transition={{ duration: 0.3, ease, delay: reduce ? 0 : 0.05 }}
           className="mb-10 max-w-2xl opacity-80 md:text-lg"
         >
-          Минимум доверия, максимум контроля. Мы проектируем систему так, чтобы даже при любопытном сервере твои данные были бесполезны.
+          Минимум доверия, максимум контроля. Мы проектируем систему так, чтобы
+          даже при любопытном сервере твои данные были бесполезны.
         </motion.p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -80,7 +81,11 @@ export function PrivacySection() {
                              bg-[color:var(--fg)]/5 ring-1 ring-[color:var(--fg)]/15"
                   aria-hidden="true"
                 >
-                  <it.icon className="size-5 shrink-0" aria-hidden="true" focusable="false" />
+                  <it.icon
+                    className="size-5 shrink-0"
+                    aria-hidden="true"
+                    focusable="false"
+                  />
                 </span>
                 <h3 className="text-base font-medium">{it.title}</h3>
               </div>

@@ -35,7 +35,9 @@ export default async function AccountPage() {
     .eq("user_id", user.id)
     .maybeSingle<PulseRow>();
 
-  const lastPing = pulse?.last_ping ? fmtRu.format(new Date(pulse.last_ping)) : "—";
+  const lastPing = pulse?.last_ping
+    ? fmtRu.format(new Date(pulse.last_ping))
+    : "—";
   const ttl = pulse?.ttl_days ?? 30;
 
   return (
@@ -64,9 +66,12 @@ export default async function AccountPage() {
 
         {/* Пульс и TTL */}
         <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
-          <h2 className="text-base font-semibold text-[color:var(--fg)]">Жизненный пульс</h2>
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">
+            Жизненный пульс
+          </h2>
           <p className="mt-1 text-sm text-[color:var(--muted)]">
-            Если пульс не обновлялся дольше выбранного срока, послания «после моей смерти» будут автоматически отправлены.
+            Если пульс не обновлялся дольше выбранного срока, послания «после
+            моей смерти» будут автоматически отправлены.
           </p>
 
           <div className="mt-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
@@ -84,8 +89,13 @@ export default async function AccountPage() {
             </div>
 
             <div>
-              <div className="text-[color:var(--muted)]">Срок молчания (дней)</div>
-              <form action={setPulseTtl} className="mt-1 flex items-center gap-2">
+              <div className="text-[color:var(--muted)]">
+                Срок молчания (дней)
+              </div>
+              <form
+                action={setPulseTtl}
+                className="mt-1 flex items-center gap-2"
+              >
                 <input
                   type="number"
                   min={7}
@@ -101,7 +111,9 @@ export default async function AccountPage() {
                   Сохранить
                 </button>
               </form>
-              <div className="mt-1 text-xs text-[color:var(--muted)]">Допустимый диапазон: 7–365</div>
+              <div className="mt-1 text-xs text-[color:var(--muted)]">
+                Допустимый диапазон: 7–365
+              </div>
             </div>
           </div>
         </section>

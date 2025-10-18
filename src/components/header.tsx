@@ -50,16 +50,49 @@ export async function Header() {
               fill="currentColor"
               opacity="0.28"
             />
-            <path d="M16.5 8.5c1.45 1.37 1.45 3.63 0 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.9" />
-            <path d="M18.75 6.75c2.53 2.4 2.53 6.1 0 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.55" />
-            <path d="M7.5 8.5c-1.45 1.37-1.45 3.63 0 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.9" />
-            <path d="M5.25 6.75c-2.53 2.4-2.53 6.1 0 8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.55" />
+            <path
+              d="M16.5 8.5c1.45 1.37 1.45 3.63 0 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.9"
+            />
+            <path
+              d="M18.75 6.75c2.53 2.4 2.53 6.1 0 8.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.55"
+            />
+            <path
+              d="M7.5 8.5c-1.45 1.37-1.45 3.63 0 5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.9"
+            />
+            <path
+              d="M5.25 6.75c-2.53 2.4-2.53 6.1 0 8.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              fill="none"
+              opacity="0.55"
+            />
           </svg>
-          <span className="text-sm font-medium tracking-wide text-[color:var(--fg)]">ECHO 3.0</span>
+          <span className="text-sm font-medium tracking-wide text-[color:var(--fg)]">
+            ECHO 3.0
+          </span>
         </Link>
 
         {/* Мини-навигация */}
-        <nav className="hidden items-center gap-6 text-sm md:flex" aria-label="Основная навигация">
+        <nav
+          className="hidden items-center gap-6 text-sm md:flex"
+          aria-label="Основная навигация"
+        >
           <NavLink
             href={"/security" as Route}
             ariaLabel="Безопасность"
@@ -114,7 +147,12 @@ export async function Header() {
             className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-xl ring-1 ring-black/10 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M4 6h16M4 12h16M4 18h16"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </summary>
 

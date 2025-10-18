@@ -14,9 +14,9 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const { searchParams, origin } = url;
 
-  const code = searchParams.get("code");                 // OAuth/PKCE
-  const token_hash = searchParams.get("token_hash");     // OTP (magic link / recovery / invite / email_change)
-  const typeParam = searchParams.get("type");            // часто приходит как 'email' для маглинка
+  const code = searchParams.get("code"); // OAuth/PKCE
+  const token_hash = searchParams.get("token_hash"); // OTP (magic link / recovery / invite / email_change)
+  const typeParam = searchParams.get("type"); // часто приходит как 'email' для маглинка
   const nextParam = searchParams.get("next") ?? searchParams.get("redirect_to");
 
   const redirectTo = new URL(safePath(nextParam), origin);
@@ -34,7 +34,12 @@ export async function GET(req: NextRequest) {
     if (token_hash) {
       // Допустимые типы для verifyOtp с token_hash — только email-ветка:
       // 'magiclink' | 'recovery' | 'invite' | 'email_change' | 'signup'
-      type EmailOtpType = "magiclink" | "recovery" | "invite" | "email_change" | "signup";
+      type EmailOtpType =
+        | "magiclink"
+        | "recovery"
+        | "invite"
+        | "email_change"
+        | "signup";
 
       // Supabase часто присылает ?type=email для маглинка — маппим на 'magiclink'.
       const normalized: EmailOtpType = ((): EmailOtpType => {
@@ -55,7 +60,10 @@ export async function GET(req: NextRequest) {
         }
       })();
 
-      const { error } = await supabase.auth.verifyOtp({ type: normalized, token_hash });
+      const { error } = await supabase.auth.verifyOtp({
+        type: normalized,
+        token_hash,
+      });
       if (error) {
         return NextResponse.redirect(new URL("/login?error=otp", origin));
       }

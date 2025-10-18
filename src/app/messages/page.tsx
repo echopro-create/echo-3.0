@@ -73,7 +73,8 @@ export default async function MessagesPage() {
         {!rows || rows.length === 0 ? (
           <section className="mt-8 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
             <p className="text-sm text-[color:var(--muted)]">
-              Пока пусто. Создайте первое послание — текст, голос, видео или файл.
+              Пока пусто. Создайте первое послание — текст, голос, видео или
+              файл.
             </p>
             <div className="mt-6">
               <Link
@@ -93,14 +94,21 @@ export default async function MessagesPage() {
                     <th className="px-4 py-3 text-left font-medium">ID</th>
                     <th className="px-4 py-3 text-left font-medium">Формат</th>
                     <th className="px-4 py-3 text-left font-medium">Триггер</th>
-                    <th className="px-4 py-3 text-left font-medium">Отправка</th>
+                    <th className="px-4 py-3 text-left font-medium">
+                      Отправка
+                    </th>
                     <th className="px-4 py-3 text-left font-medium">Статус</th>
-                    <th className="px-4 py-3 text-right font-medium">Действия</th>
+                    <th className="px-4 py-3 text-right font-medium">
+                      Действия
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((r) => (
-                    <tr key={r.id} className="border-t border-black/10 align-top">
+                    <tr
+                      key={r.id}
+                      className="border-t border-black/10 align-top"
+                    >
                       <td className="px-4 py-3 font-mono text-xs text-[color:var(--muted)]">
                         {r.id}
                       </td>
@@ -108,17 +116,17 @@ export default async function MessagesPage() {
                         {r.kind === "text"
                           ? "Текст"
                           : r.kind === "voice"
-                          ? "Голос"
-                          : r.kind === "video"
-                          ? "Видео"
-                          : "Файл"}
+                            ? "Голос"
+                            : r.kind === "video"
+                              ? "Видео"
+                              : "Файл"}
                       </td>
                       <td className="px-4 py-3">
                         {r.trigger_kind === "datetime"
                           ? "По времени"
                           : r.trigger_kind === "event"
-                          ? "По событию"
-                          : "После моей смерти"}
+                            ? "По событию"
+                            : "После моей смерти"}
                       </td>
                       <td className="px-4 py-3">{fmt(r.send_at)}</td>
                       <td className="px-4 py-3">

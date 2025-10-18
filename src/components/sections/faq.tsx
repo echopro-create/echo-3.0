@@ -55,9 +55,7 @@ export function FAQSection() {
               key={i}
               className="group rounded-2xl bg-white/80 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 open:shadow-md open:ring-black/10"
             >
-              <summary
-                className="cursor-pointer list-none select-none text-[color:var(--fg)]"
-              >
+              <summary className="cursor-pointer list-none select-none text-[color:var(--fg)]">
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="text-base font-semibold">{item.q}</h3>
                   <span
@@ -66,7 +64,12 @@ export function FAQSection() {
                     title="Развернуть"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24">
-                      <path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                      <path
+                        d="M5 12h14M12 5v14"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </span>
                 </div>

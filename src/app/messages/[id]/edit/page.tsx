@@ -48,7 +48,9 @@ export default function MessageEditPage() {
         setMode((data.mode as DeliveryMode) ?? "date");
         setStatus((data.status as Status) ?? "draft");
         setDeliverAt(
-          data.deliver_at ? new Date(data.deliver_at).toISOString().slice(0, 16) : ""
+          data.deliver_at
+            ? new Date(data.deliver_at).toISOString().slice(0, 16)
+            : "",
         );
       }
       setLoading(false);
@@ -69,7 +71,10 @@ export default function MessageEditPage() {
         title: title.trim(),
         mode,
         status,
-        deliver_at: mode === "date" && deliverAt ? new Date(deliverAt).toISOString() : null,
+        deliver_at:
+          mode === "date" && deliverAt
+            ? new Date(deliverAt).toISOString()
+            : null,
       };
       const { error } = await s.from("messages").update(payload).eq("id", id);
       if (error) {
@@ -78,7 +83,9 @@ export default function MessageEditPage() {
       }
       router.replace(`/messages/${id}`);
     } catch {
-      setErr("Не удалось сохранить изменения. Проверьте соединение и попробуйте ещё раз.");
+      setErr(
+        "Не удалось сохранить изменения. Проверьте соединение и попробуйте ещё раз.",
+      );
     } finally {
       setSaving(false);
     }
@@ -96,7 +103,9 @@ export default function MessageEditPage() {
       }
       router.replace("/messages");
     } catch {
-      setErr("Не удалось удалить послание. Проверьте соединение и попробуйте ещё раз.");
+      setErr(
+        "Не удалось удалить послание. Проверьте соединение и попробуйте ещё раз.",
+      );
     } finally {
       setSaving(false);
     }
@@ -104,7 +113,11 @@ export default function MessageEditPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-xl px-4 py-16" role="status" aria-live="polite">
+      <main
+        className="mx-auto max-w-xl px-4 py-16"
+        role="status"
+        aria-live="polite"
+      >
         Загрузка…
       </main>
     );
@@ -112,9 +125,12 @@ export default function MessageEditPage() {
 
   return (
     <main className="mx-auto max-w-xl px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold tracking-tight">Редактирование</h1>
+      <h1 className="mb-2 text-2xl font-semibold tracking-tight">
+        Редактирование
+      </h1>
       <p id={helpId} className="mb-6 opacity-80">
-        Обновите данные послания и прикрепите вложения. Изменения сохраняются только после нажатия «Сохранить».
+        Обновите данные послания и прикрепите вложения. Изменения сохраняются
+        только после нажатия «Сохранить».
       </p>
 
       <form
@@ -198,7 +214,12 @@ export default function MessageEditPage() {
 
         {/* Ошибки */}
         {err && (
-          <p id={errId} role="alert" aria-live="assertive" className="text-sm text-red-600">
+          <p
+            id={errId}
+            role="alert"
+            aria-live="assertive"
+            className="text-sm text-red-600"
+          >
             {err}
           </p>
         )}

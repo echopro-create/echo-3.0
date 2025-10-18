@@ -25,7 +25,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = new URL(req.url);
 
   // если путь совпадает с любым исключением — пропускаем без заголовков
-  if (EXCLUDE.some(rx => rx.test(pathname))) {
+  if (EXCLUDE.some((rx) => rx.test(pathname))) {
     return NextResponse.next();
   }
 
@@ -33,7 +33,7 @@ export function middleware(req: NextRequest) {
   const res = NextResponse.next();
   res.headers.set(
     "X-Robots-Tag",
-    "noindex, nofollow, noimageindex, noarchive, nosnippet"
+    "noindex, nofollow, noimageindex, noarchive, nosnippet",
   );
   return res;
 }

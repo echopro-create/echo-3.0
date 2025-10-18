@@ -51,7 +51,10 @@ export function HeroSection() {
       style={{ "--hero-weight": 560, "--hero-shift": "0px" } as HeroVars}
     >
       {/* Фон: спокойные эллипсы с легким параллаксом */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
         <div
           className="absolute -top-24 -left-28 h-80 w-80 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform"
           style={{ transform: "translate3d(0,var(--hero-shift),0)" }}
@@ -64,7 +67,8 @@ export function HeroSection() {
         <div
           className="absolute left-1/2 top-1/2 h-[52vmin] w-[52vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-80"
           style={{
-            background: "radial-gradient(closest-side, rgba(0,0,0,0.08), transparent 70%)",
+            background:
+              "radial-gradient(closest-side, rgba(0,0,0,0.08), transparent 70%)",
             mask: "radial-gradient(circle, transparent 62%, black 64%, black 66%, transparent 68%)",
           }}
         />
@@ -92,7 +96,8 @@ export function HeroSection() {
           aria-describedby="hero-title"
         >
           Echo хранит ваш текст, голос, видео и файлы и доставляет их по дате,
-          событию или «после моей смерти». Мы шифруем, бережно храним и отправляем вовремя.
+          событию или «после моей смерти». Мы шифруем, бережно храним и
+          отправляем вовремя.
         </p>
 
         <div className="mt-10 flex justify-center">

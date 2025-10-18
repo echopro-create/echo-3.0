@@ -41,7 +41,8 @@ export function TestimonialsSection() {
         </h2>
 
         <p className="mt-4 mx-auto max-w-prose text-[color:var(--muted)] md:text-lg">
-          Короткие отзывы о реальном опыте: без маркетинговой пены и купленных звёздочек.
+          Короткие отзывы о реальном опыте: без маркетинговой пены и купленных
+          звёздочек.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">

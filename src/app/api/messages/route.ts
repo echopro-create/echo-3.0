@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await req.json()) as Body;
 
@@ -36,15 +37,15 @@ export async function POST(req: NextRequest) {
     isDatetime && sendAtISO
       ? "scheduled"
       : isAfterlife && body.afterlife_ack
-      ? "scheduled"
-      : "draft";
+        ? "scheduled"
+        : "draft";
 
   const { data: msg, error: insErr } = await supabase
     .from("messages")
     .insert({
       user_id: user.id,
       kind: body.kind,
-      body_text: body.kind === "text" ? body.body_text ?? "" : null,
+      body_text: body.kind === "text" ? (body.body_text ?? "") : null,
       trigger_kind: body.trigger_kind,
       send_at: sendAtISO,
       event_code: body.trigger_kind === "event" ? body.event_code : null,
@@ -55,16 +56,25 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (insErr || !msg) {
-    return NextResponse.json({ error: insErr?.message ?? "insert_failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: insErr?.message ?? "insert_failed" },
+      { status: 500 },
+    );
   }
 
   const rows = body.recipients.map((email) => ({ message_id: msg.id, email }));
-  const { error: recErr } = await supabase.from("message_recipients").insert(rows);
+  const { error: recErr } = await supabase
+    .from("message_recipients")
+    .insert(rows);
   if (recErr) {
     return NextResponse.json({ error: recErr.message }, { status: 500 });
   }
 
   const storagePrefix = `attachments/${user.id}/${msg.id}/`;
 
-  return NextResponse.json({ id: msg.id, storagePrefix, status: initialStatus });
+  return NextResponse.json({
+    id: msg.id,
+    storagePrefix,
+    status: initialStatus,
+  });
 }

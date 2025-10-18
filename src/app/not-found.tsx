@@ -5,7 +5,10 @@ export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-[70svh] max-w-3xl flex-col items-start justify-center gap-6 px-4 py-16">
       {/* Декор как на HERO — лёгкая сетка, чтобы не было пустоты */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"
+      >
         <div className="absolute inset-0 [background-size:32px_32px] [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] text-[color:var(--fg)]" />
       </div>
 
@@ -14,8 +17,9 @@ export default function NotFound() {
         Страница не найдена
       </h1>
       <p className="max-w-2xl opacity-80 md:text-lg">
-        Тут пусто. Возможно, ссылка устарела или была набрана с опечаткой. Ничего страшного,
-        у нас есть план Б: вернуться на главную или открыть нужный раздел.
+        Тут пусто. Возможно, ссылка устарела или была набрана с опечаткой.
+        Ничего страшного, у нас есть план Б: вернуться на главную или открыть
+        нужный раздел.
       </p>
 
       <div className="flex flex-wrap gap-3">
