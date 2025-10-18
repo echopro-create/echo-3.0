@@ -12,10 +12,13 @@ function Find-RepoRoot {
     $dir = $parent
   }
 }
-function Section([string]$name) { Write-Host "`n=== $name ===" -ForegroundColor Cyan }
+
+function Section([string]$name) {
+  Write-Host "`n=== $name ===" -ForegroundColor Cyan
+}
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Find-RepoRoot (Join-Path $scriptDir "..")
+$repoRoot  = Find-RepoRoot (Join-Path $scriptDir "..")
 Set-Location $repoRoot
 
 Section "Repo root"
@@ -83,7 +86,6 @@ if ($missing.Count) {
 }
 
 Section "depcheck (report only)"
-# Вызываем ровно тот же сценарий, что в package.json, чтобы не ловить глюки dlx и гарантированно читать конфиг
 try {
   pnpm run deps:check
 } catch {
@@ -91,7 +93,6 @@ try {
 }
 
 Section "ts-prune (report only)"
-# Используем локально установленный ts-prune и правильный проект
 & pnpm exec ts-prune -p tsconfig.json *> $null
 if ($LASTEXITCODE -ne 0) {
   Write-Host "ts-prune failed  skip" -ForegroundColor Yellow
