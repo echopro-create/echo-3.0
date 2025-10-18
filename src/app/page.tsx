@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { CTA } from "@/components/cta";
 import { TestimonialsSection } from "@/components/sections/testimonials";
+import { FAQSection } from "@/components/sections/faq";
 import { Reveal } from "@/components/reveal";
 
 export default function Home() {
@@ -224,12 +225,17 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TESTIMONIALS — тоже с reveal, но оставляем твою секцию */}
+        {/* TESTIMONIALS */}
         <Reveal as="div" delay={60}>
           <TestimonialsSection />
         </Reveal>
 
-        {/* Заключительный CTA — коротко и по делу */}
+        {/* FAQ */}
+        <Reveal as="div" delay={60}>
+          <FAQSection />
+        </Reveal>
+
+        {/* Заключительный CTA */}
         <section className="relative w-full border-t border-black/10 py-16 md:py-20" role="region" aria-labelledby="cta-end">
           <div className="mx-auto max-w-3xl text-center">
             <Reveal as="h2" delay={60}>
