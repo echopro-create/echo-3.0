@@ -7,6 +7,9 @@ import { ReactNode, useMemo } from "react";
 /** Берём точный тип href из Link, чтобы не спорить с Next 15 */
 type Href = Parameters<typeof Link>[0]["href"];
 
+/** Мини-тип для безопасного доступа к pathname без any */
+type UrlLike = { pathname?: string };
+
 type Props = {
   href: Href;
   children: ReactNode;
@@ -33,9 +36,8 @@ export function NavLink({
   // Вычисляем строковый путь из href (строка или UrlObject)
   const targetPath = useMemo(() => {
     if (typeof href === "string") return href;
-    // UrlObject. pathname может быть строкой или undefined
-    const p = (href && (href as any).pathname) as string | undefined;
-    return p ?? "/";
+    const p = (href as UrlLike).pathname;
+    return typeof p === "string" ? p : "/";
   }, [href]);
 
   const isActive = useMemo(() => {
