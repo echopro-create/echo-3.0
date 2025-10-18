@@ -12,14 +12,14 @@ export default function Home() {
         role="main"
         aria-label="Главная область"
       >
-        {/* HERO — современный simple-centered по канону */}
+        {/* HERO — акцентная типографика, живой бейдж, чистый ритм */}
         <section
           className="relative w-full py-20 md:py-28"
           aria-labelledby="hero-title"
           role="region"
         >
-          {/* бейдж над заголовком */}
           <div className="mx-auto max-w-3xl text-left md:text-center">
+            {/* бейдж поверх героя */}
             <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
               Приватность по умолчанию · Доставка по событию и времени
@@ -27,7 +27,7 @@ export default function Home() {
 
             <h1
               id="hero-title"
-              className="mt-5 text-4xl font-medium leading-[1.08] tracking-tight text-[color:var(--fg)] md:text-7xl"
+              className="mt-5 text-5xl font-medium leading-[1.05] tracking-tight text-[color:var(--fg)] md:text-7xl"
             >
               Послания, которые будут доставлены&nbsp;после нас.
             </h1>
@@ -44,14 +44,13 @@ export default function Home() {
               <CTA />
             </div>
 
-            {/* trust strip */}
             <div className="mt-6 text-center text-xs text-[color:var(--muted)]">
               Без рекламы · Без трекинга · Можно удалить всё одним щелчком
             </div>
           </div>
         </section>
 
-        {/* FEATURES — «bento grid» */}
+        {/* FEATURES — bento без рамок, мягкие поверхности, понятные иконки */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -69,13 +68,16 @@ export default function Home() {
               Не магия, а нормальная инженерия. Вы создаёте послание, выбираете триггер, остальное — наша работа.
             </p>
 
+            {/* bento: мягкие карточки без видимой рамки */}
             <div className="mt-10 grid gap-4 md:grid-cols-6">
               {/* 1. Создание */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl border border-black/10 bg-white p-6 md:col-span-3">
-                <header className="flex items-center gap-2">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--fg)] text-[color:var(--bg)] text-xs font-semibold">
-                    1
-                  </span>
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-3">
+                <header className="flex items-center gap-3">
+                  {/* иконка-перо */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
+                    <path d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z" fill="currentColor" opacity="0.12" />
+                    <path d="M4 20c5-1 9-5 13-9l3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
                   <h3 className="text-base font-semibold text-[color:var(--fg)]">Создайте послание</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)] max-w-prose">
@@ -84,11 +86,13 @@ export default function Home() {
               </article>
 
               {/* 2. Триггер */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl border border-black/10 bg-white p-6 md:col-span-3">
-                <header className="flex items-center gap-2">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--fg)] text-[color:var(--bg)] text-xs font-semibold">
-                    2
-                  </span>
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-3">
+                <header className="flex items-center gap-3">
+                  {/* иконка-часики */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
+                    <circle cx="12" cy="12" r="8" fill="currentColor" opacity="0.08" />
+                    <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
                   <h3 className="text-base font-semibold text-[color:var(--fg)]">Выберите триггер</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)] max-w-prose">
@@ -97,11 +101,13 @@ export default function Home() {
               </article>
 
               {/* 3. Доставка — растянутый тайл */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl border border-black/10 bg-white p-6 md:col-span-4">
-                <header className="flex items-center gap-2">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--fg)] text-[color:var(--bg)] text-xs font-semibold">
-                    3
-                  </span>
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-4">
+                <header className="flex items-center gap-3">
+                  {/* иконка-конверт */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
+                    <path d="M4 7h16v10H4z" fill="currentColor" opacity="0.08" />
+                    <path d="M4 7l8 6 8-6M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
                   <h3 className="text-base font-semibold text-[color:var(--fg)]">Мы доставим вовремя</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)] max-w-prose">
@@ -110,11 +116,13 @@ export default function Home() {
               </article>
 
               {/* 4. Приватность — компактный тайл */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl border border-black/10 bg-white p-6 md:col-span-2">
-                <header className="flex items-center gap-2">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--fg)] text-[color:var(--bg)] text-xs font-semibold">
-                    •
-                  </span>
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-2">
+                <header className="flex items-center gap-3">
+                  {/* иконка-замок */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
+                    <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
+                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
                   <h3 className="text-base font-semibold text-[color:var(--fg)]">Приватность по умолчанию</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)] max-w-prose">
@@ -123,13 +131,13 @@ export default function Home() {
               </article>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-10 flex justify-center">
               <CTA />
             </div>
           </div>
         </section>
 
-        {/* TESTIMONIALS — свежая секция с реальными голосами */}
+        {/* TESTIMONIALS — оставляем ниже для доверия */}
         <TestimonialsSection />
       </main>
     </>
