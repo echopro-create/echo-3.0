@@ -12,7 +12,7 @@ export async function Header() {
 
   return (
     <header
-      className="sticky top-0 z-40 w-full border-b border-black/10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70"
+      className="sticky top-0 z-40 w-full border-b border-black/5 bg-[color:var(--bg)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/70"
       role="banner"
     >
       {/* Skip link для клавиатуры и скринридеров */}
@@ -28,7 +28,7 @@ export async function Header() {
         <Link
           href="/"
           rel="home"
-          className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
           aria-label="Echo — главная"
         >
           {/* логомарк */}
@@ -62,7 +62,6 @@ export async function Header() {
           <NavLink
             href={"/security" as Route}
             ariaLabel="Безопасность"
-            className=""
             activeClassName="text-[color:var(--fg)]"
             inactiveClassName="text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]"
             exact
@@ -99,7 +98,7 @@ export async function Header() {
               ariaLabel="Войти"
               activeClassName="text-[color:var(--fg)]"
               inactiveClassName="text-[color:var(--fg)]"
-              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium ring-1 ring-black/10 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
               exact
             >
               Войти
@@ -111,7 +110,7 @@ export async function Header() {
         <details className="group relative md:hidden">
           <summary
             aria-label="Открыть меню"
-            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-xl ring-1 ring-black/10 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -119,7 +118,7 @@ export async function Header() {
           </summary>
 
           <div
-            className="absolute right-0 mt-2 w-[88vw] max-w-xs rounded-2xl border border-black/10 bg-white p-2 shadow-lg"
+            className="absolute right-0 mt-2 w-[88vw] max-w-xs rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-black/10 backdrop-blur"
             role="menu"
             aria-label="Меню"
           >
@@ -168,9 +167,9 @@ export async function Header() {
                 <NavLink
                   href="/login"
                   ariaLabel="Войти"
-                  className="rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-black/15 transition"
+                  className="rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-black/10 transition hover:bg-black/5"
                   activeClassName="text-[color:var(--fg)] bg-black/5"
-                  inactiveClassName="text-[color:var(--fg)] hover:bg-black/5"
+                  inactiveClassName="text-[color:var(--fg)]"
                   role="menuitem"
                   exact
                 >

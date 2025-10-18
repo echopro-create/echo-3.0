@@ -2,15 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Светлая палитра по умолчанию */
+/* Светлая палитра и токены */
 :root {
-  --bg: #ffffff;     /* светлый фон */
-  --fg: #0e1420;     /* тёмный текст (читаемый, не чисто чёрный) */
-  --muted: #3f4a59;  /* вторичный текст (выше контраст, чем было) */
+  --bg: #ffffff;        /* фон */
+  --fg: #0e1420;        /* основной текст (не абсолютный чёрный) */
+  --muted: #3f4a59;     /* вторичный текст (достаточный контраст) */
+
+  --surface: #ffffff;   /* базовая поверхность карточек/секций */
+  --ring: rgba(14, 20, 32, 0.08);      /* цвет обводки/ring */
+  --ring-strong: rgba(14, 20, 32, 0.12); /* усиленный ring для hover */
 
   /* Типографский модуль */
-  --measure: 68ch;    /* целевая длина строки для основного текста */
-  --leading: 1.6;     /* базовый межстрочный интервал для параграфов */
+  --measure: 68ch;   /* целевая длина строки для основного текста */
+  --leading: 1.6;    /* базовый межстрочный интервал для параграфов */
 
   color-scheme: light;
 }
@@ -18,7 +22,7 @@
 /* Базовая раскладка и сглаживание */
 html, body { height: 100%; }
 body {
-  background-color: var(--bg); /* никаких градиентов, чистый фон */
+  background-color: var(--bg);
   color: var(--fg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -45,10 +49,7 @@ body {
   }
 
   /* Типографская мерка и вертикальный ритм */
-  p, ul, ol, blockquote {
-    max-width: var(--measure);
-  }
-
+  p, ul, ol, blockquote { max-width: var(--measure); }
   p { line-height: var(--leading); }
 
   /* Единые вертикальные отступы между блоками текста */
@@ -63,24 +64,37 @@ body {
   ul + p, ol + p { margin-top: 0.5rem; }
 }
 
-/* Выделение текста под светлую тему */
+/* Выделение текста */
 ::selection {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(14, 20, 32, 0.12);
   color: var(--fg);
 }
 
-/* Доступность: заметные фокусы без кислотности */
+/* Чёткие фокусы без кислотности */
 :focus-visible {
-  outline: 2px solid rgba(14, 20, 32, 0.55); /* согласовано с --fg */
+  outline: 2px solid rgba(14, 20, 32, 0.55);
   outline-offset: 2px;
 }
 
-/* Базовая шкала заголовков — современная, без лишнего трекинга */
+/* Базовая шкала заголовков */
 h1 { @apply text-4xl md:text-6xl font-semibold tracking-tight; }
 h2 { @apply text-3xl md:text-4xl font-semibold tracking-tight; }
 h3 { @apply text-2xl md:text-3xl font-semibold tracking-tight; }
 p  { @apply leading-7; }
 small, .text-small { @apply text-sm leading-5; }
+
+/* Мягкие поверхности по умолчанию (вспомогательные утилиты) */
+@layer components {
+  .surface {
+    @apply bg-white/80 shadow-sm ring-1 backdrop-blur-sm;
+    box-shadow: 0 1px 2px rgba(14, 20, 32, 0.04);
+    border-color: var(--ring);
+  }
+  .surface-hover:hover {
+    box-shadow: 0 4px 12px rgba(14, 20, 32, 0.06);
+    border-color: var(--ring-strong);
+  }
+}
 
 /* Плавность без укачивания */
 @media (prefers-reduced-motion: reduce) {
