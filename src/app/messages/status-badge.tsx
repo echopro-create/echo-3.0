@@ -3,7 +3,10 @@ export function StatusBadge({
 }: {
   status: "draft" | "scheduled" | "sent" | "canceled";
 }) {
-  const map: Record<typeof status, { label: string; cls: string }> = {
+  const map: Record<
+    "draft" | "scheduled" | "sent" | "canceled",
+    { label: string; cls: string }
+  > = {
     draft: {
       label: "Черновик",
       cls: "bg-black/[0.05] text-[color:var(--fg)]",
@@ -20,9 +23,10 @@ export function StatusBadge({
       label: "Отменено",
       cls: "bg-red-50 text-red-700 ring-1 ring-red-200",
     },
-  } as const;
+  };
 
   const { label, cls } = map[status];
+
   return (
     <span
       className={[
