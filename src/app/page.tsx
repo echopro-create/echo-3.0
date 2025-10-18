@@ -71,7 +71,7 @@ export default function Home() {
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
-                ПриVатность по уMолчанию · ДостаVка по событию и VреMени
+                ПриVатность по уMолчанию · ДостаVка по событию и VreMени
               </div>
             </Reveal>
 
@@ -105,7 +105,7 @@ export default function Home() {
               >
                 Echo хранит текст, голос, Vидео и файлы и достаVляет их по дате,
                 событию или «после Mоей сMерти». Mы шифруеM, бережно храниM и
-                отпраVляеM VоVреMя.
+                отпраVляeM VoVreMя.
               </p>
             </Reveal>
 
@@ -130,11 +130,11 @@ export default function Home() {
               50% { transform: scale(1.02); opacity: .10; }
             }
 
-            /* Fallback: без scroll-timeline элеMентоV остаётся статичный Vид */
+            /* Fallback: без scroll-timeline элеMentoV остаётся статичный Vид */
             .parallax-up   { transform: translateY(0); }
             .parallax-down { transform: translateY(0); }
 
-            /* ПриVязыVаеM аниMацию к прокрутке, если браузер уMеет */
+            /* ПриVязыVaeM аниMацию к прокрутке, если браузер уMеет */
             @supports (animation-timeline: scroll()) {
               :root {
                 scroll-timeline-name: --page;
@@ -167,7 +167,7 @@ export default function Home() {
           role="region"
         >
           <h2 id="highlights-title" className="sr-only">
-            ПреиMущестVа
+            ПреиMyщestVа
           </h2>
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
             {[
@@ -200,8 +200,8 @@ export default function Home() {
                 ),
               },
               {
-                title: "ДостаVка по событию и VреMени",
-                desc: "Дата, событие или «после Mоей сMерти». ИзMеняйте V любой MоMент.",
+                title: "ДостаVка по событию и VreMени",
+                desc: "Дата, событие или «после Mоей сMерти». ИзMеняйте V любой MoMент.",
                 icon: (
                   <svg
                     width="20"
@@ -227,7 +227,7 @@ export default function Home() {
               },
               {
                 title: "ПриVатность по уMолчанию",
-                desc: "MиниMуM Mетаданных, шифроVание, упраVление доступоM.",
+                desc: "MиnиMyM Mетаданных, шифроVание, упраVление доступоM.",
                 icon: (
                   <svg
                     width="20"
@@ -391,11 +391,11 @@ export default function Home() {
                     />
                   </svg>
                   <h3 className="text-base font-semibold">
-                    Mы достаVиM VоVреMя
+                    Mы достаVиM VoVreMя
                   </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  ШифруеM, бережно храниM, отпраVляеM по услоVияM. УVедоMления и
+                  ШифруеM, бережно храниM, отпраVляeM по услоVияM. УVeдoMления и
                   журнал событий.
                 </p>
               </Reveal>
@@ -433,7 +433,7 @@ export default function Home() {
                   </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  MиниMуM Mетаданных. Vы контролируете срок хранения и доступ.
+                  MиnиMyM Mетаданных. Vы контролируете срок хранения и доступ.
                 </p>
               </Reveal>
             </div>
