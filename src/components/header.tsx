@@ -10,12 +10,24 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-black/10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+    <header
+      className="sticky top-0 z-40 w-full border-b border-black/10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70"
+      role="banner"
+    >
+      {/* Skip link для клавиатуры и скринридеров */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-[color:var(--fg)] focus:px-3 focus:py-2 focus:text-[color:var(--bg)] focus:shadow-sm"
+      >
+        Перейти к содержимому
+      </a>
+
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         {/* ЛОГО */}
         <Link
           href="/"
-          className="flex items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          rel="home"
+          className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           aria-label="Echo — главная"
         >
           {/* логомарк */}
@@ -48,7 +60,7 @@ export async function Header() {
         <nav className="hidden items-center gap-6 text-sm md:flex" aria-label="Основная навигация">
           <Link
             href={"/security" as Route}
-            className="rounded-lg px-1 text-[color:var(--fg)]/80 hover:text-[color:var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="rounded-lg px-1 text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Безопасность
           </Link>
@@ -60,13 +72,13 @@ export async function Header() {
             <>
               <Link
                 href="/messages"
-                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 hover:text-[color:var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
                 Послания
               </Link>
               <Link
                 href="/account"
-                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 hover:text-[color:var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
                 Аккаунт
               </Link>
@@ -75,7 +87,7 @@ export async function Header() {
           ) : (
             <Link
               href="/login"
-              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               Войти
             </Link>
@@ -86,7 +98,7 @@ export async function Header() {
         <details className="group relative md:hidden">
           <summary
             aria-label="Открыть меню"
-            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg ring-1 ring-black/15 hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -99,7 +111,7 @@ export async function Header() {
             aria-label="Меню"
           >
             <div className="grid">
-              <Link href={"/security" as Route} role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 hover:bg-black/5">
+              <Link href={"/security" as Route} role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
                 Безопасность
               </Link>
 
@@ -107,10 +119,10 @@ export async function Header() {
 
               {user ? (
                 <>
-                  <Link href="/messages" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 hover:bg-black/5">
+                  <Link href="/messages" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
                     Послания
                   </Link>
-                  <Link href="/account" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 hover:bg-black/5">
+                  <Link href="/account" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
                     Аккаунт
                   </Link>
                   <div className="px-2 py-1">
@@ -121,7 +133,7 @@ export async function Header() {
                 <Link
                   href="/login"
                   role="menuitem"
-                  className="rounded-xl px-3 py-2 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 hover:bg-black/5"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 transition hover:bg-black/5"
                 >
                   Войти
                 </Link>
