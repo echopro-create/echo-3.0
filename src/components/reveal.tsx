@@ -9,7 +9,7 @@ import {
   type CSSProperties,
 } from "react";
 
-/** Разрешённые теги-обёртки — чтобы корректно типизировать ref как HTMLElement */
+/** Разрешённые теги-обёртки — хватает для лендинга */
 type TagName =
   | "div"
   | "section"
@@ -17,10 +17,13 @@ type TagName =
   | "aside"
   | "header"
   | "footer"
-  | "main";
+  | "main"
+  | "h1"
+  | "h2"
+  | "p";
 
 type Props = {
-  as?: TagName;            // обёртка: div/section/article и т.д.
+  as?: TagName;            // обёртка: div/section/article/h1/h2/p ...
   className?: string;
   children: ReactNode;
   /** задержка в мс для каскадной анимации */
