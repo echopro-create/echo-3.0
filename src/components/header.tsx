@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/signout-button";
+import { NavLink } from "@/components/nav-link";
 import type { Route } from "next";
 
 export async function Header() {
@@ -58,39 +59,51 @@ export async function Header() {
 
         {/* Мини-навигация */}
         <nav className="hidden items-center gap-6 text-sm md:flex" aria-label="Основная навигация">
-          <Link
+          <NavLink
             href={"/security" as Route}
-            className="rounded-lg px-1 text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            ariaLabel="Безопасность"
+            className=""
+            activeClassName="text-[color:var(--fg)]"
+            inactiveClassName="text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]"
+            exact
           >
             Безопасность
-          </Link>
+          </NavLink>
         </nav>
 
         {/* Правый блок */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <Link
+              <NavLink
                 href="/messages"
-                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                ariaLabel="Послания"
+                activeClassName="text-[color:var(--fg)]"
+                inactiveClassName="text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]"
               >
                 Послания
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 href="/account"
-                className="rounded-lg px-1 text-sm text-[color:var(--fg)]/80 transition hover:text-[color:var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                ariaLabel="Аккаунт"
+                activeClassName="text-[color:var(--fg)]"
+                inactiveClassName="text-[color:var(--fg)]/80 hover:text-[color:var(--fg)]"
               >
                 Аккаунт
-              </Link>
+              </NavLink>
               <SignOutButton />
             </>
           ) : (
-            <Link
+            <NavLink
               href="/login"
-              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              ariaLabel="Войти"
+              activeClassName="text-[color:var(--fg)]"
+              inactiveClassName="text-[color:var(--fg)]"
+              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium ring-1 ring-black/15 transition hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              exact
             >
               Войти
-            </Link>
+            </NavLink>
           )}
         </div>
 
@@ -111,32 +124,58 @@ export async function Header() {
             aria-label="Меню"
           >
             <div className="grid">
-              <Link href={"/security" as Route} role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
+              <NavLink
+                href={"/security" as Route}
+                ariaLabel="Безопасность"
+                className="rounded-xl px-3 py-2 text-sm transition"
+                activeClassName="text-[color:var(--fg)] bg-black/5"
+                inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
+                exact
+                role="menuitem"
+              >
                 Безопасность
-              </Link>
+              </NavLink>
 
               <div className="my-1 h-px bg-black/10" />
 
               {user ? (
                 <>
-                  <Link href="/messages" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
+                  <NavLink
+                    href="/messages"
+                    ariaLabel="Послания"
+                    className="rounded-xl px-3 py-2 text-sm transition"
+                    activeClassName="text-[color:var(--fg)] bg-black/5"
+                    inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
+                    role="menuitem"
+                  >
                     Послания
-                  </Link>
-                  <Link href="/account" role="menuitem" className="rounded-xl px-3 py-2 text-sm text-[color:var(--fg)]/90 transition hover:bg-black/5">
+                  </NavLink>
+                  <NavLink
+                    href="/account"
+                    ariaLabel="Аккаунт"
+                    className="rounded-xl px-3 py-2 text-sm transition"
+                    activeClassName="text-[color:var(--fg)] bg-black/5"
+                    inactiveClassName="text-[color:var(--fg)]/90 hover:bg-black/5"
+                    role="menuitem"
+                  >
                     Аккаунт
-                  </Link>
+                  </NavLink>
                   <div className="px-2 py-1">
                     <SignOutButton />
                   </div>
                 </>
               ) : (
-                <Link
+                <NavLink
                   href="/login"
+                  ariaLabel="Войти"
+                  className="rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-black/15 transition"
+                  activeClassName="text-[color:var(--fg)] bg-black/5"
+                  inactiveClassName="text-[color:var(--fg)] hover:bg-black/5"
                   role="menuitem"
-                  className="rounded-xl px-3 py-2 text-sm font-medium text-[color:var(--fg)] ring-1 ring-black/15 transition hover:bg-black/5"
+                  exact
                 >
                   Войти
-                </Link>
+                </NavLink>
               )}
             </div>
           </div>
