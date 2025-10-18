@@ -12,12 +12,21 @@ export default function Home() {
         role="main"
         aria-label="Главная область"
       >
-        {/* HERO — акцентная типографика, живой бейдж, чистый ритм */}
+        {/* HERO — акцентная типографика, мягкий фон, чистый ритм */}
         <section
           className="relative w-full py-20 md:py-28"
           aria-labelledby="hero-title"
           role="region"
         >
+          {/* декоративный мягкий фон, без кислотных градиентов */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10"
+          >
+            <div className="absolute -top-24 -left-28 h-80 w-80 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl" />
+            <div className="absolute -bottom-24 -right-28 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl" />
+          </div>
+
           <div className="mx-auto max-w-3xl text-left md:text-center">
             {/* бейдж поверх героя */}
             <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
@@ -50,7 +59,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FEATURES — bento без рамок, мягкие поверхности, понятные иконки */}
+        {/* FEATURES — bento без «рамок XP», мягкие поверхности, ясные иконки */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -68,10 +77,10 @@ export default function Home() {
               Не магия, а нормальная инженерия. Вы создаёте послание, выбираете триггер, остальное — наша работа.
             </p>
 
-            {/* bento: мягкие карточки без видимой рамки */}
+            {/* bento: мягкие карточки с тенью и лёгким ring; деликатные hover-состояния */}
             <div className="mt-10 grid gap-4 md:grid-cols-6">
               {/* 1. Создание */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-3">
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3">
                 <header className="flex items-center gap-3">
                   {/* иконка-перо */}
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
@@ -86,7 +95,7 @@ export default function Home() {
               </article>
 
               {/* 2. Триггер */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-3">
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-3">
                 <header className="flex items-center gap-3">
                   {/* иконка-часики */}
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
@@ -101,7 +110,7 @@ export default function Home() {
               </article>
 
               {/* 3. Доставка — растянутый тайл */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-4">
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-4">
                 <header className="flex items-center gap-3">
                   {/* иконка-конверт */}
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
@@ -116,7 +125,7 @@ export default function Home() {
               </article>
 
               {/* 4. Приватность — компактный тайл */}
-              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm md:col-span-2">
+              <article className="group relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2">
                 <header className="flex items-center gap-3">
                   {/* иконка-замок */}
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" className="text-[color:var(--fg)]">
