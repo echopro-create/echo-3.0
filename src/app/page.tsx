@@ -1,5 +1,6 @@
 import { Header } from "@/components/header";
 import { CTA } from "@/components/cta";
+import { TestimonialsSection } from "@/components/sections/testimonials";
 
 export default function Home() {
   return (
@@ -50,7 +51,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FEATURES — «bento grid» без лишней мишуры */}
+        {/* FEATURES — «bento grid» */}
         <section
           className="relative w-full border-t border-black/10 py-16 md:py-20"
           aria-labelledby="features-title"
@@ -68,7 +69,6 @@ export default function Home() {
               Не магия, а нормальная инженерия. Вы создаёте послание, выбираете триггер, остальное — наша работа.
             </p>
 
-            {/* bento: responsive grid с разным span на десктопе */}
             <div className="mt-10 grid gap-4 md:grid-cols-6">
               {/* 1. Создание */}
               <article className="group relative col-span-6 overflow-hidden rounded-2xl border border-black/10 bg-white p-6 md:col-span-3">
@@ -128,6 +128,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* TESTIMONIALS — свежая секция с реальными голосами */}
+        <TestimonialsSection />
       </main>
     </>
   );
