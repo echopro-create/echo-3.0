@@ -1,178 +1,176 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 
-export const metadata: Metadata = {
-  title: "Архитектура безопасности — Echo",
+export const metadata = {
+  title: "Безопасность — Echo",
   description:
-    "Коротко о том, как Echo проектирует приватность: шифрование на устройстве, разделение ключей и данных, строгие RLS-политики.",
-  openGraph: {
-    title: "Архитектура безопасности — Echo",
-    description:
-      "Шифрование на устройстве, RLS по строкам, раздельное хранение ключей и данных, аудит действий.",
-    url: "/security",
-    siteName: "Echo",
-    type: "article",
-  },
-  robots: { index: true, follow: true },
+    "Как Echo защищает ваши послания: шифрование, контроль доступа, хранение и удаление данных.",
+  alternates: { canonical: "/security" },
 };
 
 export default function SecurityPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-10 px-4 py-16">
-      <header className="space-y-3">
-        <p className="text-sm text-[color:var(--fg)]/60">
-          <Link
-            href="/"
-            className="rounded-lg underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
-            На главную
-          </Link>
-        </p>
+    <>
+      <Header />
+      <main id="main" className="relative mx-auto max-w-6xl px-4" role="main" aria-label="Раздел безопасности">
+        <section className="relative w-full py-20 md:py-24" aria-labelledby="sec-title">
+          <div className="mx-auto max-w-3xl">
+            <h1 id="sec-title" className="text-4xl md:text-6xl font-semibold tracking-tight text-[color:var(--fg)]">
+              Безопасность
+            </h1>
+            <p className="mt-5 max-w-prose text-[color:var(--muted)] md:text-lg">
+              Коротко: приватность по умолчанию. Ни маркетинговых пикселей, ни «случайной» телеметрии. Вы контролируете, кто и когда
+              увидит послания, а мы отвечаем за шифрование, хранение и доставку.
+            </p>
+          </div>
+        </section>
 
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-          Архитектура безопасности
-        </h1>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-16" aria-labelledby="crypto-title">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-12">
+            <header className="md:col-span-4">
+              <h2 id="crypto-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+                Шифрование и данные
+              </h2>
+            </header>
+            <div className="md:col-span-8">
+              <ul className="space-y-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                <li>
+                  <strong className="text-[color:var(--fg)]">Транспорт</strong>: весь трафик шифруется (HTTPS/TLS). Между клиентом и
+                  сервером едут только зашифрованные соединения.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Хранение</strong>: медиа и файлы хранятся в объектном хранилище, база — в
+                  управляемом SQL. Резервные копии согласно политике хранения.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Минимизация</strong>: собираем только то, что нужно для работы триггеров и
+                  доставки. Никаких сторонних рекламных SDK.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-        <p className="md:text-lg text-[color:var(--fg)]/80">
-          Короткий обзор принципов безопасности Echo. Без маркетингового сахарка,
-          только то, что влияет на приватность и надёжность.
-        </p>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-16" aria-labelledby="access-title">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-12">
+            <header className="md:col-span-4">
+              <h2 id="access-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+                Доступ и аутентификация
+              </h2>
+            </header>
+            <div className="md:col-span-8">
+              <ul className="space-y-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                <li>
+                  <strong className="text-[color:var(--fg)]">Авторизация</strong>: доступ к посланиям только их владельцу до момента
+                  доставки. Получатели видят контент лишь после наступления условий.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Сессии</strong>: защищённые cookie, контроль сроков жизни, отзыв сессий при
+                  выходе.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Роли</strong>: минимум ролей, принцип наименьших привилегий для внутренних
+                  систем.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-        {/* Навигация по странице */}
-        <nav aria-label="Навигация по разделам" className="mt-4">
-          <ul className="flex flex-wrap gap-2 text-sm text-[color:var(--fg)]/80">
-            {[
-              ["#crypto", "Шифрование"],
-              ["#storage", "Хранение"],
-              ["#rls", "Доступ (RLS)"],
-              ["#audit", "Аудит"],
-              ["#delivery", "Доставка"],
-              ["#rights", "Права и доступ"],
-            ].map(([href, label]) => (
-              <li key={href}>
-                <a
-                  href={href}
-                  className="inline-flex rounded-lg px-3 py-1 ring-1 ring-black/15 hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-16" aria-labelledby="delivery-title">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-12">
+            <header className="md:col-span-4">
+              <h2 id="delivery-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+                Доставка и триггеры
+              </h2>
+            </header>
+            <div className="md:col-span-8">
+              <ul className="space-y-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                <li>
+                  <strong className="text-[color:var(--fg)]">Триггеры</strong>: дата, событие или «после моей смерти». Перед отправкой
+                  выполняется верификация условия.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Журнал</strong>: фиксируем события доставки и статусы. Вы видите, что и когда
+                  произошло.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Повторы</strong>: в случае временной недоступности получателя предпринимаются
+                  повторные попытки согласно политике ретраев.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-        {/* «Диаграмма словами» */}
-        <div className="mt-4 rounded-2xl border border-black/10 bg-white p-4 text-sm text-[color:var(--fg)]/90">
-          <p>
-            <strong>Клиент</strong> шифрует данные ключом пользователя →{" "}
-            <strong>Сервер</strong> хранит зашифрованный контент без ключей →{" "}
-            <strong>БД</strong> ограничивает доступ к строкам по RLS →{" "}
-            <strong>Аудит</strong> фиксирует критичные операции.
-          </p>
-        </div>
-      </header>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-16" aria-labelledby="control-title">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-12">
+            <header className="md:col-span-4">
+              <h2 id="control-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+                Управление и удаление
+              </h2>
+            </header>
+            <div className="md:col-span-8">
+              <ul className="space-y-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                <li>
+                  <strong className="text-[color:var(--fg)]">Редактирование</strong>: можно менять получателей и условия доставки до
+                  наступления триггера.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Удаление</strong>: полное удаление посланий и файлов по запросу владельца.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Экспорт</strong>: выгрузка ваших данных по запросу.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-      {/* Шифрование */}
-      <section id="crypto" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Шифрование</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>На устройстве.</strong> Контент шифруется до загрузки. Сервер видит только шифртекст.
-          </li>
-          <li>
-            <strong>Разделение ключей.</strong> Ключевой материал не хранится рядом с данными; метаданные минимальны.
-          </li>
-          <li>
-            <strong>Обновление ключей.</strong> Ротация без утраты доступа к историческим сообщениям (через повторное шифрование или ключевые обёртки).
-          </li>
-        </ul>
-      </section>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-16" aria-labelledby="legal-title">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-12">
+            <header className="md:col-span-4">
+              <h2 id="legal-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+                Прозрачность
+              </h2>
+            </header>
+            <div className="md:col-span-8">
+              <ul className="space-y-3 text-sm leading-relaxed text-[color:var(--muted)]">
+                <li>
+                  <strong className="text-[color:var(--fg)]">Логи доступа</strong>: критичные действия журналируются и доступны вам для
+                  аудита.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Запросы органов</strong>: соблюдаем закон. Передаём только то, что обязаны, в
+                  пределах правовых требований.
+                </li>
+                <li>
+                  <strong className="text-[color:var(--fg)]">Ответственность</strong>: SLA и договорные условия публикуются отдельно.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-      {/* Хранение */}
-      <section id="storage" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Хранение</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>Бакеты с версионированием.</strong> Контент неизменяем, удаление мягкое до финальной очистки.
-          </li>
-          <li>
-            <strong>Политики жизненного цикла.</strong> Сроки хранения вложений и логов определены явно.
-          </li>
-          <li>
-            <strong>Изоляция доступов.</strong> Серверные ключи от бакетов не дают доступ к расшифровке содержимого.
-          </li>
-        </ul>
-      </section>
-
-      {/* Доступ (RLS) */}
-      <section id="rls" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Доступ (RLS)</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>Политики на уровне строк.</strong> Каждая запись принадлежит владельцу; гостевого «просмотра таблиц» нет.
-          </li>
-          <li>
-            <strong>Минимизация селектов.</strong> Запросы возвращают только необходимые поля.
-          </li>
-          <li>
-            <strong>Разделение обязанностей.</strong> Права на запись, доставку и чтение разведены по ролям.
-          </li>
-        </ul>
-      </section>
-
-      {/* Аудит */}
-      <section id="audit" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Аудит</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>Подпись событий.</strong> Ключевые действия фиксируются с отметкой времени и идентификатором субъекта.
-          </li>
-          <li>
-            <strong>Защита от повторов.</strong> Для триггеров доставки используются nonce и окна допустимости.
-          </li>
-          <li>
-            <strong>Наблюдаемость.</strong> Совмещаем технический лог и пользовательский журнал действий.
-          </li>
-        </ul>
-      </section>
-
-      {/* Доставка */}
-      <section id="delivery" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Доставка</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>Окна доставки.</strong> Проверка границ времени и дедупликация отправок.
-          </li>
-          <li>
-            <strong>События.</strong> Подписанные webhook-и и токен-ссылки, защита от повторных вызовов.
-          </li>
-          <li>
-            <strong>«Пульс».</strong> Dead-man-switch с мягкими задержками и подтверждениями «я в порядке».
-          </li>
-        </ul>
-      </section>
-
-      {/* Права и доступ пользователя */}
-      <section id="rights" className="scroll-mt-20 space-y-4">
-        <h2 className="text-xl font-medium tracking-tight">Права и доступ</h2>
-        <ul className="list-disc space-y-2 pl-5 text-[color:var(--fg)]/90">
-          <li>
-            <strong>Минимизация данных.</strong> Сохраняем только необходимое для работы сервиса.
-          </li>
-          <li>
-            <strong>Отзыв доступа.</strong> Токены и шаринги можно отозвать мгновенно.
-          </li>
-          <li>
-            <strong>Экспорт.</strong> Пользователь может выгрузить свои данные.
-          </li>
-        </ul>
-      </section>
-
-      <footer className="border-t border-black/10 pt-6">
-        <p className="text-sm text-[color:var(--fg)]/70">
-          Это краткая выжимка. Подробную спецификацию опубликуем после внутренней ревизии.
-        </p>
-      </footer>
-    </main>
+        <section className="relative w-full border-t border-black/10 py-12 md:py-20" aria-labelledby="closing-title">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 id="closing-title" className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+              Вопросы по безопасности
+            </h2>
+            <p className="mx-auto mt-4 max-w-prose text-[color:var(--muted)] md:text-lg">
+              Напишите нам:{" "}
+              <a
+                href="mailto:hello@echoproject.space"
+                className="underline decoration-black/30 underline-offset-4 hover:decoration-black/60"
+              >
+                hello@echoproject.space
+              </a>
+              . Отвечаем по делу и без тумана.
+            </p>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }
