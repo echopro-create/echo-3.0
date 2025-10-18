@@ -1,187 +1,283 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Header } from "@/components/header";
+import { StatusBadge } from "@/components/messages/status-badge";
+import { cancelMessage, rescheduleMessage } from "./actions";
 
-type Attachment = { path: string; name: string; size: number; type: string };
+export const dynamic = "force-dynamic";
 
-type Row = {
+type MessageRow = {
   id: string;
-  title: string | null;
-  status: "draft" | "scheduled" | "sent";
-  mode: "date" | "event" | "pulse";
-  deliver_at: string | null; // ISO
-  created_at: string | null;
-  content: { attachments?: Attachment[] } | null;
+  user_id: string;
+  kind: "text" | "voice" | "video" | "file";
+  body_text: string | null;
+  trigger_kind: "datetime" | "event" | "afterlife";
+  send_at: string | null;
+  event_code: string | null;
+  afterlife_ack: boolean | null;
+  status: "draft" | "scheduled" | "sent" | "canceled";
+  created_at: string;
+  updated_at: string;
 };
 
-function statusLabel(s: Row["status"]) {
-  switch (s) {
-    case "draft":
-      return "Черновик";
-    case "scheduled":
-      return "Запланировано";
-    case "sent":
-      return "Отправлено";
-  }
-}
+type RecipientRow = { email: string };
+type AttachmentRow = { path: string; mime: string | null; bytes: number };
 
-function modeLabel(m: Row["mode"]) {
-  switch (m) {
-    case "date":
-      return "По дате";
-    case "event":
-      return "По событию";
-    case "pulse":
-      return "По «пульсу»";
-  }
-}
+const fmtRu = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
-function fmtUTC(iso: string | null) {
-  if (!iso) return "—";
+function fmt(dt: string | null) {
+  if (!dt) return "—";
   try {
-    const d = new Date(iso);
-    return (
-      new Intl.DateTimeFormat("ru-RU", {
-        year: "numeric",
-        month: "long",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "UTC",
-        hour12: false,
-      }).format(d) + " UTC"
-    );
+    return fmtRu.format(new Date(dt));
   } catch {
-    return iso;
+    return dt;
   }
 }
 
-function fmtSize(bytes: number) {
-  if (!Number.isFinite(bytes)) return "—";
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 1) return `${mb.toFixed(1)} MB`;
-  const kb = bytes / 1024;
-  return `${kb.toFixed(0)} KB`;
-}
-
-export default async function MessageViewPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function MessageViewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
-  const { data, error } = await supabase
+  // Грузим саму запись
+  const { data: msg, error: mErr } = await supabase
     .from("messages")
-    .select("id, title, status, mode, deliver_at, created_at, content")
+    .select(
+      "id, user_id, kind, body_text, trigger_kind, send_at, event_code, afterlife_ack, status, created_at, updated_at"
+    )
     .eq("id", id)
-    .maybeSingle<Row>();
+    .limit(1)
+    .maybeSingle<MessageRow>();
 
-  if (error) notFound();
-  if (!data) notFound();
-
-  const title = data.title?.trim() || "Без названия";
-  const attachments = data.content?.attachments ?? [];
-
-  // Подписываем URL для скачивания (час жизни, хватит всем, даже перфекционистам)
-  const signed: Array<Attachment & { url: string | null }> = [];
-  for (const att of attachments) {
-    const { data: signedUrl, error: signErr } = await supabase.storage
-      .from("attachments")
-      .createSignedUrl(att.path, 60 * 60);
-    signed.push({ ...att, url: signErr ? null : signedUrl?.signedUrl ?? null });
+  if (mErr) {
+    throw new Error(`Не удалось загрузить послание: ${mErr.message}`);
+  }
+  if (!msg) {
+    redirect("/messages");
+  }
+  if (msg.user_id !== user.id) {
+    // RLS и так не отдаст, но на всякий случай
+    redirect("/messages");
   }
 
+  // Получатели
+  const { data: recips } = await supabase
+    .from("message_recipients")
+    .select("email")
+    .eq("message_id", id)
+    .returns<RecipientRow[]>();
+
+  // Вложения
+  const { data: atts } = await supabase
+    .from("attachments")
+    .select("path,mime,bytes")
+    .eq("message_id", id)
+    .returns<AttachmentRow[]>();
+
+  // Генерим краткоживущие ссылки на скачивание (если есть вложения)
+  // Пути в БД полного вида: attachments/{user_id}/{message_id}/filename
+  // В бакет отправляем без "attachments/".
+  const signed: Array<{ name: string; url: string; bytes: number }> = [];
+  if (atts && atts.length > 0) {
+    for (const a of atts.slice(0, 10)) {
+      const relPath = a.path.replace(/^attachments\//, "");
+      const signedRes = await supabase.storage
+        .from("attachments")
+        .createSignedUrl(relPath, 600); // 10 минут
+      if (signedRes.data?.signedUrl) {
+        const name = relPath.split("/").slice(-1)[0] || "file";
+        signed.push({ name, url: signedRes.data.signedUrl, bytes: Number(a.bytes || 0) });
+      }
+    }
+  }
+
+  const canReschedule =
+    msg.trigger_kind === "datetime" &&
+    msg.status === "scheduled" &&
+    msg.send_at !== null;
+
+  const canCancel = msg.status === "scheduled";
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
-      {/* Заголовок + статус */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="break-words text-2xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm opacity-70">#{data.id}</p>
+    <>
+      <Header />
+      <main id="main" className="mx-auto max-w-3xl px-4 py-12">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]">
+            Послание
+          </h1>
+          <Link
+            href="/messages"
+            className="inline-flex items-center rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm transition hover:bg-black/[0.03]"
+          >
+            ← К списку
+          </Link>
         </div>
-        <span
-          className="inline-flex items-center rounded-full px-2 py-1 text-[11px] uppercase tracking-wider ring-1 ring-[color:var(--fg)]/20 opacity-80"
-          aria-label={`Статус: ${statusLabel(data.status)}`}
-        >
-          {statusLabel(data.status)}
-        </span>
-      </div>
 
-      {/* Карточка свойств */}
-      <section className="rounded-2xl border border-[var(--ring)] bg-[var(--card)] p-5 shadow-sm">
-        <dl className="grid gap-4">
-          <div className="grid grid-cols-3 items-baseline gap-3">
-            <dt className="text-sm opacity-70">Создано</dt>
-            <dd className="col-span-2 text-sm">{fmtUTC(data.created_at)}</dd>
-          </div>
+        {/* Шапка с метаданными */}
+        <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
+          <dl className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
+            <div>
+              <dt className="text-[color:var(--muted)]">ID</dt>
+              <dd className="mt-1 font-mono text-xs text-[color:var(--muted)]">{msg.id}</dd>
+            </div>
+            <div>
+              <dt className="text-[color:var(--muted)]">Статус</dt>
+              <dd className="mt-1">
+                <StatusBadge status={msg.status} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[color:var(--muted)]">Формат</dt>
+              <dd className="mt-1 text-[color:var(--fg)]">
+                {msg.kind === "text"
+                  ? "Текст"
+                  : msg.kind === "voice"
+                  ? "Голос"
+                  : msg.kind === "video"
+                  ? "Видео"
+                  : "Файл"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[color:var(--muted)]">Триггер</dt>
+              <dd className="mt-1 text-[color:var(--fg)]">
+                {msg.trigger_kind === "datetime"
+                  ? "По времени"
+                  : msg.trigger_kind === "event"
+                  ? "По событию"
+                  : "После моей смерти"}
+              </dd>
+            </div>
 
-          <div className="grid grid-cols-3 items-baseline gap-3">
-            <dt className="text-sm opacity-70">Режим доставки</dt>
-            <dd className="col-span-2 text-sm">{modeLabel(data.mode)}</dd>
-          </div>
+            <div>
+              <dt className="text-[color:var(--muted)]">Отправка</dt>
+              <dd className="mt-1 text-[color:var(--fg)]">{fmt(msg.send_at)}</dd>
+            </div>
 
-          <div className="grid grid-cols-3 items-baseline gap-3">
-            <dt className="text-sm opacity-70">Доставить</dt>
-            <dd className="col-span-2 text-sm">{fmtUTC(data.deliver_at)}</dd>
-          </div>
-        </dl>
+            {msg.trigger_kind === "event" && (
+              <div>
+                <dt className="text-[color:var(--muted)]">Событие/код</dt>
+                <dd className="mt-1 text-[color:var(--fg)]">{msg.event_code || "—"}</dd>
+              </div>
+            )}
 
-        {/* Вложенные файлы */}
-        <div className="mt-5 h-px w-full bg-[var(--ring)]" />
-        <div className="mt-4">
-          <h3 className="mb-2 text-base font-medium">Вложения</h3>
-          {signed.length === 0 ? (
-            <p className="text-sm opacity-70">Нет вложений.</p>
-          ) : (
-            <ul className="space-y-2">
-              {signed.map((f) => (
-                <li
-                  key={f.path}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--ring)] px-3 py-2 text-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate">{f.name}</div>
-                    <div className="text-xs opacity-60">
-                      {f.type || "application/octet-stream"} · {fmtSize(f.size)}
-                    </div>
+            {msg.trigger_kind === "afterlife" && (
+              <div>
+                <dt className="text-[color:var(--muted)]">Подтверждение</dt>
+                <dd className="mt-1 text-[color:var(--fg)]">
+                  {msg.afterlife_ack ? "Получено" : "—"}
+                </dd>
+              </div>
+            )}
+
+            <div className="md:col-span-2">
+              <dt className="text-[color:var(--muted)]">Получатели</dt>
+              <dd className="mt-1 text-[color:var(--fg)]">
+                {recips && recips.length > 0
+                  ? recips.map((r) => r.email).join(", ")
+                  : "—"}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        {/* Контент */}
+        <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">Содержимое</h2>
+          {msg.kind === "text" ? (
+            <div className="mt-3 whitespace-pre-wrap rounded-lg border border-black/10 bg-black/[0.03] p-3 text-sm">
+              {msg.body_text || "—"}
+            </div>
+          ) : signed.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm">
+              {signed.map((f, i) => (
+                <li key={i} className="flex items-center justify-between gap-3">
+                  <div className="truncate">
+                    <span className="font-medium">{f.name}</span>{" "}
+                    <span className="text-[color:var(--muted)]">
+                      ({(f.bytes / (1024 * 1024)).toFixed(1)} МБ)
+                    </span>
                   </div>
-                  {f.url ? (
-                    <a
-                      href={f.url}
-                      download
-                      className="inline-flex h-9 items-center rounded-lg px-3 text-xs font-medium ring-1 ring-[color:var(--fg)]/20 hover:bg-[color:var(--fg)]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                    >
-                      Скачать
-                    </a>
-                  ) : (
-                    <span className="text-xs text-red-600">Нет доступа</span>
-                  )}
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs transition hover:bg-black/[0.03]"
+                  >
+                    Скачать
+                  </a>
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="mt-3 text-sm text-[color:var(--muted)]">Вложений нет.</p>
           )}
-        </div>
+        </section>
 
-        <div className="mt-5 h-px w-full bg-[var(--ring)]" />
+        {/* Действия: перепланировать / отменить */}
+        <section className="mt-6 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5">
+          <h2 className="text-base font-semibold text-[color:var(--fg)]">Действия</h2>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href={`/messages/${data.id}/edit`}
-            className="inline-flex h-10 items-center rounded-xl px-4 text-sm font-medium ring-1 ring-[color:var(--fg)]/20 hover:bg-[color:var(--fg)]/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
-            Редактировать
-          </Link>
-          <Link
-            href="/messages"
-            className="inline-flex h-10 items-center rounded-xl px-4 text-sm font-medium underline underline-offset-4 opacity-90 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-          >
-            ← Вернуться к списку
-          </Link>
-        </div>
-      </section>
-    </main>
+          <div className="mt-4 flex flex-wrap items-end gap-3">
+            {canReschedule && (
+              <form action={rescheduleMessage} className="flex items-end gap-2">
+                <input type="hidden" name="id" value={msg.id} />
+                <label className="text-sm">
+                  <span className="block text-[color:var(--muted)]">Новая дата и время</span>
+                  <input
+                    type="datetime-local"
+                    name="send_at"
+                    required
+                    className="mt-1 w-full rounded-lg border border-black/10 bg-white/90 px-3 py-2 text-sm outline-none focus:border-black/20"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="rounded-lg border border-black/10 bg-black px-3 py-2 text-sm text-white transition hover:bg-black/90"
+                >
+                  Перепланировать
+                </button>
+              </form>
+            )}
+
+            {canCancel && (
+              <form action={cancelMessage}>
+                <input type="hidden" name="id" value={msg.id} />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-red-700 transition hover:bg-red-50"
+                  title="Отменить отправку"
+                >
+                  Отменить
+                </button>
+              </form>
+            )}
+          </div>
+
+          {!canReschedule && !canCancel && (
+            <p className="text-sm text-[color:var(--muted)] mt-2">
+              Для «черновиков» и «отправленных» действий нет. Что сделано, то сделано.
+            </p>
+          )}
+        </section>
+      </main>
+    </>
   );
 }
