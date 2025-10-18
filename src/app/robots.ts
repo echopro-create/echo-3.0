@@ -5,12 +5,17 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
+      // ГЛОБАЛЬНАЯ ЗАГЛУШКА ДО РЕЛИЗА
+      // Чтобы открыть сайт, просто заменим disallow: ["/"] на allow: ["/"] и удалим этот блок.
       {
         userAgent: "*",
-        disallow: ["/"], // закрыть вообще всё
+        disallow: ["/"],
       },
+      // Дублируем для популярных ботов, хотя звёздочка и так всё накрывает.
+      { userAgent: "Googlebot", disallow: ["/"] },
+      { userAgent: "bingbot", disallow: ["/"] }
     ],
-    sitemap: `${base}/sitemap.xml`,
     host: base,
+    sitemap: `${base}/sitemap.xml`,
   };
 }
