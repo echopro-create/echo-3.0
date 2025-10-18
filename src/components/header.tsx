@@ -16,7 +16,7 @@ export async function Header() {
       className="relative sticky top-0 z-40 w-full border-b border-black/5 bg-[color:var(--bg)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/70"
       role="banner"
     >
-      {/* Sкiр linк для клавиатуры и скринридеров */}
+      {/* Skip link для клавиатуры и скринридеров */}
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-[color:var(--fg)] focus:px-3 focus:py-2 focus:text-[color:var(--bg)] focus:shadow-sm"
@@ -30,7 +30,7 @@ export async function Header() {
           href="/"
           rel="home"
           className="flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg)]"
-          aria-label="Есhо — главная"
+          aria-label="Echo — главная"
         >
           {/* логомарк */}
           <svg

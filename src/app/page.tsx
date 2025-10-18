@@ -12,7 +12,7 @@ export default function Home() {
       <Header />
       <main
         id="main"
-        className="relative mx-auto max-w-6xl px-4"
+        className="relative mx-auto max-w-7xl px-4 md:px-6"
         role="main"
         aria-label="Главная область"
       >
@@ -29,7 +29,7 @@ export default function Home() {
           >
             {/* Сетка точек */}
             <div
-              className="absolute inset-0 opacity-[0.08]"
+              className="absolute inset-0 opacity-[0.06]"
               style={{
                 backgroundImage:
                   "radial-gradient(currentColor 1px, transparent 1px)",
@@ -41,7 +41,7 @@ export default function Home() {
             />
             {/* Большая орбита */}
             <div
-              className="absolute left-1/2 top-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.06]"
+              className="absolute left-1/2 top-1/2 h-[78vmin] w-[78vmin] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.05]"
               style={{
                 background:
                   "conic-gradient(from 0deg at 50% 50%, currentColor, transparent 35%, transparent 65%, currentColor)",
@@ -62,8 +62,8 @@ export default function Home() {
               }}
             />
             {/* Параллакс-вспышки — на CSS scroll-timeline */}
-            <div className="parallax-up absolute -top-28 -left-24 h-72 w-72 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
-            <div className="parallax-down absolute -bottom-28 -right-24 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
+            <div className="parallax-up absolute -top-28 -left-24 h-72 w-72 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
+            <div className="parallax-down absolute -bottom-28 -right-24 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.04] blur-3xl will-change-transform" />
           </div>
 
           {/* Контейнер HERO */}
@@ -79,12 +79,12 @@ export default function Home() {
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
-                className="mt-6 text-[clamp(40px,7vw,76px)] leading-[1.02] tracking-tight text-[color:var(--fg)]"
+                className="mt-6 text-[clamp(42px,7vw,78px)] leading-[1.02] tracking-tight text-[color:var(--fg)]"
                 style={{
                   fontVariationSettings: "'wght' 650, 'wdth' 92",
                 }}
               >
-                Послания, которые будут доставлены&nbsp;
+                Послания, которые приходят&nbsp;
                 <span
                   className="inline-block"
                   style={{
@@ -92,7 +92,7 @@ export default function Home() {
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  после нас
+                  в нужный момент
                 </span>
                 .
               </h1>
@@ -103,9 +103,9 @@ export default function Home() {
                 className="mt-6 mx-auto max-w-prose text-base leading-relaxed text-[color:var(--muted)] md:text-lg"
                 aria-describedby="hero-title"
               >
-                Echo хранит текст, голос, видео и файлы и доставляет их по дате,
-                событию или «после моей смерти». Мы шифруем, бережно храним и
-                отправляем вовремя.
+                Echo хранит текст, голос, видео и файлы и доставляет их по дате
+                и событию, в том числе как часть цифрового наследия. Мы
+                шифруем, бережно храним и отправляем вовремя.
               </p>
             </Reveal>
 
@@ -126,15 +126,13 @@ export default function Home() {
           <style>{`
             @keyframes spin-slow { to { transform: rotate(360deg); } }
             @keyframes pulse-soft {
-              0%,100% { transform: scale(0.98); opacity: .06; }
-              50% { transform: scale(1.02); opacity: .10; }
+              0%,100% { transform: scale(0.985); opacity: .06; }
+              50% { transform: scale(1.015); opacity: .10; }
             }
 
-            /* Fallback: без scroll-timeline элементы статичны */
             .parallax-up   { transform: translateY(0); }
             .parallax-down { transform: translateY(0); }
 
-            /* Привязываем анимацию к прокрутке, если браузер умеет */
             @supports (animation-timeline: scroll()) {
               :root {
                 scroll-timeline-name: --page;
@@ -160,7 +158,7 @@ export default function Home() {
           `}</style>
         </section>
 
-        {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
+        {/* FEATURE STRIP — 3 ключевых тезиса */}
         <section
           className="relative w-full border-t border-black/10 py-12 md:py-16"
           aria-labelledby="highlights-title"
@@ -201,7 +199,7 @@ export default function Home() {
               },
               {
                 title: "Доставка по событию и времени",
-                desc: "Дата, событие или «после моей смерти». Изменяйте в любой момент.",
+                desc: "Дата и триггеры. Изменяйте в любой момент.",
                 icon: (
                   <svg
                     width="20"
@@ -227,7 +225,7 @@ export default function Home() {
               },
               {
                 title: "Приватность по умолчанию",
-                desc: "Минимум метаданных, шифрование, управление доступом.",
+                desc: "Минимум метаданных, шифрование, контроль доступа.",
                 icon: (
                   <svg
                     width="20"
@@ -361,8 +359,8 @@ export default function Home() {
                   <h3 className="text-base font-semibold">Выберите триггер</h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
-                  Дата, событие или «после моей смерти». Всегда можно изменить
-                  или отменить.
+                  Дата, событие или сценарий наследия. Всегда можно изменить или
+                  отменить.
                 </p>
               </Reveal>
 
@@ -390,7 +388,9 @@ export default function Home() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  <h3 className="text-base font-semibold">Мы доставим вовремя</h3>
+                  <h3 className="text-base font-semibold">
+                    Мы доставим вовремя
+                  </h3>
                 </header>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--muted)]">
                   Шифруем, бережно храним, отправляем по условиям. Уведомления и
@@ -466,7 +466,7 @@ export default function Home() {
                 id="cta-end"
                 className="text-2xl md:text-3xl font-semibold tracking-tight text-[color:var(--fg)]"
               >
-                Готовы подготовить послание
+                Готовы подготовить послание?
               </h2>
             </Reveal>
             <Reveal as="p" delay={120}>
