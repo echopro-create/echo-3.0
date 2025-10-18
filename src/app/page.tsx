@@ -3,9 +3,6 @@ import { CTA } from "@/components/cta";
 import { TestimonialsSection } from "@/components/sections/testimonials";
 import { FAQSection } from "@/components/sections/faq";
 import { Reveal } from "@/components/reveal";
-import type { CSSProperties } from "react";
-
-type StyleWithVars = CSSProperties & { ["--parallax-y"]?: string };
 
 export default function Home() {
   return (
@@ -17,13 +14,13 @@ export default function Home() {
         role="main"
         aria-label="Главная область"
       >
-        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс без JS */}
+        {/* HERO — web 3.0: variable font + орбиты + мягкий параллакс БЕЗ JS */}
         <section
           className="relative w-full py-24 md:py-36"
           aria-labelledby="hero-title"
           role="region"
         >
-          {/* Декоративный слой: орбиты и сетка точек. Никаких радуг. */}
+          {/* Декоративный слой: орбиты и сетка точек */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
             {/* Сетка точек */}
             <div
@@ -59,16 +56,13 @@ export default function Home() {
                 filter: "blur(6px)",
               }}
             />
-            {/* Параллакс-вспышки */}
-            <div className="absolute -top-28 -left-24 h-72 w-72 translate-y-[var(--parallax-y,0px)] rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
-            <div className="absolute -bottom-28 -right-24 h-96 w-96 translate-y-[calc(var(--parallax-y,0px)*-1)] rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
+            {/* Параллакс-вспышки — теперь на CSS scroll-timeline */}
+            <div className="parallax-up absolute -top-28 -left-24 h-72 w-72 rounded-full bg-[color:var(--fg)]/[0.06] blur-3xl will-change-transform" />
+            <div className="parallax-down absolute -bottom-28 -right-24 h-96 w-96 rounded-full bg-[color:var(--fg)]/[0.05] blur-3xl will-change-transform" />
           </div>
 
           {/* Контейнер HERO */}
-          <div
-            className="mx-auto max-w-3xl text-left md:text-center"
-            style={{ ["--parallax-y"]: "0px" } as StyleWithVars}
-          >
+          <div className="mx-auto max-w-3xl text-left md:text-center">
             <Reveal as="div" delay={60}>
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-[color:var(--fg)]/70 md:mx-auto">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--fg)]/70" />
@@ -76,7 +70,7 @@ export default function Home() {
               </div>
             </Reveal>
 
-            {/* Заголовок с variable-font эффектом ширины и веса */}
+            {/* Заголовок с variable-font акцентом */}
             <Reveal as="h1" delay={120}>
               <h1
                 id="hero-title"
@@ -122,38 +116,42 @@ export default function Home() {
             </Reveal>
           </div>
 
-          {/* Встроенные ключевые кадры и предпочтения по анимациям */}
+          {/* Ключевые кадры и scroll-timeline. Без JS, уважает prefers-reduced-motion */}
           <style>{`
             @keyframes spin-slow { to { transform: rotate(360deg); } }
             @keyframes pulse-soft {
               0%,100% { transform: scale(0.98); opacity: .06; }
               50% { transform: scale(1.02); opacity: .10; }
             }
+
+            /* Fallback: без scroll-timeline элементов остаётся статичный вид */
+            .parallax-up   { transform: translateY(0); }
+            .parallax-down { transform: translateY(0); }
+
+            /* Привязываем анимацию к прокрутке, если браузер умеет */
+            @supports (animation-timeline: scroll()) {
+              :root {
+                scroll-timeline-name: --page;
+                scroll-timeline-axis: block;
+              }
+              .parallax-up {
+                animation: parallax-up 1s linear both;
+                animation-timeline: --page;
+                animation-range: 0 80vh;
+              }
+              .parallax-down {
+                animation: parallax-down 1s linear both;
+                animation-timeline: --page;
+                animation-range: 0 80vh;
+              }
+              @keyframes parallax-up   { from { transform: translateY(0); } to { transform: translateY(32px); } }
+              @keyframes parallax-down { from { transform: translateY(0); } to { transform: translateY(-48px); } }
+            }
+
             @media (prefers-reduced-motion: reduce) {
-              [aria-labelledby="hero-title"] div[aria-hidden="true"] * { animation: none !important; }
+              [aria-labelledby="hero-title"] * { animation: none !important; }
             }
           `}</style>
-
-          {/* Прогрессивный параллакс без фреймворков (отключается при reduce) */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-              try{
-                const sec=document.currentScript?.parentElement;
-                const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                if(sec && !prefersReduced){
-                  const cont=sec.querySelector('[style*="--parallax-y"]');
-                  const onScroll=()=>{
-                    const r=sec.getBoundingClientRect();
-                    const y=Math.max(-40, Math.min(40, (window.innerHeight/2 - (r.top + r.height/2))*0.06));
-                    if(cont) cont.style.setProperty('--parallax-y', y.toFixed(2)+'px');
-                  };
-                  onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
-                }
-              }catch(e){}
-            `,
-            }}
-          />
         </section>
 
         {/* FEATURE STRIP — 3 ключевых тезиса, скролл-каскад */}
@@ -291,7 +289,7 @@ export default function Home() {
               <Reveal
                 as="article"
                 delay={320}
-                className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
+                className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-бlur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
