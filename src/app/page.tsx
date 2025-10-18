@@ -3,6 +3,8 @@ import { CTA } from "@/components/cta";
 import { TestimonialsSection } from "@/components/sections/testimonials";
 import { FAQSection } from "@/components/sections/faq";
 import { Reveal } from "@/components/reveal";
+import { FormatsSection } from "@/components/sections/formats";
+import { DeliverySection } from "@/components/sections/delivery";
 
 export default function Home() {
   return (
@@ -191,7 +193,7 @@ export default function Home() {
                 icon: (
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                     <rect x="5" y="10" width="14" height="9" rx="2" fill="currentColor" opacity="0.08" />
-                    <path d="M8 10V8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M8 10В8a4 4 0 118 0v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                   </svg>
                 ),
               },
@@ -211,6 +213,10 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Новые секции из старой версии */}
+        <FormatsSection />
+        <DeliverySection />
 
         {/* HOW (Bento) — белые поверхности, reveal по колонкам */}
         <section
@@ -243,7 +249,7 @@ export default function Home() {
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M4 20c5-1 9-5 13-9l3-3-1-1-3 3c-4 4-8 8-12 9z" fill="currentColor" opacity="0.12" />
-                    <path d="M4 20c5-1 9-5 13-9l3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="М4 20c5-1 9-5 13-9l3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                   </svg>
                   <h3 className="text-base font-semibold">Создайте послание</h3>
                 </header>
@@ -289,7 +295,7 @@ export default function Home() {
               <Reveal
                 as="article"
                 delay={320}
-                className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-бlur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
+                className="relative col-span-6 overflow-hidden rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm transition hover:shadow-md hover:ring-black/10 md:col-span-2"
               >
                 <header className="flex items-center gap-3 text-[color:var(--fg)]">
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
